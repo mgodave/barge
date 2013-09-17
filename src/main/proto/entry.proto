@@ -1,0 +1,7 @@
+option java_package = "org.robotninjas.barge.rpc";
+option java_outer_classname = "RaftEntry";
+
+message Entry {
+	required int64 term = 1;
+	required bytes command = 2;
+}

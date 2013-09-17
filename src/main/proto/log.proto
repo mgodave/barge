@@ -1,0 +1,26 @@
+option java_package = "org.robotninjas.raft.log";
+
+option java_outer_classname = "LogProto";
+
+import "entry.proto";
+
+message Append {
+	required int64 index = 1;
+	required Entry entry = 2;
+}
+
+message Membership {
+	required int64 index = 1;
+	required int64 term = 2;
+	repeated string members = 3;
+}
+
+message JournalEntry {
+	enum Type {
+		APPEND = 1;
+		MEMBERSHIP = 2;
+	}
+	required Type type = 1;
+	optional Append append = 2;
+	optional Membership membership = 3;
+}

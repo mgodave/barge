@@ -1,0 +1,31 @@
+option java_package = "org.robotninjas.barge.rpc";
+option java_generic_services = true;
+option java_outer_classname = "ClientProto";
+
+import "entry.proto";
+
+message CommitOperation {
+	required string client_id = 1;
+	required int64 sequence = 2;
+	required bytes op = 3;
+}
+
+message CommitOperationResponse {
+
+	message Response {
+		required int64 index = 1;
+		required int64 term = 2;
+	}
+
+	message Error {
+		required string reason = 1;
+	}
+
+	optional Response response = 2;
+	optional Error error = 4;
+
+}
+
+service ClientService {
+	rpc commitOperation (CommitOperation) returns (CommitOperationResponse);
+}
