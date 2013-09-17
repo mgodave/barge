@@ -16,13 +16,11 @@
 
 package org.robotninjas.barge;
 
-import com.google.common.util.concurrent.AbstractService;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.*;
 import com.google.protobuf.RpcCallback;
 import com.google.protobuf.RpcController;
 import com.google.protobuf.Service;
+import org.robotninjas.barge.annotations.RaftExecutor;
 import org.robotninjas.protobuf.netty.server.RpcServer;
 import org.robotninjas.barge.rpc.ClientProto;
 import org.robotninjas.barge.rpc.RaftProto;
@@ -33,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 import static org.robotninjas.barge.rpc.ClientProto.CommitOperation;
@@ -46,11 +45,13 @@ public class DefaultRaftService extends AbstractService
 
   private final RpcServer rpcServer;
   private final Context ctx;
+  private final ListeningExecutorService executor;
 
   @Inject
-  DefaultRaftService(RpcServer rpcServer, Context ctx) {
+  DefaultRaftService(RpcServer rpcServer, Context ctx, @RaftExecutor ListeningExecutorService executor) {
     this.rpcServer = rpcServer;
     this.ctx = ctx;
+    this.executor = executor;
   }
 
   @Override
@@ -104,7 +105,15 @@ public class DefaultRaftService extends AbstractService
   }
 
   public synchronized ListenableFuture<CommitOperationResponse> commitOperationAsync(CommitOperation request) {
-    return Futures.immediateFailedFuture(new Exception("Not implemented"));
+    // Run the operation on the raft thread
+    ListenableFuture<ListenableFuture<CommitOperationResponse>> response =
+      executor.submit(new Callable<ListenableFuture<CommitOperationResponse>>() {
+      @Override
+      public ListenableFuture<CommitOperationResponse> call() throws Exception {
+        return Futures.immediateFailedFuture(new Exception("Not Implemented"));
+      }
+    });
+    return Futures.dereference(response);
   }
 
   @Override
