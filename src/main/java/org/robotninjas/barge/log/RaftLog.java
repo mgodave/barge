@@ -31,4 +31,6 @@ public interface RaftLog {
 
   long lastLogTerm();
 
+  long commitIndex();
+
 }

@@ -182,7 +182,7 @@ public class Candidate implements State {
   }
 
   @Immutable
-  static class IsElectedFunction implements Function<Integer, Boolean> {
+  static final class IsElectedFunction implements Function<Integer, Boolean> {
 
     private final int membershipCount;
 

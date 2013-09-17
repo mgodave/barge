@@ -69,7 +69,4 @@ public class RaftContext {
     return self;
   }
 
-  public long commitIndex() {
-    return commitIndex;
-  }
 }

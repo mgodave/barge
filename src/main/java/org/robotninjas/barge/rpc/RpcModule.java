@@ -24,10 +24,10 @@ import com.google.inject.PrivateModule;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
-import org.robotninjas.protobuf.netty.client.RpcClient;
-import org.robotninjas.protobuf.netty.server.RpcServer;
 import org.robotninjas.barge.annotations.RaftExecutor;
 import org.robotninjas.barge.annotations.RaftScheduler;
+import org.robotninjas.protobuf.netty.client.RpcClient;
+import org.robotninjas.protobuf.netty.server.RpcServer;
 
 import java.net.SocketAddress;
 import java.util.concurrent.ScheduledExecutorService;

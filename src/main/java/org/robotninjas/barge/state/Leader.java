@@ -18,12 +18,16 @@ package org.robotninjas.barge.state;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.annotations.ElectionTimeout;
 import org.robotninjas.barge.annotations.RaftScheduler;
 import org.robotninjas.barge.context.RaftContext;
+import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.rpc.RaftClient;
 import org.robotninjas.barge.rpc.RpcClientProvider;
 import org.slf4j.Logger;
@@ -31,9 +35,12 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static com.google.common.util.concurrent.MoreExecutors.sameThreadExecutor;
 import static org.robotninjas.barge.rpc.RaftProto.*;
 import static org.robotninjas.barge.state.Context.StateType.FOLLOWER;
 
@@ -45,10 +52,10 @@ public class Leader implements State {
   private final ScheduledExecutorService scheduler;
   private final long timeout;
   private final RpcClientProvider clientProvider;
+  private final Map<Replica, ReplicaManager> managers = Maps.newHashMap();
 
   @Inject
-  Leader(RaftContext rctx, @RaftScheduler ScheduledExecutorService scheduler, @ElectionTimeout long timeout,
-         RpcClientProvider clientProvider) {
+  Leader(RaftContext rctx, @RaftScheduler ScheduledExecutorService scheduler, @ElectionTimeout long timeout, RpcClientProvider clientProvider) {
     this.rctx = rctx;
     this.scheduler = scheduler;
     this.timeout = timeout;
@@ -57,6 +64,17 @@ public class Leader implements State {
 
   @Override
   public void init(Context ctx) {
+
+    RaftLog log = rctx.log();
+    long nextIndex = log.lastLogIndex() + 1;
+    long term = rctx.term();
+    Replica self = rctx.self();
+
+    for (Replica replica : rctx.log().members()) {
+      RaftClient client = clientProvider.get(replica);
+      managers.put(replica, new ReplicaManager(client, log, term, nextIndex, self));
+    }
+
     scheduler.scheduleAtFixedRate(new Runnable() {
       @Override
       public void run() {
@@ -64,6 +82,7 @@ public class Leader implements State {
         sendRequests();
       }
     }, 0, timeout, TimeUnit.MILLISECONDS);
+
   }
 
   @Override
@@ -79,8 +98,7 @@ public class Leader implements State {
       ctx.setState(FOLLOWER);
 
       Replica candidate = Replica.fromString(request.getCandidateId());
-      voteGranted = !rctx.votedFor().isPresent()
-        || candidate.equals(rctx.votedFor().get());
+      voteGranted = Voting.shouldVoteFor(rctx, request);
 
       if (voteGranted) {
         rctx.votedFor(Optional.of(candidate));
@@ -116,19 +134,103 @@ public class Leader implements State {
   @VisibleForTesting
   List<ListenableFuture<AppendEntriesResponse>> sendRequests() {
     List<ListenableFuture<AppendEntriesResponse>> responses = Lists.newArrayList();
-    for (Replica replica : rctx.log().members()) {
-      RaftClient client = clientProvider.get(replica);
-      AppendEntries request =
-        AppendEntries.newBuilder()
-        .setCommitIndex(rctx.commitIndex())
-        .setPrevLogIndex(rctx.log().lastLogIndex())
-        .setPrevLogTerm(rctx.log().lastLogTerm())
-        .setLeaderId(rctx.self().toString())
-        .setTerm(rctx.term())
-        .build();
-      responses.add(client.appendEntries(request));
+    for (ReplicaManager replicaManager : managers.values()) {
+      responses.add(replicaManager.fireUpdate());
     }
     return responses;
   }
+
+  static final class ReplicaManager {
+
+    private final RaftClient client;
+    private final RaftLog log;
+    private final long term;
+    private final Replica self;
+    private long nextIndex;
+    private boolean running = false;
+    private boolean requested = false;
+    private SettableFuture<AppendEntriesResponse> returnable = SettableFuture.create();
+
+    ReplicaManager(RaftClient client, RaftLog log, long term, long nextIndex, Replica self) {
+      this.nextIndex = nextIndex;
+      this.term = term;
+      this.log = log;
+      this.client = client;
+      this.self = self;
+    }
+
+    void sendUpdate() {
+
+      running = true;
+
+      long prevLogTerm = 0;
+      long prevLogIndex = 0;
+
+      final AppendEntries request =
+        AppendEntries.newBuilder()
+          .setTerm(term)
+          .setLeaderId(self.toString())
+          .setPrevLogIndex(prevLogIndex)
+          .setPrevLogTerm(prevLogTerm)
+          .setCommitIndex(log.commitIndex())
+          .build();
+
+      final ListenableFuture<AppendEntriesResponse> response =
+        client.appendEntries(request);
+      response.addListener(new Runnable() {
+        @Override
+        public void run() {
+          update(request, response, returnable);
+        }
+      }, sameThreadExecutor());
+
+      returnable = SettableFuture.create();
+
+    }
+
+    void update(AppendEntries request, ListenableFuture<AppendEntriesResponse> f,
+                SettableFuture<AppendEntriesResponse> returnable) {
+
+      try {
+
+        AppendEntriesResponse response = f.get();
+
+        running = requested || !response.getSuccess();
+        requested = false;
+
+        if (response.getSuccess()) {
+          nextIndex += request.getEntriesCount();
+          returnable.set(response);
+        } else {
+          nextIndex -= 1;
+        }
+
+        if (running) {
+          sendUpdate();
+        }
+
+      } catch (InterruptedException e) {
+
+        Throwables.propagate(e);
+
+      } catch (ExecutionException e) {
+
+        returnable.setException(e);
+
+      }
+
+    }
+
+    public ListenableFuture<AppendEntriesResponse> fireUpdate() {
+      if (!running) {
+        sendUpdate();
+      } else {
+        requested = true;
+      }
+      return returnable;
+    }
+
+  }
+
 
 }
