@@ -519,8 +519,8 @@ public final class RaftEntry {
   static {
     java.lang.String[] descriptorData = {
       "\n\013entry.proto\"&\n\005Entry\022\014\n\004term\030\001 \002(\003\022\017\n\007" +
-      "command\030\002 \002(\014B\'\n\032org.robotninjas.barge." +
-      "rpcB\tRaftEntry"
+      "command\030\002 \002(\014B&\n\031org.robotninjas.barge.r" +
+      "pcB\tRaftEntry"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {

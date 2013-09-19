@@ -1,5 +1,6 @@
 package org.robotninjas.barge.state;
 
+import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import org.junit.Before;
@@ -13,6 +14,7 @@ import org.robotninjas.barge.rpc.RaftClient;
 import org.robotninjas.barge.rpc.RaftProto;
 import org.robotninjas.barge.rpc.RpcClientProvider;
 
+import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 
 import static junit.framework.Assert.*;
@@ -20,6 +22,8 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.robotninjas.barge.rpc.RaftProto.*;
+import static org.robotninjas.barge.state.Candidate.CountVotesFunction;
+import static org.robotninjas.barge.state.Candidate.IsElectedFunction;
 import static org.robotninjas.barge.state.Context.StateType.CANDIDATE;
 import static org.robotninjas.barge.state.Context.StateType.FOLLOWER;
 
@@ -176,38 +180,38 @@ public class CandidateTest {
 
   @Test
   public void testCheckElected() {
-//
-//    Function<Integer, Boolean> isElected;
-//
-//    isElected = Candidate.isElected(1);
-//    assertFalse(isElected.apply(0));
-//    assertTrue(isElected.apply(1));
-//
-//    isElected = Candidate.isElected(2);
-//    assertFalse(isElected.apply(0));
-//    assertFalse(isElected.apply(1));
-//    assertTrue(isElected.apply(2));
-//
-//    isElected = Candidate.isElected(3);
-//    assertFalse(isElected.apply(0));
-//    assertFalse(isElected.apply(1));
-//    assertTrue(isElected.apply(2));
-//    assertTrue(isElected.apply(3));
-//
-//    isElected = Candidate.isElected(4);
-//    assertFalse(isElected.apply(0));
-//    assertFalse(isElected.apply(1));
-//    assertFalse(isElected.apply(2));
-//    assertTrue(isElected.apply(3));
-//    assertTrue(isElected.apply(4));
-//
-//    isElected = Candidate.isElected(5);
-//    assertFalse(isElected.apply(0));
-//    assertFalse(isElected.apply(1));
-//    assertFalse(isElected.apply(2));
-//    assertTrue(isElected.apply(3));
-//    assertTrue(isElected.apply(4));
-//    assertTrue(isElected.apply(5));
+
+    Function<Integer, Boolean> isElected;
+
+    isElected = IsElectedFunction.isElected(1);
+    assertFalse(isElected.apply(0));
+    assertTrue(isElected.apply(1));
+
+    isElected = IsElectedFunction.isElected(2);
+    assertFalse(isElected.apply(0));
+    assertFalse(isElected.apply(1));
+    assertTrue(isElected.apply(2));
+
+    isElected = IsElectedFunction.isElected(3);
+    assertFalse(isElected.apply(0));
+    assertFalse(isElected.apply(1));
+    assertTrue(isElected.apply(2));
+    assertTrue(isElected.apply(3));
+
+    isElected = IsElectedFunction.isElected(4);
+    assertFalse(isElected.apply(0));
+    assertFalse(isElected.apply(1));
+    assertFalse(isElected.apply(2));
+    assertTrue(isElected.apply(3));
+    assertTrue(isElected.apply(4));
+
+    isElected = IsElectedFunction.isElected(5);
+    assertFalse(isElected.apply(0));
+    assertFalse(isElected.apply(1));
+    assertFalse(isElected.apply(2));
+    assertTrue(isElected.apply(3));
+    assertTrue(isElected.apply(4));
+    assertTrue(isElected.apply(5));
 
   }
 
@@ -220,25 +224,25 @@ public class CandidateTest {
 
   @Test
   public void testCountVotes() {
-//
-//    Function<List<RequestVoteResponse>, Integer> countVotes = Candidate.countVotes();
-//
-//    List<RequestVoteResponse> responses;
-//
-//    responses = Lists.newArrayList(rvr(true), rvr(true));
-//    assertEquals(new Integer(3), countVotes.apply(responses));
-//
-//    responses = Lists.newArrayList(rvr(false), rvr(false));
-//    assertEquals(new Integer(1), countVotes.apply(responses));
-//
-//    responses = Lists.newArrayList(null, null);
-//    assertEquals(new Integer(1), countVotes.apply(responses));
-//
-//    responses = Lists.newArrayList(null, rvr(true));
-//    assertEquals(new Integer(2), countVotes.apply(responses));
-//
-//    responses = Lists.newArrayList(null, rvr(false));
-//    assertEquals(new Integer(1), countVotes.apply(responses));
+
+    Function<List<RequestVoteResponse>, Integer> countVotes = CountVotesFunction.countVotes();
+
+    List<RequestVoteResponse> responses;
+
+    responses = Lists.newArrayList(rvr(true), rvr(true));
+    assertEquals(new Integer(3), countVotes.apply(responses));
+
+    responses = Lists.newArrayList(rvr(false), rvr(false));
+    assertEquals(new Integer(1), countVotes.apply(responses));
+
+    responses = Lists.newArrayList(null, null);
+    assertEquals(new Integer(1), countVotes.apply(responses));
+
+    responses = Lists.newArrayList(null, rvr(true));
+    assertEquals(new Integer(2), countVotes.apply(responses));
+
+    responses = Lists.newArrayList(null, rvr(false));
+    assertEquals(new Integer(1), countVotes.apply(responses));
   }
 
   RequestVote rv(long term, long index) {
@@ -250,9 +254,9 @@ public class CandidateTest {
       .build();
   }
 
-  @Test
-  public void testShouldVoteFor() {
-
+//  @Test
+//  public void testShouldVoteFor() {
+//
 //    RaftContext raftContext = new RaftContext(mockRaftLog, mockReplica);
 //
 //    assertFalse(Candidate.shouldVoteFor(raftContext, rv(1L, 1L)));
@@ -264,7 +268,7 @@ public class CandidateTest {
 //    assertFalse(Candidate.shouldVoteFor(raftContext, rv(0L, 2L)));
 //    assertFalse(Candidate.shouldVoteFor(raftContext, rv(0L, 0L)));
 //    assertFalse(Candidate.shouldVoteFor(raftContext, rv(0L, 1L)));
-
-  }
+//
+//  }
 
 }

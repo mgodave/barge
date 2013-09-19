@@ -1309,7 +1309,7 @@ public final class RaftProto {
     /**
      * <code>repeated .Entry entries = 6;</code>
      */
-    java.util.List<org.robotninjas.barge.rpc.RaftEntry.Entry>
+    java.util.List<org.robotninjas.barge.rpc.RaftEntry.Entry> 
         getEntriesList();
     /**
      * <code>repeated .Entry entries = 6;</code>
@@ -1322,7 +1322,7 @@ public final class RaftProto {
     /**
      * <code>repeated .Entry entries = 6;</code>
      */
-    java.util.List<? extends org.robotninjas.barge.rpc.RaftEntry.EntryOrBuilder>
+    java.util.List<? extends org.robotninjas.barge.rpc.RaftEntry.EntryOrBuilder> 
         getEntriesOrBuilderList();
     /**
      * <code>repeated .Entry entries = 6;</code>
@@ -1576,7 +1576,7 @@ public final class RaftProto {
     /**
      * <code>repeated .Entry entries = 6;</code>
      */
-    public java.util.List<? extends org.robotninjas.barge.rpc.RaftEntry.EntryOrBuilder>
+    public java.util.List<? extends org.robotninjas.barge.rpc.RaftEntry.EntryOrBuilder> 
         getEntriesOrBuilderList() {
       return entries_;
     }
@@ -2400,7 +2400,7 @@ public final class RaftProto {
       /**
        * <code>repeated .Entry entries = 6;</code>
        */
-      public java.util.List<? extends org.robotninjas.barge.rpc.RaftEntry.EntryOrBuilder>
+      public java.util.List<? extends org.robotninjas.barge.rpc.RaftEntry.EntryOrBuilder> 
            getEntriesOrBuilderList() {
         if (entriesBuilder_ != null) {
           return entriesBuilder_.getMessageOrBuilderList();
@@ -2426,12 +2426,12 @@ public final class RaftProto {
       /**
        * <code>repeated .Entry entries = 6;</code>
        */
-      public java.util.List<org.robotninjas.barge.rpc.RaftEntry.Entry.Builder>
+      public java.util.List<org.robotninjas.barge.rpc.RaftEntry.Entry.Builder> 
            getEntriesBuilderList() {
         return getEntriesFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          org.robotninjas.barge.rpc.RaftEntry.Entry, org.robotninjas.barge.rpc.RaftEntry.Entry.Builder, org.robotninjas.barge.rpc.RaftEntry.EntryOrBuilder>
+          org.robotninjas.barge.rpc.RaftEntry.Entry, org.robotninjas.barge.rpc.RaftEntry.Entry.Builder, org.robotninjas.barge.rpc.RaftEntry.EntryOrBuilder> 
           getEntriesFieldBuilder() {
         if (entriesBuilder_ == null) {
           entriesBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
@@ -2950,7 +2950,7 @@ public final class RaftProto {
   }
 
   /**
-   * Protobuf service {@code DefaultRaftService}
+   * Protobuf service {@code RaftService}
    */
   public static abstract class RaftService
       implements com.google.protobuf.Service {
@@ -3249,7 +3249,7 @@ public final class RaftProto {
 
     }
 
-    // @@protoc_insertion_point(class_scope:DefaultRaftService)
+    // @@protoc_insertion_point(class_scope:RaftService)
   }
 
   private static com.google.protobuf.Descriptors.Descriptor
@@ -3293,7 +3293,7 @@ public final class RaftProto {
       "\030\001 \002(\003\022\017\n\007success\030\002 \002(\0102y\n\013RaftService\0221",
       "\n\013requestVote\022\014.RequestVote\032\024.RequestVot" +
       "eResponse\0227\n\rappendEntries\022\016.AppendEntri" +
-      "es\032\026.AppendEntriesResponseB*\n\032org.robotn" +
+      "es\032\026.AppendEntriesResponseB)\n\031org.robotn" +
       "injas.barge.rpcB\tRaftProto\210\001\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =

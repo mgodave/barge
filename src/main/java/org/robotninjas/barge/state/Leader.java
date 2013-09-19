@@ -27,6 +27,7 @@ import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.annotations.ElectionTimeout;
 import org.robotninjas.barge.annotations.RaftScheduler;
 import org.robotninjas.barge.context.RaftContext;
+import org.robotninjas.barge.log.GetEntriesResult;
 import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.rpc.RaftClient;
 import org.robotninjas.barge.rpc.RpcClientProvider;
@@ -55,7 +56,9 @@ public class Leader implements State {
   private final Map<Replica, ReplicaManager> managers = Maps.newHashMap();
 
   @Inject
-  Leader(RaftContext rctx, @RaftScheduler ScheduledExecutorService scheduler, @ElectionTimeout long timeout, RpcClientProvider clientProvider) {
+  Leader(RaftContext rctx, @RaftScheduler ScheduledExecutorService scheduler,
+         @ElectionTimeout long timeout, RpcClientProvider clientProvider) {
+
     this.rctx = rctx;
     this.scheduler = scheduler;
     this.timeout = timeout;
@@ -140,7 +143,7 @@ public class Leader implements State {
     return responses;
   }
 
-  static final class ReplicaManager {
+  static class ReplicaManager {
 
     private final RaftClient client;
     private final RaftLog log;
@@ -159,24 +162,29 @@ public class Leader implements State {
       this.self = self;
     }
 
+    @VisibleForTesting
     void sendUpdate() {
+
+      LOGGER.debug("Sending update");
 
       running = true;
 
-      long prevLogTerm = 0;
-      long prevLogIndex = 0;
+      GetEntriesResult result =
+        log.getEntriesFrom(nextIndex);
 
       final AppendEntries request =
         AppendEntries.newBuilder()
           .setTerm(term)
           .setLeaderId(self.toString())
-          .setPrevLogIndex(prevLogIndex)
-          .setPrevLogTerm(prevLogTerm)
+          .setPrevLogIndex(result.lastLogIndex())
+          .setPrevLogTerm(result.lastLogTerm())
           .setCommitIndex(log.commitIndex())
+          .addAllEntries(result.entries())
           .build();
 
       final ListenableFuture<AppendEntriesResponse> response =
         client.appendEntries(request);
+
       response.addListener(new Runnable() {
         @Override
         public void run() {
@@ -188,15 +196,18 @@ public class Leader implements State {
 
     }
 
+    @VisibleForTesting
     void update(AppendEntries request, ListenableFuture<AppendEntriesResponse> f,
                 SettableFuture<AppendEntriesResponse> returnable) {
+
+      running = requested;
+      requested = false;
 
       try {
 
         AppendEntriesResponse response = f.get();
 
-        running = requested || !response.getSuccess();
-        requested = false;
+        running = running || !response.getSuccess();
 
         if (response.getSuccess()) {
           nextIndex += request.getEntriesCount();
@@ -221,8 +232,24 @@ public class Leader implements State {
 
     }
 
+    @VisibleForTesting
+    boolean isRunning() {
+      return running;
+    }
+
+    @VisibleForTesting
+    boolean isRequested() {
+      return requested;
+    }
+
+    @VisibleForTesting
+    long getNextIndex() {
+      return nextIndex;
+    }
+
     public ListenableFuture<AppendEntriesResponse> fireUpdate() {
       if (!running) {
+        running = true;
         sendUpdate();
       } else {
         requested = true;

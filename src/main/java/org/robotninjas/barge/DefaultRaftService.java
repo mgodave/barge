@@ -21,16 +21,17 @@ import com.google.protobuf.RpcCallback;
 import com.google.protobuf.RpcController;
 import com.google.protobuf.Service;
 import org.robotninjas.barge.annotations.RaftExecutor;
-import org.robotninjas.protobuf.netty.server.RpcServer;
+import org.robotninjas.barge.context.RaftContext;
 import org.robotninjas.barge.rpc.ClientProto;
 import org.robotninjas.barge.rpc.RaftProto;
 import org.robotninjas.barge.state.Context;
+import org.robotninjas.protobuf.netty.server.RpcServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
@@ -45,12 +46,14 @@ public class DefaultRaftService extends AbstractService
 
   private final RpcServer rpcServer;
   private final Context ctx;
+  private final RaftContext rctx;
   private final ListeningExecutorService executor;
 
   @Inject
-  DefaultRaftService(RpcServer rpcServer, Context ctx, @RaftExecutor ListeningExecutorService executor) {
+  DefaultRaftService(RpcServer rpcServer, Context ctx, RaftContext rctx, @RaftExecutor ListeningExecutorService executor) {
     this.rpcServer = rpcServer;
     this.ctx = ctx;
+    this.rctx = rctx;
     this.executor = executor;
   }
 
@@ -58,12 +61,27 @@ public class DefaultRaftService extends AbstractService
   protected void doStart() {
 
     try {
+
+      // Due to the fact that MDC uses ThreadLocal state to store the properties map
+      // we need to make sure these properties are initialized on the Raft Thread
+      executor.submit(new Runnable() {
+        @Override
+        public void run() {
+          MDC.put("state", ctx.getState().toString());
+          MDC.put("term", Long.toString(rctx.term()));
+        }
+      }).get();
+
       Service replicaService = RaftProto.RaftService.newReflectiveService(this);
       rpcServer.registerService(replicaService);
+
       Service clientService = ClientProto.ClientService.newReflectiveService(this);
       rpcServer.registerService(clientService);
+
       rpcServer.startAsync().awaitRunning();
+
       notifyStarted();
+
     } catch (Exception e) {
       notifyFailed(e);
     }
@@ -108,11 +126,11 @@ public class DefaultRaftService extends AbstractService
     // Run the operation on the raft thread
     ListenableFuture<ListenableFuture<CommitOperationResponse>> response =
       executor.submit(new Callable<ListenableFuture<CommitOperationResponse>>() {
-      @Override
-      public ListenableFuture<CommitOperationResponse> call() throws Exception {
-        return Futures.immediateFailedFuture(new Exception("Not Implemented"));
-      }
-    });
+        @Override
+        public ListenableFuture<CommitOperationResponse> call() throws Exception {
+          return Futures.immediateFailedFuture(new Exception("Not Implemented"));
+        }
+      });
     return Futures.dereference(response);
   }
 

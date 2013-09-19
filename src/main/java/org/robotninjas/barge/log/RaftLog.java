@@ -25,6 +25,8 @@ public interface RaftLog {
 
   boolean append(RaftProto.AppendEntries request);
 
+  GetEntriesResult getEntriesFrom(long begin);
+
   List<Replica> members();
 
   long lastLogIndex();

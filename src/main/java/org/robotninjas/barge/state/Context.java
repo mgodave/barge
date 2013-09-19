@@ -16,7 +16,6 @@
 
 package org.robotninjas.barge.state;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -24,10 +23,12 @@ import org.slf4j.MDC;
 import javax.inject.Inject;
 
 import static org.robotninjas.barge.rpc.RaftProto.*;
+import static org.robotninjas.barge.state.Context.StateType.FOLLOWER;
+import static org.robotninjas.barge.state.Context.StateType.START;
 
 public class Context {
 
-  static enum StateType {FOLLOWER, CANDIDATE, LEADER};
+  public static enum StateType {START, FOLLOWER, CANDIDATE, LEADER};
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Context.class);
 
@@ -38,14 +39,12 @@ public class Context {
   @Inject
   Context(StateFactory stateFactory) {
     this.stateFactory = stateFactory;
+    this.state = START;
     init();
   }
 
   public void init() {
-    delegate = stateFactory.follower();
-    state = StateType.FOLLOWER;
-    delegate.init(this);
-    MDC.put("state", state.toString());
+    setState(FOLLOWER);
   }
 
   public RequestVoteResponse requestVote(RequestVote request) {
@@ -57,7 +56,6 @@ public class Context {
   }
 
   void setState(StateType state) {
-    MDC.put("state", state.toString());
     LOGGER.debug("old state: {}, new state: {}", this.state, state);
     this.state = state;
     switch (state) {
@@ -71,11 +69,11 @@ public class Context {
         delegate = stateFactory.candidate();
         break;
     }
+    MDC.put("state", this.state.toString());
     delegate.init(this);
   }
 
-  @VisibleForTesting
-  StateType getState() {
+  public StateType getState() {
     return state;
   }
 

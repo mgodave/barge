@@ -2222,7 +2222,7 @@ public final class ClientProto {
        * <code>optional .CommitOperationResponse.Response response = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          org.robotninjas.barge.rpc.ClientProto.CommitOperationResponse.Response, org.robotninjas.barge.rpc.ClientProto.CommitOperationResponse.Response.Builder, org.robotninjas.barge.rpc.ClientProto.CommitOperationResponse.ResponseOrBuilder>
+          org.robotninjas.barge.rpc.ClientProto.CommitOperationResponse.Response, org.robotninjas.barge.rpc.ClientProto.CommitOperationResponse.Response.Builder, org.robotninjas.barge.rpc.ClientProto.CommitOperationResponse.ResponseOrBuilder> 
           getResponseFieldBuilder() {
         if (responseBuilder_ == null) {
           responseBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -2339,7 +2339,7 @@ public final class ClientProto {
        * <code>optional .CommitOperationResponse.Error error = 4;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          org.robotninjas.barge.rpc.ClientProto.CommitOperationResponse.Error, org.robotninjas.barge.rpc.ClientProto.CommitOperationResponse.Error.Builder, org.robotninjas.barge.rpc.ClientProto.CommitOperationResponse.ErrorOrBuilder>
+          org.robotninjas.barge.rpc.ClientProto.CommitOperationResponse.Error, org.robotninjas.barge.rpc.ClientProto.CommitOperationResponse.Error.Builder, org.robotninjas.barge.rpc.ClientProto.CommitOperationResponse.ErrorOrBuilder> 
           getErrorFieldBuilder() {
         if (errorBuilder_ == null) {
           errorBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -2372,7 +2372,7 @@ public final class ClientProto {
 
     public interface Interface {
       /**
-       * <code>rpc commitOperationAsync(.CommitOperation) returns (.CommitOperationResponse);</code>
+       * <code>rpc commitOperation(.CommitOperation) returns (.CommitOperationResponse);</code>
        */
       public abstract void commitOperation(
           com.google.protobuf.RpcController controller,
@@ -2457,7 +2457,7 @@ public final class ClientProto {
     }
 
     /**
-     * <code>rpc commitOperationAsync(.CommitOperation) returns (.CommitOperationResponse);</code>
+     * <code>rpc commitOperation(.CommitOperation) returns (.CommitOperationResponse);</code>
      */
     public abstract void commitOperation(
         com.google.protobuf.RpcController controller,
@@ -2633,8 +2633,8 @@ public final class ClientProto {
       "ndex\030\001 \002(\003\022\014\n\004term\030\002 \002(\003\032\027\n\005Error\022\016\n\006rea" +
       "son\030\001 \002(\t2N\n\rClientService\022=\n\017commitOper" +
       "ation\022\020.CommitOperation\032\030.CommitOperatio" +
-      "nResponseB,\n\032org.robotninjas.barge.rpcB",
-      "\013ClientProto\210\001\001"
+      "nResponseB+\n\031org.robotninjas.barge.rpcB\013",
+      "ClientProto\210\001\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
