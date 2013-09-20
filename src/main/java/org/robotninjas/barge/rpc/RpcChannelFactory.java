@@ -16,34 +16,45 @@
 
 package org.robotninjas.barge.rpc;
 
-import org.apache.commons.pool.BasePoolableObjectFactory;
+import com.google.common.base.Preconditions;
+import org.apache.commons.pool.BaseKeyedPoolableObjectFactory;
+import org.robotninjas.barge.Replica;
 import org.robotninjas.protobuf.netty.client.NettyRpcChannel;
 import org.robotninjas.protobuf.netty.client.RpcClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.net.SocketAddress;
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.Immutable;
 
-public class RpcChannelFactory extends BasePoolableObjectFactory<NettyRpcChannel> {
+import static com.google.common.base.Preconditions.checkNotNull;
+
+@Immutable
+class RpcChannelFactory extends BaseKeyedPoolableObjectFactory<Object, NettyRpcChannel> {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(RpcChannelFactory.class);
 
   private final RpcClient client;
-  private final SocketAddress saddr;
 
-  public RpcChannelFactory(RpcClient client, SocketAddress saddr) {
-    this.client = client;
-    this.saddr = saddr;
+  public RpcChannelFactory(@Nonnull RpcClient client) {
+    this.client = checkNotNull(client);
   }
 
   @Override
-  public NettyRpcChannel makeObject() throws Exception {
-    return client.connect(saddr);
+  public NettyRpcChannel makeObject(Object key) throws Exception {
+    Preconditions.checkArgument(key instanceof Replica);
+    Replica replica = (Replica) key;
+    return client.connect(replica.address());
   }
 
   @Override
-  public void destroyObject(NettyRpcChannel obj) throws Exception {
+  public void destroyObject(Object key, NettyRpcChannel obj) throws Exception {
     obj.close();
   }
 
   @Override
-  public boolean validateObject(NettyRpcChannel obj) {
+  public boolean validateObject(Object key, NettyRpcChannel obj) {
     return obj.isOpen();
   }
+
 }

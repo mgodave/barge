@@ -20,42 +20,52 @@ import com.google.common.util.concurrent.AbstractFuture;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.RpcCallback;
 import org.apache.commons.pool.ObjectPool;
+import org.robotninjas.barge.RaftException;
+import org.robotninjas.barge.proto.ClientProto;
+import org.robotninjas.barge.proto.RaftProto;
 import org.robotninjas.protobuf.netty.client.ClientController;
 import org.robotninjas.protobuf.netty.client.NettyRpcChannel;
-import org.robotninjas.barge.RaftException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.google.common.util.concurrent.Futures.immediateFailedFuture;
-import static org.robotninjas.barge.rpc.RaftProto.*;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.Immutable;
 
-public class RaftClient {
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.util.concurrent.Futures.immediateFailedFuture;
+
+//TODO write a protoc code generator for this bullshit
+@Immutable
+class RaftClient {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RaftClient.class);
 
   private final ObjectPool<NettyRpcChannel> channelPool;
 
-  RaftClient(ObjectPool<NettyRpcChannel> channelPool) {
-    this.channelPool = channelPool;
+  RaftClient(@Nonnull ObjectPool<NettyRpcChannel> channelPool) {
+    this.channelPool = checkNotNull(channelPool);
   }
 
-  public ListenableFuture<RequestVoteResponse> requestVote(RequestVote request) {
+  @Nonnull
+  public ListenableFuture<RaftProto.RequestVoteResponse> requestVote(@Nonnull RaftProto.RequestVote request) {
+
+    checkNotNull(request);
 
     NettyRpcChannel channel = null;
     try {
 
       channel = channelPool.borrowObject();
-      RaftService.Stub stub = RaftService.newStub(channel);
+      RaftProto.RaftService.Stub stub = RaftProto.RaftService.newStub(channel);
       ClientController controller = new ClientController(channel);
-      RpcHandlerFuture<RequestVoteResponse> responseHandler =
-        new RpcHandlerFuture<RequestVoteResponse>(controller);
+      RpcHandlerFuture<RaftProto.RequestVoteResponse> responseHandler =
+        new RpcHandlerFuture<RaftProto.RequestVoteResponse>(controller);
       stub.requestVote(controller, request, responseHandler);
       channelPool.returnObject(channel);
       return responseHandler;
 
     } catch (Exception e) {
 
-      LOGGER.debug("exception caught while calling requestVote", e);
       return immediateFailedFuture(e);
 
     } finally {
@@ -72,16 +82,19 @@ public class RaftClient {
 
   }
 
-  public ListenableFuture<AppendEntriesResponse> appendEntries(AppendEntries request) {
+  @Nonnull
+  public ListenableFuture<RaftProto.AppendEntriesResponse> appendEntries(@Nonnull RaftProto.AppendEntries request) {
+
+    checkNotNull(request);
 
     NettyRpcChannel channel = null;
     try {
 
       channel = channelPool.borrowObject();
-      RaftService.Stub stub = RaftService.newStub(channel);
+      RaftProto.RaftService.Stub stub = RaftProto.RaftService.newStub(channel);
       ClientController controller = new ClientController(channel);
-      RpcHandlerFuture<AppendEntriesResponse> responseHandler =
-        new RpcHandlerFuture<AppendEntriesResponse>(controller);
+      RpcHandlerFuture<RaftProto.AppendEntriesResponse> responseHandler =
+        new RpcHandlerFuture<RaftProto.AppendEntriesResponse>(controller);
       stub.appendEntries(controller, request, responseHandler);
       channelPool.returnObject(channel);
       return responseHandler;
@@ -95,6 +108,42 @@ public class RaftClient {
       try {
         if(null != channel) {
           channelPool.returnObject(channel);
+        } else
+          ;
+      } catch(Exception e) {
+        // ignored
+      }
+
+    }
+
+  }
+
+  @Nonnull
+  public ListenableFuture<ClientProto.CommitOperationResponse> commitOperation(@Nonnull ClientProto.CommitOperation request) {
+
+    checkNotNull(request);
+
+    NettyRpcChannel channel = null;
+    try {
+
+      channel = channelPool.borrowObject();
+      ClientProto.ClientService.Stub stub = ClientProto.ClientService.newStub(channel);
+      ClientController controller = new ClientController(channel);
+      RpcHandlerFuture<ClientProto.CommitOperationResponse> responseHandler =
+        new RpcHandlerFuture<ClientProto.CommitOperationResponse>(controller);
+      stub.commitOperation(controller, request, responseHandler);
+      channelPool.returnObject(channel);
+      return responseHandler;
+
+    } catch (Exception e) {
+
+      return immediateFailedFuture(e);
+
+    } finally {
+
+      try {
+        if(null != channel) {
+          channelPool.returnObject(channel);
         }
       } catch(Exception e) {
         // ignored
@@ -104,16 +153,19 @@ public class RaftClient {
 
   }
 
+  @Immutable
   private static class RpcHandlerFuture<T> extends AbstractFuture<T> implements RpcCallback<T> {
 
+    @Nonnull
     private final ClientController controller;
 
-    private RpcHandlerFuture(ClientController controller) {
+    private RpcHandlerFuture(@Nonnull ClientController controller) {
+      checkNotNull(controller);
       this.controller = controller;
     }
 
     @Override
-    public void run(T parameter) {
+    public void run(@Nullable T parameter) {
 
       if (null == parameter) {
         setException(new RaftException(controller.errorText()));

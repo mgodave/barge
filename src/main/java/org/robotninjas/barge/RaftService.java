@@ -16,18 +16,16 @@
 
 package org.robotninjas.barge;
 
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.Service;
 
-import java.util.concurrent.ExecutionException;
-
-import static org.robotninjas.barge.rpc.ClientProto.CommitOperation;
-import static org.robotninjas.barge.rpc.ClientProto.CommitOperationResponse;
+import javax.annotation.Nonnull;
 
 public interface RaftService extends Service {
 
-  ListenableFuture<CommitOperationResponse> commitOperationAsync(CommitOperation request);
+//  ListenableFuture<CommitOperationResponse> commitOperationAsync(@Nonnull CommitOperation request);
+//
+//  CommitOperationResponse commitOperation(@Nonnull CommitOperation request) throws ExecutionException, InterruptedException;
 
-  CommitOperationResponse commitOperation(CommitOperation request) throws ExecutionException, InterruptedException;
+  void addLogListener(@Nonnull LogListener listener);
 
 }

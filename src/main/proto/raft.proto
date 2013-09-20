@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-option java_package = "org.robotninjas.barge.rpc";
+option java_package = "org.robotninjas.barge.proto";
 option java_generic_services = true;
 option java_outer_classname = "RaftProto";
 
@@ -46,7 +46,20 @@ message AppendEntriesResponse {
 	required bool success = 2;
 }
 
+message InstallSnapshot {
+	required int64 term = 1;
+	required int64 last_included_index = 2;
+	required int64 last_included_term = 3;
+	required bytes snapshot_data = 4;
+}
+
+message InstallSnapshotResponse {
+	required int64 term = 1;
+	required bool success = 2;
+}
+
 service RaftService {
 	rpc requestVote (RequestVote) returns (RequestVoteResponse);
 	rpc appendEntries (AppendEntries) returns (AppendEntriesResponse);
+	rpc installSnapshot (InstallSnapshot) returns (InstallSnapshotResponse);
 }

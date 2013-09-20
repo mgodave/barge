@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-option java_package = "org.robotninjas.barge.rpc";
+option java_package = "org.robotninjas.barge.proto";
 option java_generic_services = true;
 option java_outer_classname = "ClientProto";
 
@@ -26,20 +26,15 @@ message CommitOperation {
 	required bytes op = 3;
 }
 
+message Redirect {
+	required string leader_id = 1;
+}
+
 message CommitOperationResponse {
-
-	message Response {
-		required int64 index = 1;
-		required int64 term = 2;
-	}
-
-	message Error {
-		required string reason = 1;
-	}
-
-	optional Response response = 2;
-	optional Error error = 4;
-
+	enum ErrorCode {REDIRECT = 1; NOLEADER = 2;}
+	required bool committed = 1;
+	optional ErrorCode error_code = 2;
+	optional Redirect redirect = 3;
 }
 
 service ClientService {

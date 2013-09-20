@@ -16,65 +16,31 @@
 
 package org.robotninjas.barge.state;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
+import com.google.common.util.concurrent.ListenableFuture;
+import org.robotninjas.barge.RaftException;
 
-import javax.inject.Inject;
+import javax.annotation.Nonnull;
 
-import static org.robotninjas.barge.rpc.RaftProto.*;
-import static org.robotninjas.barge.state.Context.StateType.FOLLOWER;
-import static org.robotninjas.barge.state.Context.StateType.START;
+import static org.robotninjas.barge.proto.ClientProto.CommitOperation;
+import static org.robotninjas.barge.proto.ClientProto.CommitOperationResponse;
+import static org.robotninjas.barge.proto.RaftProto.*;
 
-public class Context {
+public interface Context {
 
-  public static enum StateType {START, FOLLOWER, CANDIDATE, LEADER};
+  public static enum StateType {START, FOLLOWER, CANDIDATE, LEADER}
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(Context.class);
+  @Nonnull
+  RequestVoteResponse requestVote(@Nonnull RequestVote request);
 
-  private final StateFactory stateFactory;
-  private volatile StateType state;
-  private volatile State delegate;
+  @Nonnull
+  AppendEntriesResponse appendEntries(@Nonnull AppendEntries request);
 
-  @Inject
-  Context(StateFactory stateFactory) {
-    this.stateFactory = stateFactory;
-    this.state = START;
-    init();
-  }
+  @Nonnull
+  ListenableFuture<CommitOperationResponse> commitOperation(@Nonnull CommitOperation request) throws RaftException;
 
-  public void init() {
-    setState(FOLLOWER);
-  }
+  void setState(@Nonnull StateType state);
 
-  public RequestVoteResponse requestVote(RequestVote request) {
-    return delegate.requestVote(this, request);
-  }
-
-  public AppendEntriesResponse appendEntries(AppendEntries request) {
-    return delegate.appendEntries(this, request);
-  }
-
-  void setState(StateType state) {
-    LOGGER.debug("old state: {}, new state: {}", this.state, state);
-    this.state = state;
-    switch (state) {
-      case FOLLOWER:
-        delegate = stateFactory.follower();
-        break;
-      case LEADER:
-        delegate = stateFactory.leader();
-        break;
-      case CANDIDATE:
-        delegate = stateFactory.candidate();
-        break;
-    }
-    MDC.put("state", this.state.toString());
-    delegate.init(this);
-  }
-
-  public StateType getState() {
-    return state;
-  }
+  @Nonnull
+  StateType getState();
 
 }

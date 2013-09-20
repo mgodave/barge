@@ -17,98 +17,142 @@
 package org.robotninjas.barge.state;
 
 import com.google.common.base.Optional;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Inject;
+import org.robotninjas.barge.NoLeaderException;
+import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.annotations.ElectionTimeout;
 import org.robotninjas.barge.annotations.RaftScheduler;
-import org.robotninjas.barge.context.RaftContext;
+import org.robotninjas.barge.log.RaftLog;
+import org.robotninjas.barge.rpc.Client;
+import org.robotninjas.barge.proto.RaftEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.NotThreadSafe;
+import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.robotninjas.barge.rpc.RaftProto.*;
+import static org.robotninjas.barge.proto.ClientProto.CommitOperation;
+import static org.robotninjas.barge.proto.ClientProto.CommitOperationResponse;
+import static org.robotninjas.barge.proto.RaftProto.*;
 import static org.robotninjas.barge.state.Context.StateType.CANDIDATE;
 
-public class Follower implements State {
+@NotThreadSafe
+class Follower implements State {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Follower.class);
 
-  private final RaftContext rctx;
+  private final RaftLog log;
   private final ScheduledExecutorService scheduler;
   private final long timeout;
+  private final Client client;
+  private Optional<Replica> leader = Optional.absent();
   private ScheduledFuture<?> timeoutTask;
 
   @Inject
-  Follower(RaftContext rctx, @RaftScheduler ScheduledExecutorService scheduler, @ElectionTimeout long timeout) {
-    this.rctx = rctx;
-    this.scheduler = scheduler;
+  Follower(RaftLog log, @RaftScheduler ScheduledExecutorService scheduler,
+           @ElectionTimeout @Nonnegative long timeout, Client client) {
+
+    this.log = checkNotNull(log);
+    this.scheduler = checkNotNull(scheduler);
+    checkArgument(timeout >= 0);
     this.timeout = timeout;
+    this.client = checkNotNull(client);
+
   }
 
   @Override
-  public void init(Context ctx) {
+  public void init(@Nonnull Context ctx) {
     resetTimeout(ctx);
   }
 
+  @Nonnull
   @Override
-  public RequestVoteResponse requestVote(Context ctx, RequestVote request) {
+  public RequestVoteResponse requestVote(@Nonnull Context ctx, @Nonnull RequestVote request) {
 
     LOGGER.debug("RequestVote received for term {}", request.getTerm());
 
     boolean voteGranted = false;
 
-    if (request.getTerm() >= rctx.term()) {
+    if (request.getTerm() >= log.term()) {
 
-      if (request.getTerm() > rctx.term()) {
-        rctx.term(request.getTerm());
+      if (request.getTerm() > log.term()) {
+        log.term(request.getTerm());
       }
 
       Replica candidate = Replica.fromString(request.getCandidateId());
-      voteGranted = Voting.shouldVoteFor(rctx, request);
+      voteGranted = Voting.shouldVoteFor(log, request);
 
       if (voteGranted) {
-        rctx.votedFor(Optional.of(candidate));
+        log.votedFor(Optional.of(candidate));
       }
 
     }
 
     return RequestVoteResponse.newBuilder()
-      .setTerm(rctx.term())
+      .setTerm(log.term())
       .setVoteGranted(voteGranted)
       .build();
 
   }
 
+  @Nonnull
   @Override
-  public AppendEntriesResponse appendEntries(Context ctx, AppendEntries request) {
+  public AppendEntriesResponse appendEntries(@Nonnull Context ctx, @Nonnull AppendEntries request) {
 
     LOGGER.debug("AppendEntries received for term {}", request.getTerm());
 
     boolean success = false;
 
-    if (request.getTerm() >= rctx.term()) {
+    if (request.getTerm() >= log.term()) {
 
-      if (request.getTerm() > rctx.term()) {
-        rctx.term(request.getTerm());
+      if (request.getTerm() > log.term()) {
+        log.term(request.getTerm());
       }
+
+      leader = Optional.of(Replica.fromString(request.getLeaderId()));
 
       resetTimeout(ctx);
 
-      success = rctx.log().append(request);
+      long prevLogIndex = request.getPrevLogIndex();
+      long prevLogTerm = request.getPrevLogTerm();
+      List<RaftEntry.Entry> entries = request.getEntriesList();
+      success = log.append(prevLogIndex, prevLogTerm, entries);
+
+      if (request.getCommitIndex() > log.commitIndex()) {
+        log.commitIndex(Math.min(request.getCommitIndex(), log.lastLogIndex()));
+      }
 
     }
 
     return AppendEntriesResponse.newBuilder()
-      .setTerm(rctx.term())
+      .setTerm(log.term())
       .setSuccess(success)
       .build();
 
   }
 
-  void resetTimeout(final Context ctx) {
+  @Nonnull
+  @Override
+  public ListenableFuture<CommitOperationResponse> commitOperation(@Nonnull Context ctx, @Nonnull CommitOperation request) throws RaftException {
+
+    if (!leader.isPresent()) {
+      throw new NoLeaderException();
+    }
+
+    return client.commitOperation(leader.get(), request);
+
+  }
+
+  void resetTimeout(@Nonnull final Context ctx) {
 
     if (null != timeoutTask) {
       timeoutTask.cancel(false);
@@ -117,7 +161,6 @@ public class Follower implements State {
     timeoutTask = scheduler.schedule(new Runnable() {
       @Override
       public void run() {
-        LOGGER.debug("Election timeout");
         ctx.setState(CANDIDATE);
       }
     }, timeout * 2, MILLISECONDS);
