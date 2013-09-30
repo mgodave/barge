@@ -137,6 +137,7 @@ class Follower implements State {
     return AppendEntriesResponse.newBuilder()
       .setTerm(log.term())
       .setSuccess(success)
+      .setLastLogIndex(log.lastLogIndex())
       .build();
 
   }

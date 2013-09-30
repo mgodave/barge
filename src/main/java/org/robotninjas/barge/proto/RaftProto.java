@@ -2478,6 +2478,16 @@ public final class RaftProto {
      * <code>required bool success = 2;</code>
      */
     boolean getSuccess();
+
+    // optional int64 last_log_index = 3;
+    /**
+     * <code>optional int64 last_log_index = 3;</code>
+     */
+    boolean hasLastLogIndex();
+    /**
+     * <code>optional int64 last_log_index = 3;</code>
+     */
+    long getLastLogIndex();
   }
   /**
    * Protobuf type {@code AppendEntriesResponse}
@@ -2538,6 +2548,11 @@ public final class RaftProto {
             case 16: {
               bitField0_ |= 0x00000002;
               success_ = input.readBool();
+              break;
+            }
+            case 24: {
+              bitField0_ |= 0x00000004;
+              lastLogIndex_ = input.readInt64();
               break;
             }
           }
@@ -2612,9 +2627,26 @@ public final class RaftProto {
       return success_;
     }
 
+    // optional int64 last_log_index = 3;
+    public static final int LAST_LOG_INDEX_FIELD_NUMBER = 3;
+    private long lastLogIndex_;
+    /**
+     * <code>optional int64 last_log_index = 3;</code>
+     */
+    public boolean hasLastLogIndex() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional int64 last_log_index = 3;</code>
+     */
+    public long getLastLogIndex() {
+      return lastLogIndex_;
+    }
+
     private void initFields() {
       term_ = 0L;
       success_ = false;
+      lastLogIndex_ = 0L;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -2642,6 +2674,9 @@ public final class RaftProto {
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         output.writeBool(2, success_);
       }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeInt64(3, lastLogIndex_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -2658,6 +2693,10 @@ public final class RaftProto {
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(2, success_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(3, lastLogIndex_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -2779,6 +2818,8 @@ public final class RaftProto {
         bitField0_ = (bitField0_ & ~0x00000001);
         success_ = false;
         bitField0_ = (bitField0_ & ~0x00000002);
+        lastLogIndex_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000004);
         return this;
       }
 
@@ -2815,6 +2856,10 @@ public final class RaftProto {
           to_bitField0_ |= 0x00000002;
         }
         result.success_ = success_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.lastLogIndex_ = lastLogIndex_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -2836,6 +2881,9 @@ public final class RaftProto {
         }
         if (other.hasSuccess()) {
           setSuccess(other.getSuccess());
+        }
+        if (other.hasLastLogIndex()) {
+          setLastLogIndex(other.getLastLogIndex());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -2934,6 +2982,39 @@ public final class RaftProto {
       public Builder clearSuccess() {
         bitField0_ = (bitField0_ & ~0x00000002);
         success_ = false;
+        onChanged();
+        return this;
+      }
+
+      // optional int64 last_log_index = 3;
+      private long lastLogIndex_ ;
+      /**
+       * <code>optional int64 last_log_index = 3;</code>
+       */
+      public boolean hasLastLogIndex() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>optional int64 last_log_index = 3;</code>
+       */
+      public long getLastLogIndex() {
+        return lastLogIndex_;
+      }
+      /**
+       * <code>optional int64 last_log_index = 3;</code>
+       */
+      public Builder setLastLogIndex(long value) {
+        bitField0_ |= 0x00000004;
+        lastLogIndex_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 last_log_index = 3;</code>
+       */
+      public Builder clearLastLogIndex() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        lastLogIndex_ = 0L;
         onChanged();
         return this;
       }
@@ -4537,18 +4618,19 @@ public final class RaftProto {
       "\022\014\n\004term\030\001 \002(\003\022\021\n\tleader_id\030\002 \002(\t\022\026\n\016pre" +
       "v_log_index\030\003 \002(\003\022\025\n\rprev_log_term\030\004 \002(\003" +
       "\022\024\n\014commit_index\030\005 \002(\003\022\027\n\007entries\030\006 \003(\0132" +
-      "\006.Entry\"6\n\025AppendEntriesResponse\022\014\n\004term" +
-      "\030\001 \002(\003\022\017\n\007success\030\002 \002(\010\"o\n\017InstallSnapsh",
-      "ot\022\014\n\004term\030\001 \002(\003\022\033\n\023last_included_index\030" +
-      "\002 \002(\003\022\032\n\022last_included_term\030\003 \002(\003\022\025\n\rsna" +
-      "pshot_data\030\004 \002(\014\"8\n\027InstallSnapshotRespo" +
-      "nse\022\014\n\004term\030\001 \002(\003\022\017\n\007success\030\002 \002(\0102\270\001\n\013R" +
-      "aftService\0221\n\013requestVote\022\014.RequestVote\032" +
-      "\024.RequestVoteResponse\0227\n\rappendEntries\022\016" +
-      ".AppendEntries\032\026.AppendEntriesResponse\022=" +
-      "\n\017installSnapshot\022\020.InstallSnapshot\032\030.In" +
-      "stallSnapshotResponseB+\n\033org.robotninjas" +
-      ".barge.protoB\tRaftProto\210\001\001"
+      "\006.Entry\"N\n\025AppendEntriesResponse\022\014\n\004term" +
+      "\030\001 \002(\003\022\017\n\007success\030\002 \002(\010\022\026\n\016last_log_inde",
+      "x\030\003 \001(\003\"o\n\017InstallSnapshot\022\014\n\004term\030\001 \002(\003" +
+      "\022\033\n\023last_included_index\030\002 \002(\003\022\032\n\022last_in" +
+      "cluded_term\030\003 \002(\003\022\025\n\rsnapshot_data\030\004 \002(\014" +
+      "\"8\n\027InstallSnapshotResponse\022\014\n\004term\030\001 \002(" +
+      "\003\022\017\n\007success\030\002 \002(\0102\270\001\n\013RaftService\0221\n\013re" +
+      "questVote\022\014.RequestVote\032\024.RequestVoteRes" +
+      "ponse\0227\n\rappendEntries\022\016.AppendEntries\032\026" +
+      ".AppendEntriesResponse\022=\n\017installSnapsho" +
+      "t\022\020.InstallSnapshot\032\030.InstallSnapshotRes" +
+      "ponseB+\n\033org.robotninjas.barge.protoB\tRa",
+      "ftProto\210\001\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -4578,7 +4660,7 @@ public final class RaftProto {
           internal_static_AppendEntriesResponse_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_AppendEntriesResponse_descriptor,
-              new java.lang.String[] { "Term", "Success", });
+              new java.lang.String[] { "Term", "Success", "LastLogIndex", });
           internal_static_InstallSnapshot_descriptor =
             getDescriptor().getMessageTypes().get(4);
           internal_static_InstallSnapshot_fieldAccessorTable = new

@@ -44,6 +44,7 @@ message AppendEntries {
 message AppendEntriesResponse {
 	required int64 term = 1;
 	required bool success = 2;
+	optional int64 last_log_index = 3;
 }
 
 message InstallSnapshot {

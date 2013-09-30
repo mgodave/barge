@@ -128,6 +128,8 @@ class ReplicaManager {
       if (response.getSuccess()) {
         nextIndex += request.getEntriesCount();
         returnable.set(response);
+      } else if (response.hasLastLogIndex()) {
+        nextIndex = response.getLastLogIndex() + 1;
       } else {
         nextIndex -= 1;
       }
