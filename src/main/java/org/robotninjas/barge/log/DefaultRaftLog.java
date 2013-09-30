@@ -152,13 +152,6 @@ class DefaultRaftLog implements RaftLog {
     return new GetEntriesResult(previousEntry.term, index - 1, list);
   }
 
-  /**
-   * TODO Support batching of entries
-   *
-   * @param beginningIndex
-   * @param max
-   * @return
-   */
   @Nonnull
   public GetEntriesResult getEntriesFrom(@Nonnegative long beginningIndex, @Nonnegative int max) {
     checkArgument(beginningIndex >= 0);

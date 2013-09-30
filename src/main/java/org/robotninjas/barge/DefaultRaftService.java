@@ -43,6 +43,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.nullToEmpty;
 import static org.robotninjas.barge.proto.ClientProto.CommitOperation;
 import static org.robotninjas.barge.proto.ClientProto.CommitOperationResponse;
 import static org.robotninjas.barge.proto.RaftProto.*;
@@ -127,7 +128,7 @@ class DefaultRaftService extends AbstractService
       done.run(ctx.requestVote(request));
     } catch (Exception e) {
       LOGGER.debug("Exception caught servicing RequestVote", e);
-      controller.setFailed(e.getMessage());
+      controller.setFailed(nullToEmpty(e.getMessage()));
       done.run(null);
     }
   }
@@ -138,7 +139,7 @@ class DefaultRaftService extends AbstractService
       done.run(ctx.appendEntries(request));
     } catch (Exception e) {
       LOGGER.debug("Exception caught servicing AppendEntries", e);
-      controller.setFailed(e.getMessage());
+      controller.setFailed(nullToEmpty(e.getMessage()));
       done.run(null);
     }
   }
@@ -178,7 +179,8 @@ class DefaultRaftService extends AbstractService
 
       @Override
       public void onFailure(@Nonnull Throwable t) {
-        controller.setFailed(t.getMessage());
+        LOGGER.debug("Exception caught servicing CommitOperation", t);
+        controller.setFailed(nullToEmpty(t.getMessage()));
         done.run(null);
       }
 

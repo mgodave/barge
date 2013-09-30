@@ -108,7 +108,8 @@ class Follower implements State {
   @Override
   public AppendEntriesResponse appendEntries(@Nonnull Context ctx, @Nonnull AppendEntries request) {
 
-    LOGGER.debug("AppendEntries received for term {}", request.getTerm());
+    LOGGER.debug("AppendEntries start index {}, size {}, received for term {}",
+      request.getPrevLogIndex(), request.getEntriesCount(), request.getTerm());
 
     boolean success = false;
 
