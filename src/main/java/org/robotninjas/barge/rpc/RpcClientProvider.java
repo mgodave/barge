@@ -36,12 +36,10 @@ class RpcClientProvider {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RpcClientProvider.class);
 
-  private final RpcClient client;
   private final KeyedObjectPool<Object, NettyRpcChannel> connectionPools;
 
   @Inject
   public RpcClientProvider(@Nonnull RpcClient client) {
-    this.client = checkNotNull(client);
     RpcChannelFactory channelFactory = new RpcChannelFactory(client);
     GenericKeyedObjectPool.Config config = new GenericKeyedObjectPool.Config();
     config.maxActive = 1;
