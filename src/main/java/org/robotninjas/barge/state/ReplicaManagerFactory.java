@@ -16,35 +16,15 @@
 
 package org.robotninjas.barge.state;
 
+import com.google.inject.assistedinject.Assisted;
 import org.robotninjas.barge.Replica;
-import org.robotninjas.barge.log.RaftLog;
 
 import javax.annotation.Nonnull;
 
-import static org.robotninjas.barge.proto.RaftProto.RequestVote;
+interface ReplicaManagerFactory {
 
-class Voting {
-
-  static boolean shouldVoteFor(@Nonnull RaftLog log, @Nonnull RequestVote request) {
-
-    if (!log.votedFor().isPresent()) {
-      return true;
-    }
-
-    if (log.votedFor().equals(Replica.fromString(request.getCandidateId()))) {
-      return true;
-    }
-
-    if (request.getLastLogTerm() > log.lastLogTerm()) {
-      return true;
-    }
-
-    if (request.getLastLogTerm() < log.lastLogTerm()) {
-      return false;
-    }
-
-    return request.getLastLogIndex() > log.lastLogIndex();
-
-  }
+  @Nonnull
+  ReplicaManager create(@Assisted("term") long term, @Assisted("nextIndex") long nextIndex,
+                        @Assisted("remote") @Nonnull Replica remote, @Assisted("self") @Nonnull Replica self);
 
 }

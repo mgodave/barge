@@ -16,23 +16,46 @@
 
 package org.robotninjas.barge.log;
 
+import com.google.common.base.Optional;
 import org.robotninjas.barge.Replica;
-import org.robotninjas.barge.rpc.RaftProto;
 
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
 import java.util.List;
+
+import static org.robotninjas.barge.proto.ClientProto.CommitOperation;
+import static org.robotninjas.barge.proto.RaftEntry.Entry;
 
 public interface RaftLog {
 
-  boolean append(RaftProto.AppendEntries request);
+  long append(@Nonnull CommitOperation operation, @Nonnegative long term);
 
-  GetEntriesResult getEntriesFrom(long begin);
+  boolean append(long prevLogIndex, long prevLogTerm, @Nonnull List<Entry> entries);
 
-  List<Replica> members();
+  @Nonnull GetEntriesResult getEntriesFrom(@Nonnegative long begin);
+
+  @Nonnull GetEntriesResult getEntriesFrom(@Nonnegative long begin, @Nonnegative int max);
+
+  @Nonnull GetEntriesResult getEntry(@Nonnegative final long index);
+
+  @Nonnull List<Replica> members();
 
   long lastLogIndex();
 
   long lastLogTerm();
 
   long commitIndex();
+
+  void commitIndex(long index);
+
+  long term();
+
+  void term(@Nonnegative long term);
+
+  @Nonnull Optional<Replica> votedFor();
+
+  void votedFor(@Nonnull Optional<Replica> candidate);
+
+  @Nonnull Replica self();
 
 }

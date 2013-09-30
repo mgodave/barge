@@ -16,14 +16,26 @@
 
 package org.robotninjas.barge.state;
 
-import static org.robotninjas.barge.rpc.RaftProto.*;
+import com.google.common.util.concurrent.ListenableFuture;
+import org.robotninjas.barge.RaftException;
+
+import javax.annotation.Nonnull;
+
+import static org.robotninjas.barge.proto.ClientProto.CommitOperation;
+import static org.robotninjas.barge.proto.ClientProto.CommitOperationResponse;
+import static org.robotninjas.barge.proto.RaftProto.*;
 
 interface State {
 
-  void init(Context ctx);
+  void init(@Nonnull Context ctx);
 
-  RequestVoteResponse requestVote(Context ctx, RequestVote request);
+  @Nonnull
+  RequestVoteResponse requestVote(@Nonnull Context ctx, @Nonnull RequestVote request);
 
-  AppendEntriesResponse appendEntries(Context ctx, AppendEntries request);
+  @Nonnull
+  AppendEntriesResponse appendEntries(@Nonnull Context ctx, @Nonnull AppendEntries request);
+
+  @Nonnull
+  ListenableFuture<CommitOperationResponse> commitOperation(@Nonnull Context ctx, @Nonnull CommitOperation request) throws RaftException;
 
 }

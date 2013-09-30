@@ -17,51 +17,70 @@
 package org.robotninjas.barge.log;
 
 import com.google.common.base.Function;
-import com.google.common.base.Throwables;
+import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
+import com.google.common.eventbus.EventBus;
 import com.google.inject.Inject;
 import com.google.protobuf.ByteString;
 import journal.io.api.Journal;
 import journal.io.api.Location;
 import org.robotninjas.barge.Replica;
+import org.robotninjas.barge.annotations.ClusterMembers;
 import org.robotninjas.barge.annotations.LocalReplicaInfo;
-import org.robotninjas.barge.rpc.ClientProto;
-import org.robotninjas.barge.rpc.RaftProto;
+import org.robotninjas.barge.proto.ClientProto;
+import org.robotninjas.barge.proto.RaftEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
+import javax.annotation.concurrent.NotThreadSafe;
+import java.nio.ByteBuffer;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Preconditions.*;
 import static com.google.common.base.Throwables.propagate;
+import static com.google.common.collect.Lists.newArrayList;
 import static journal.io.api.Journal.WriteType;
-import static org.robotninjas.barge.rpc.RaftEntry.Entry;
+import static org.robotninjas.barge.log.DefaultRaftLog.LoadFunction.loadFromCache;
+import static org.robotninjas.barge.proto.RaftEntry.Entry;
 
+@NotThreadSafe
 class DefaultRaftLog implements RaftLog {
 
-  private final Logger logger = LoggerFactory.getLogger(getClass());
+  private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRaftLog.class);
+
   private final Journal journal;
-  private final LoadingCache<Long, Entry> entries;
-  private final SortedMap<Long, EntryMeta> index = new TreeMap<Long, EntryMeta>();
+  private final LoadingCache<Long, Entry> entryCache;
+  private final SortedMap<Long, EntryMeta> entryIndex = new TreeMap<Long, EntryMeta>();
   private final Replica local;
+  private final List<Replica> members;
+  private final EventBus eventBus;
   private volatile long lastLogIndex = -1;
+  private volatile long term = 0;
+  private volatile Optional<Replica> votedFor = Optional.absent();
+  private volatile long commitIndex = 0;
+  private volatile long lastApplied = 0;
 
   @Inject
-  DefaultRaftLog(Journal journal, @LocalReplicaInfo Replica local) {
-    this.local = local;
-    this.journal = journal;
-    Loader loader = new Loader(index, journal);
-    this.entries = CacheBuilder.newBuilder()
-      .maximumSize(1000)
+  DefaultRaftLog(@Nonnull Journal journal,
+                 @LocalReplicaInfo @Nonnull Replica local,
+                 @ClusterMembers @Nonnull List<Replica> members,
+                 @Nonnull EventBus eventBus) {
+
+    this.local = checkNotNull(local);
+    this.journal = checkNotNull(journal);
+    this.members = members;
+    this.eventBus = eventBus;
+    EntryCacheLoader loader = new EntryCacheLoader(entryIndex, journal);
+    this.entryCache = CacheBuilder.newBuilder()
+      .maximumSize(100000)
       .build(loader);
   }
 
@@ -73,25 +92,25 @@ class DefaultRaftLog implements RaftLog {
     storeEntry(-1L, entry);
   }
 
-  private void storeEntry(long index, Entry entry) {
+  private void storeEntry(long index, @Nonnull Entry entry) {
     try {
       Location loc = journal.write(entry.toByteArray(), WriteType.SYNC);
       EntryMeta meta = new EntryMeta(index, entry.getTerm(), loc);
-      this.index.put(index, meta);
-      this.entries.put(index, entry);
+      this.entryIndex.put(index, meta);
+      this.entryCache.put(index, entry);
     } catch (Exception e) {
-      Throwables.propagate(e);
+      throw propagate(e);
     }
   }
 
-  public long append(ClientProto.CommitOperation operation, long term) {
+  public long append(@Nonnull ClientProto.CommitOperation operation, long term) {
 
-    checkState(index.containsKey(lastLogIndex));
-    checkState(!index.containsKey(lastLogIndex + 1));
+    checkState(entryIndex.containsKey(lastLogIndex));
+    checkState(!entryIndex.containsKey(lastLogIndex + 1));
 
     long index = ++lastLogIndex;
 
-    logger.debug("leader append: index {}, term {}", index, term);
+    LOGGER.debug("leader append: index {}, term {}", index, term);
 
     Entry entry =
       Entry.newBuilder()
@@ -106,23 +125,17 @@ class DefaultRaftLog implements RaftLog {
 
   }
 
-  public boolean append(RaftProto.AppendEntries appendEntries) {
+  public boolean append(long prevLogIndex, long prevLogTerm, @Nonnull List<Entry> entries) {
 
-    long prevLogTerm = appendEntries.getPrevLogTerm();
-    long prevLogIndex = appendEntries.getPrevLogIndex();
-
-    EntryMeta previousEntry = index.get(prevLogIndex);
+    EntryMeta previousEntry = entryIndex.get(prevLogIndex);
     if ((previousEntry == null) || (previousEntry.term != prevLogTerm)) {
       return false;
     }
 
-    long index = lastLogIndex + 1;
-    logger.debug("follower append: index {}, term {}", index, appendEntries.getTerm());
+    this.entryIndex.tailMap(prevLogIndex + 1).clear();
+    lastLogIndex = prevLogIndex;
 
-    this.index.tailMap(prevLogIndex + 1).clear();
-    lastLogIndex = appendEntries.getPrevLogIndex();
-
-    for (Entry entry : appendEntries.getEntriesList()) {
+    for (Entry entry : entries) {
       storeEntry(++lastLogIndex, entry);
     }
 
@@ -130,28 +143,48 @@ class DefaultRaftLog implements RaftLog {
 
   }
 
-  public GetEntriesResult getEntriesFrom(final long beginningIndex) {
+  @Nonnull
+  public GetEntriesResult getEntry(@Nonnegative final long index) {
+    checkArgument(index >= 0);
+    EntryMeta previousEntry = this.entryIndex.get(index - 1);
+    Entry entry = entryCache.getIfPresent(index);
+    List<Entry> list = entry == null ? Collections.<Entry>emptyList() : newArrayList(entry);
+    return new GetEntriesResult(previousEntry.term, index - 1, list);
+  }
+
+  /**
+   * TODO Support batching of entries
+   *
+   * @param beginningIndex
+   * @param max
+   * @return
+   */
+  @Nonnull
+  public GetEntriesResult getEntriesFrom(@Nonnegative long beginningIndex, @Nonnegative int max) {
+    checkArgument(beginningIndex >= 0);
+    Set<Long> indices = entryIndex.tailMap(beginningIndex).keySet();
+    Iterable<Entry> values = Iterables.transform(Iterables.limit(indices, max), loadFromCache(entryCache));
+    Entry previousEntry = entryCache.getIfPresent(beginningIndex - 1);
+    return new GetEntriesResult(previousEntry.getTerm(), beginningIndex - 1, newArrayList(values));
+  }
+
+  @Nonnull
+  public GetEntriesResult getEntriesFrom(@Nonnegative final long beginningIndex) {
+    checkArgument(beginningIndex >= 0);
+    Set<Long> indices = entryIndex.tailMap(beginningIndex).keySet();
+    Iterable<Entry> values = Iterables.transform(indices, loadFromCache(entryCache));
+    Entry previousEntry = entryCache.getIfPresent(beginningIndex - 1);
+    return new GetEntriesResult(previousEntry.getTerm(), beginningIndex - 1, newArrayList(values));
+  }
+
+  private void fireComitted() {
     try {
-      checkArgument(beginningIndex >= 0, "index must be >= 0, actual value: %s", beginningIndex);
-      Set<Long> indices = index.tailMap(beginningIndex).keySet();
-      Iterable<Entry> values = Iterables.transform(indices, new Function<Long, Entry>() {
-        @Nullable
-        @Override
-        public Entry apply(@Nullable Long input) {
-          try {
-            return entries.get(input);
-          } catch (ExecutionException e) {
-            e.printStackTrace();
-          }
-          return null;
-        }
-      });
-      long prevEntryIndex = beginningIndex - 1;
-      Entry previousEntry = entries.get(prevEntryIndex);
-      long prevEntryTerm = previousEntry.getTerm();
-      return new GetEntriesResult(prevEntryTerm, prevEntryIndex, ImmutableList.copyOf(values));
-    } catch (ExecutionException e) {
-      e.printStackTrace();
+      for (long i = lastApplied; i <= commitIndex; ++i, ++lastApplied) {
+        byte[] rawCommand = entryCache.get(i).getCommand().toByteArray();
+        ByteBuffer operation = ByteBuffer.wrap(rawCommand).asReadOnlyBuffer();
+        eventBus.post(new ComittedEvent(operation));
+      }
+    } catch (Exception e) {
       throw propagate(e);
     }
   }
@@ -161,31 +194,58 @@ class DefaultRaftLog implements RaftLog {
   }
 
   public long lastLogTerm() {
-    return index.get(lastLogIndex()).term;
+    return entryIndex.get(lastLogIndex()).term;
   }
 
   public long commitIndex() {
-    return 0;
+    return commitIndex;
   }
 
+  public void commitIndex(long index) {
+    this.commitIndex = index;
+    fireComitted();
+  }
+
+  @Nonnull
   @Override
   public List<Replica> members() {
-    Replica replica1 = Replica.fromString("localhost:10000");
-    Replica replica2 = Replica.fromString("localhost:10001");
-    Replica replica3 = Replica.fromString("localhost:10002");
-    List<Replica> replicas = Lists.newArrayList(replica1, replica2, replica3);
-    replicas.remove(local);
-    return replicas;
+    return Collections.unmodifiableList(members);
+  }
+
+  public long term() {
+    return term;
+  }
+
+  public void term(@Nonnegative long term) {
+    checkArgument(term >= 0);
+    MDC.put("term", Long.toString(term));
+    LOGGER.debug("New term {}", term);
+    this.term = term;
+  }
+
+  @Nonnull
+  public Optional<Replica> votedFor() {
+    return votedFor;
+  }
+
+  public void votedFor(@Nonnull Optional<Replica> vote) {
+    LOGGER.debug("Voting for {}", vote.orNull());
+    this.votedFor = checkNotNull(vote);
+  }
+
+  @Nonnull
+  public Replica self() {
+    return local;
   }
 
   @Immutable
-  class EntryMeta {
+  static final class EntryMeta {
 
     private final long index;
     private final long term;
     private final Location location;
 
-    EntryMeta(long index, long term, Location location) {
+    EntryMeta(long index, long term, @Nonnull Location location) {
       this.index = index;
       this.term = term;
       this.location = location;
@@ -193,19 +253,21 @@ class DefaultRaftLog implements RaftLog {
 
   }
 
-  class Loader extends CacheLoader<Long, Entry> {
+  @Immutable
+  static final class EntryCacheLoader extends CacheLoader<Long, Entry> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final Map<Long, EntryMeta> index;
     private final Journal journal;
 
-    Loader(Map<Long, EntryMeta> index, Journal journal) {
-      this.index = index;
-      this.journal = journal;
+    EntryCacheLoader(@Nonnull Map<Long, EntryMeta> index, @Nonnull Journal journal) {
+      this.index = checkNotNull(index);
+      this.journal = checkNotNull(journal);
     }
 
     @Override
-    public Entry load(Long key) throws Exception {
+    public Entry load(@Nonnull Long key) throws Exception {
+      checkNotNull(key);
       try {
         logger.debug("Loading {}", key);
         EntryMeta meta = index.get(key);
@@ -216,6 +278,28 @@ class DefaultRaftLog implements RaftLog {
         e.printStackTrace();
         throw e;
       }
+    }
+  }
+
+  @Immutable
+  static final class LoadFunction implements Function<Long, RaftEntry.Entry> {
+
+    private final LoadingCache<Long, Entry> cache;
+
+    private LoadFunction(LoadingCache<Long, Entry> cache) {
+      this.cache = cache;
+    }
+
+    @Nullable
+    @Override
+    public Entry apply(@Nullable Long input) {
+      checkNotNull(input);
+      return cache.getUnchecked(input);
+    }
+
+    @Nonnull
+    public static Function<Long, Entry> loadFromCache(@Nonnull LoadingCache<Long, Entry> cache) {
+      return new LoadFunction(cache);
     }
   }
 

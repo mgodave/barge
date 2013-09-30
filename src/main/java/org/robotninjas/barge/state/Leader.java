@@ -17,123 +17,213 @@
 package org.robotninjas.barge.state;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.base.Throwables;
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
+import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.annotations.ElectionTimeout;
 import org.robotninjas.barge.annotations.RaftScheduler;
-import org.robotninjas.barge.context.RaftContext;
-import org.robotninjas.barge.log.GetEntriesResult;
 import org.robotninjas.barge.log.RaftLog;
-import org.robotninjas.barge.rpc.RaftClient;
-import org.robotninjas.barge.rpc.RpcClientProvider;
+import org.robotninjas.barge.proto.RaftEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ScheduledFuture;
 
-import static com.google.common.util.concurrent.MoreExecutors.sameThreadExecutor;
-import static org.robotninjas.barge.rpc.RaftProto.*;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Predicates.notNull;
+import static com.google.common.util.concurrent.Futures.*;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.robotninjas.barge.proto.ClientProto.CommitOperation;
+import static org.robotninjas.barge.proto.ClientProto.CommitOperationResponse;
+import static org.robotninjas.barge.proto.RaftProto.*;
 import static org.robotninjas.barge.state.Context.StateType.FOLLOWER;
+import static org.robotninjas.barge.state.Leader.AppendSuccessPredicate.Success;
+import static org.robotninjas.barge.state.Leader.IsCommittedFunction.IsCommitted;
 
-public class Leader implements State {
+@NotThreadSafe
+class Leader implements State {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Leader.class);
 
-  private final RaftContext rctx;
+  private final RaftLog log;
   private final ScheduledExecutorService scheduler;
   private final long timeout;
-  private final RpcClientProvider clientProvider;
   private final Map<Replica, ReplicaManager> managers = Maps.newHashMap();
+  private final ReplicaManagerFactory replicaManagerFactory;
+  private ScheduledFuture<?> heartbeatTask;
 
   @Inject
-  Leader(RaftContext rctx, @RaftScheduler ScheduledExecutorService scheduler,
-         @ElectionTimeout long timeout, RpcClientProvider clientProvider) {
+  Leader(RaftLog log, @RaftScheduler ScheduledExecutorService scheduler,
+         @ElectionTimeout @Nonnegative long timeout, ReplicaManagerFactory replicaManagerFactory) {
 
-    this.rctx = rctx;
-    this.scheduler = scheduler;
+    this.log = checkNotNull(log);
+    this.scheduler = checkNotNull(scheduler);
+    checkArgument(timeout > 0);
     this.timeout = timeout;
-    this.clientProvider = clientProvider;
+    this.replicaManagerFactory = checkNotNull(replicaManagerFactory);
   }
 
   @Override
-  public void init(Context ctx) {
+  public void init(@Nonnull Context ctx) {
 
-    RaftLog log = rctx.log();
     long nextIndex = log.lastLogIndex() + 1;
-    long term = rctx.term();
-    Replica self = rctx.self();
+    long term = log.term();
+    Replica self = log.self();
 
-    for (Replica replica : rctx.log().members()) {
-      RaftClient client = clientProvider.get(replica);
-      managers.put(replica, new ReplicaManager(client, log, term, nextIndex, self));
+    for (Replica replica : log.members()) {
+      managers.put(replica, replicaManagerFactory.create(term, nextIndex, replica, self));
     }
 
-    scheduler.scheduleAtFixedRate(new Runnable() {
-      @Override
-      public void run() {
-        LOGGER.debug("Sending heartbeat");
-        sendRequests();
-      }
-    }, 0, timeout, TimeUnit.MILLISECONDS);
+    sendRequests();
+    resetTimeout(ctx);
 
   }
 
+  @Nonnull
   @Override
-  public RequestVoteResponse requestVote(Context ctx, RequestVote request) {
+  public RequestVoteResponse requestVote(@Nonnull Context ctx, @Nonnull RequestVote request) {
 
     LOGGER.debug("RequestVote received for term {}", request.getTerm());
 
     boolean voteGranted = false;
 
-    if (request.getTerm() > rctx.term()) {
+    if (request.getTerm() > log.term()) {
 
-      rctx.term(request.getTerm());
+      log.term(request.getTerm());
       ctx.setState(FOLLOWER);
+      heartbeatTask.cancel(false);
 
       Replica candidate = Replica.fromString(request.getCandidateId());
-      voteGranted = Voting.shouldVoteFor(rctx, request);
+      voteGranted = Voting.shouldVoteFor(log, request);
 
       if (voteGranted) {
-        rctx.votedFor(Optional.of(candidate));
+        log.votedFor(Optional.of(candidate));
       }
 
     }
 
     return RequestVoteResponse.newBuilder()
-      .setTerm(rctx.term())
+      .setTerm(log.term())
       .setVoteGranted(voteGranted)
       .build();
 
   }
 
+  @Nonnull
   @Override
-  public AppendEntriesResponse appendEntries(Context ctx, AppendEntries request) {
+  public AppendEntriesResponse appendEntries(@Nonnull Context ctx, @Nonnull AppendEntries request) {
 
     boolean success = false;
 
-    if (request.getTerm() > rctx.term()) {
-      rctx.term(request.getTerm());
+    if (request.getTerm() > log.term()) {
+      log.term(request.getTerm());
       ctx.setState(FOLLOWER);
-      success = rctx.log().append(request);
+      heartbeatTask.cancel(false);
+      long prevLogIndex = request.getPrevLogIndex();
+      long prevLogTerm = request.getPrevLogTerm();
+      List<RaftEntry.Entry> entries = request.getEntriesList();
+      success = log.append(prevLogIndex, prevLogTerm, entries);
     }
 
     return AppendEntriesResponse.newBuilder()
-      .setTerm(rctx.term())
+      .setTerm(log.term())
       .setSuccess(success)
       .build();
 
   }
 
+  void resetTimeout(@Nonnull final Context ctx) {
+
+    if (null != heartbeatTask) {
+      heartbeatTask.cancel(false);
+    }
+
+    heartbeatTask = scheduler.scheduleAtFixedRate(new Runnable() {
+      @Override
+      public void run() {
+        LOGGER.debug("Sending heartbeat");
+        sendRequests();
+      }
+    }, timeout, timeout, MILLISECONDS);
+
+  }
+
+  @Nonnull
+  @Override
+  public ListenableFuture<CommitOperationResponse> commitOperation(@Nonnull Context ctx, @Nonnull CommitOperation request) throws RaftException {
+
+    resetTimeout(ctx);
+
+    final long index = log.append(request, log.term());
+
+    ListenableFuture<Boolean> commit = commit();
+
+    addCallback(commit, new FutureCallback<Boolean>() {
+
+      @Override
+      public void onSuccess(@Nullable Boolean comitted) {
+        if (comitted) {
+          long oldCommitIndex = log.commitIndex();
+          long newCommitIndex = Math.max(oldCommitIndex, index);
+          log.commitIndex(newCommitIndex);
+          LOGGER.debug("CommitIndex: {}", newCommitIndex);
+        }
+      }
+
+      @Override
+      public void onFailure(Throwable t) {
+
+      }
+
+    });
+
+    return transform(commit, new Function<Boolean, CommitOperationResponse>() {
+      @Nullable
+      @Override
+      public CommitOperationResponse apply(@Nullable Boolean input) {
+        checkNotNull(input);
+        //noinspection ConstantConditions
+        return CommitOperationResponse.newBuilder().setCommitted(input).build();
+      }
+    });
+
+  }
+
+  /**
+   * Commit a new entry to the cluster
+   *
+   * @return a future with the result of the commit operation
+   */
+  @Nonnull
+  @VisibleForTesting
+  ListenableFuture<Boolean> commit() {
+    List<ListenableFuture<AppendEntriesResponse>> responses = sendRequests();
+    ListenableFuture<List<AppendEntriesResponse>> successful = successfulAsList(responses);
+    return transform(successful, IsCommitted);
+  }
+
+  /**
+   * Notify the {@link ReplicaManager} to send an update the next possible time it can
+   *
+   * @return futures with the result of the update
+   */
+  @Nonnull
   @VisibleForTesting
   List<ListenableFuture<AppendEntriesResponse>> sendRequests() {
     List<ListenableFuture<AppendEntriesResponse>> responses = Lists.newArrayList();
@@ -143,121 +233,42 @@ public class Leader implements State {
     return responses;
   }
 
-  static class ReplicaManager {
+  /**
+   * Function taking a list of {@link AppendEntriesResponse} and returning true if a majority of the replicas
+   * successfully stored the entry, false otherwise.
+   */
+  static enum IsCommittedFunction implements Function<List<AppendEntriesResponse>, Boolean> {
 
-    private final RaftClient client;
-    private final RaftLog log;
-    private final long term;
-    private final Replica self;
-    private long nextIndex;
-    private boolean running = false;
-    private boolean requested = false;
-    private SettableFuture<AppendEntriesResponse> returnable = SettableFuture.create();
+    IsCommitted;
 
-    ReplicaManager(RaftClient client, RaftLog log, long term, long nextIndex, Replica self) {
-      this.nextIndex = nextIndex;
-      this.term = term;
-      this.log = log;
-      this.client = client;
-      this.self = self;
-    }
-
-    @VisibleForTesting
-    void sendUpdate() {
-
-      LOGGER.debug("Sending update");
-
-      running = true;
-
-      GetEntriesResult result =
-        log.getEntriesFrom(nextIndex);
-
-      final AppendEntries request =
-        AppendEntries.newBuilder()
-          .setTerm(term)
-          .setLeaderId(self.toString())
-          .setPrevLogIndex(result.lastLogIndex())
-          .setPrevLogTerm(result.lastLogTerm())
-          .setCommitIndex(log.commitIndex())
-          .addAllEntries(result.entries())
-          .build();
-
-      final ListenableFuture<AppendEntriesResponse> response =
-        client.appendEntries(request);
-
-      response.addListener(new Runnable() {
-        @Override
-        public void run() {
-          update(request, response, returnable);
-        }
-      }, sameThreadExecutor());
-
-      returnable = SettableFuture.create();
-
-    }
-
-    @VisibleForTesting
-    void update(AppendEntries request, ListenableFuture<AppendEntriesResponse> f,
-                SettableFuture<AppendEntriesResponse> returnable) {
-
-      running = requested;
-      requested = false;
-
-      try {
-
-        AppendEntriesResponse response = f.get();
-
-        running = running || !response.getSuccess();
-
-        if (response.getSuccess()) {
-          nextIndex += request.getEntriesCount();
-          returnable.set(response);
-        } else {
-          nextIndex -= 1;
-        }
-
-        if (running) {
-          sendUpdate();
-        }
-
-      } catch (InterruptedException e) {
-
-        Throwables.propagate(e);
-
-      } catch (ExecutionException e) {
-
-        returnable.setException(e);
-
-      }
-
-    }
-
-    @VisibleForTesting
-    boolean isRunning() {
-      return running;
-    }
-
-    @VisibleForTesting
-    boolean isRequested() {
-      return requested;
-    }
-
-    @VisibleForTesting
-    long getNextIndex() {
-      return nextIndex;
-    }
-
-    public ListenableFuture<AppendEntriesResponse> fireUpdate() {
-      if (!running) {
-        running = true;
-        sendUpdate();
-      } else {
-        requested = true;
-      }
-      return returnable;
+    @Nullable
+    @Override
+    public Boolean apply(@Nullable List<AppendEntriesResponse> input) {
+      checkNotNull(input);
+      final int numSent = input.size();
+      final int numSucessful = FluentIterable
+        .from(input)
+        .filter(notNull())
+        .filter(Success)
+        .size();
+      return numSucessful >= (numSent / 2.0);
     }
 
   }
 
+  /**
+   * Predicate returning true if the {@link AppendEntriesResponse} returns success.
+   */
+  static enum AppendSuccessPredicate implements Predicate<AppendEntriesResponse> {
+
+    Success;
+
+    @Override
+    public boolean apply(@Nullable AppendEntriesResponse input) {
+      checkNotNull(input);
+      return input.getSuccess();
+    }
+
+  }
 
 }

@@ -17,31 +17,40 @@
 package org.robotninjas.barge;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Throwables;
 import com.google.common.net.HostAndPort;
 
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.Immutable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+@Immutable
+@ThreadSafe
 public class Replica {
 
   private final InetSocketAddress address;
 
-  Replica(InetSocketAddress address) {
-    this.address = address;
+  Replica(@Nonnull InetSocketAddress address) {
+    this.address = checkNotNull(address);
   }
 
-  public static Replica fromString(String info) {
+  @Nonnull
+  public static Replica fromString(@Nonnull String info) {
     try {
+      checkNotNull(info);
       HostAndPort hostAndPort = HostAndPort.fromString(info);
       InetAddress addr = InetAddress.getByName(hostAndPort.getHostText());
       InetSocketAddress saddr = new InetSocketAddress(addr, hostAndPort.getPort());
       return new Replica(saddr);
     } catch (UnknownHostException e) {
-      e.printStackTrace();
+      throw Throwables.propagate(e);
     }
-    return null;
   }
 
   public SocketAddress address() {
@@ -69,6 +78,7 @@ public class Replica {
 
   }
 
+  @Nonnull
   @Override
   public String toString() {
     return address.getAddress().getHostName() + ":" + address.getPort();
