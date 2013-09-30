@@ -131,7 +131,7 @@ class ReplicaManager {
       } else if (response.hasLastLogIndex()) {
         nextIndex = response.getLastLogIndex() + 1;
       } else {
-        nextIndex -= 1;
+        nextIndex = nextIndex == 0 ? 0 : nextIndex - 1;
       }
 
       if (running) {

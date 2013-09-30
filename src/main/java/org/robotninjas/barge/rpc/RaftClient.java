@@ -167,6 +167,10 @@ class RaftClient {
     @Override
     public void run(@Nullable T parameter) {
 
+      if (isCancelled()) {
+        return;
+      }
+
       if (null == parameter) {
         setException(new RaftException(controller.errorText()));
       } else {
