@@ -274,6 +274,9 @@ class Leader implements State {
 
   }
 
+  /**
+   * Aggregate requests for commit and succeed/fail fast
+   */
   @NotThreadSafe
   @VisibleForTesting
   static final class CommitAggregator
