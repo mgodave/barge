@@ -8,17 +8,13 @@ import org.junit.Test;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.log.GetEntriesResult;
 import org.robotninjas.barge.log.RaftLog;
-import org.robotninjas.barge.rpc.RaftClient;
-import org.robotninjas.barge.rpc.RaftProto;
+import org.robotninjas.barge.rpc.Client;
+import org.robotninjas.barge.proto.RaftProto;
 
-import java.util.List;
-
-import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
-import static org.robotninjas.barge.rpc.RaftEntry.Entry;
-import static org.robotninjas.barge.rpc.RaftProto.AppendEntriesResponse;
-import static org.robotninjas.barge.state.Leader.ReplicaManager;
+import static org.robotninjas.barge.proto.RaftEntry.Entry;
+import static org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse;
 
 public class LeaderTest {
 
@@ -27,16 +23,17 @@ public class LeaderTest {
 
     SettableFuture<AppendEntriesResponse> response = SettableFuture.create();
 
-    RaftClient client = mock(RaftClient.class);
-    when(client.appendEntries(any(RaftProto.AppendEntries.class)))
+    Client client = mock(Client.class);
+    when(client.appendEntries(any(Replica.class), any(RaftProto.AppendEntries.class)))
       .thenReturn(response)
       .thenReturn(Futures.<AppendEntriesResponse>immediateFailedFuture(new Exception()));
 
     RaftLog log = mock(RaftLog.class);
     Replica self = Replica.fromString("loalhost:10000");
+    Replica remote = Replica.fromString("localhost:10001");
 
     ReplicaManager replicaManager =
-      spy(new ReplicaManager(client, log, 0, 10, self));
+      spy(new ReplicaManager(client, log, 0, 10, remote, self));
 
     replicaManager.fireUpdate();
     assertTrue(replicaManager.isRunning());
@@ -67,8 +64,8 @@ public class LeaderTest {
 
     SettableFuture<AppendEntriesResponse> response = SettableFuture.create();
 
-    RaftClient client = mock(RaftClient.class);
-    when(client.appendEntries(any(RaftProto.AppendEntries.class)))
+    Client client = mock(Client.class);
+    when(client.appendEntries(any(Replica.class), any(RaftProto.AppendEntries.class)))
       .thenReturn(response);
 
     RaftLog log = mock(RaftLog.class);
@@ -78,9 +75,10 @@ public class LeaderTest {
     when(log.getEntriesFrom(anyLong())).thenReturn(getResult);
 
     Replica self = Replica.fromString("loalhost:10000");
+    Replica remote = Replica.fromString("localhost:10001");
 
     ReplicaManager replicaManager =
-      spy(new ReplicaManager(client, log, 0, 10, self));
+      spy(new ReplicaManager(client, log, 0, 10, remote, self));
 
     replicaManager.fireUpdate();
     assertTrue(replicaManager.isRunning());
@@ -106,17 +104,18 @@ public class LeaderTest {
 
     SettableFuture<AppendEntriesResponse> response = SettableFuture.create();
 
-    RaftClient client = mock(RaftClient.class);
-    when(client.appendEntries(any(RaftProto.AppendEntries.class)))
+    Client client = mock(Client.class);
+    when(client.appendEntries(any(Replica.class), any(RaftProto.AppendEntries.class)))
       .thenReturn(response)
       .thenReturn(Futures.<AppendEntriesResponse>immediateFailedFuture(new Exception()));
 
 
     RaftLog log = mock(RaftLog.class);
     Replica self = Replica.fromString("loalhost:10000");
+    Replica remote = Replica.fromString("localhost:10001");
 
     ReplicaManager replicaManager =
-      spy(new ReplicaManager(client, log, 0, 10, self));
+      spy(new ReplicaManager(client, log, 0, 10, remote, self));
 
     replicaManager.fireUpdate();
     assertTrue(replicaManager.isRunning());

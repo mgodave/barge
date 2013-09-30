@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-option java_package = "org.robotninjas.barge.rpc";
+option java_package = "org.robotninjas.barge.proto";
 option java_outer_classname = "RaftEntry";
 
 message Entry {

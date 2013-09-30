@@ -22,76 +22,91 @@ import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
+import org.robotninjas.barge.NoLeaderException;
+import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.annotations.ElectionTimeout;
 import org.robotninjas.barge.annotations.RaftScheduler;
-import org.robotninjas.barge.context.RaftContext;
-import org.robotninjas.barge.rpc.RaftClient;
-import org.robotninjas.barge.rpc.RpcClientProvider;
+import org.robotninjas.barge.log.RaftLog;
+import org.robotninjas.barge.proto.RaftEntry;
+import org.robotninjas.barge.rpc.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.notNull;
 import static com.google.common.util.concurrent.Futures.*;
-import static com.google.common.util.concurrent.MoreExecutors.sameThreadExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.robotninjas.barge.rpc.RaftProto.*;
-import static org.robotninjas.barge.state.Candidate.CountVotesFunction.countVotes;
-import static org.robotninjas.barge.state.Candidate.IsElectedFunction.isElected;
-import static org.robotninjas.barge.state.Candidate.VoteGrantedPredicate.voteGranted;
+import static org.robotninjas.barge.proto.ClientProto.CommitOperation;
+import static org.robotninjas.barge.proto.ClientProto.CommitOperationResponse;
+import static org.robotninjas.barge.proto.RaftProto.*;
+import static org.robotninjas.barge.state.Candidate.IsElectedFunction.IsElected;
+import static org.robotninjas.barge.state.Candidate.VoteGrantedPredicate.VoteGranted;
 import static org.robotninjas.barge.state.Context.StateType.*;
 
-public class Candidate implements State {
+@NotThreadSafe
+class Candidate implements State {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Candidate.class);
   private static final Random RAND = new Random(System.nanoTime());
 
-  private final RaftContext rctx;
+  private final RaftLog log;
   private final ScheduledExecutorService scheduler;
   private final long electionTimeout;
-  private final RpcClientProvider clientProvider;
+  private final Client client;
   private ScheduledFuture<?> electionTimer;
-  ListenableFuture<Boolean> electionResult;
+  private ListenableFuture<Boolean> electionResult;
 
   @Inject
-  Candidate(RaftContext rctx, @RaftScheduler ScheduledExecutorService scheduler,
-            @ElectionTimeout long electionTimeout, RpcClientProvider clientProvider) {
-    this.rctx = rctx;
+  Candidate(RaftLog log, @RaftScheduler ScheduledExecutorService scheduler,
+            @ElectionTimeout long electionTimeout, Client client) {
+    this.log = log;
     this.scheduler = scheduler;
     this.electionTimeout = electionTimeout;
-    this.clientProvider = clientProvider;
+    this.client = client;
   }
 
   @Override
-  public void init(final Context ctx) {
+  public void init(@Nonnull final Context ctx) {
 
-    rctx.term(rctx.term() + 1);
-    rctx.votedFor(Optional.of(rctx.self()));
+    log.term(log.term() + 1);
+    log.votedFor(Optional.of(log.self()));
 
-    LOGGER.debug("Election starting for term {}", rctx.term());
+    LOGGER.debug("Election starting for term {}", log.term());
 
     List<ListenableFuture<RequestVoteResponse>> responses = sendRequests();
-    ListenableFuture<List<RequestVoteResponse>> successful = successfulAsList(responses);
-    ListenableFuture<Integer> votes = transform(successful, countVotes());
-    electionResult = transform(votes, isElected(rctx.log().members().size() + 1));
+    electionResult = transform(successfulAsList(responses), IsElected);
 
-    electionResult.addListener(new Runnable() {
+    addCallback(electionResult, new FutureCallback<Boolean>() {
       @Override
-      public void run() {
-        if (getUnchecked(electionResult)) {
+      public void onSuccess(@Nullable Boolean elected) {
+        checkNotNull(elected);
+        //noinspection ConstantConditions
+        if (elected) {
           transition(ctx, LEADER);
         }
       }
-    }, sameThreadExecutor());
+
+      @Override
+      public void onFailure(Throwable t) {
+        if (!electionResult.isCancelled()) {
+          LOGGER.debug("Election failed with exception:", t);
+        }
+      }
+
+    });
 
     long timeout = electionTimeout + (RAND.nextLong() % electionTimeout);
     electionTimer = scheduler.schedule(new Runnable() {
@@ -101,20 +116,22 @@ public class Candidate implements State {
         transition(ctx, CANDIDATE);
       }
     }, timeout, MILLISECONDS);
+
   }
 
-  private void transition(Context ctx, Context.StateType state) {
+  private void transition(@Nonnull Context ctx, @Nonnull Context.StateType state) {
     ctx.setState(state);
     electionResult.cancel(false);
     electionTimer.cancel(false);
   }
 
-  private void stepDown(Context ctx) {
+  private void stepDown(@Nonnull Context ctx) {
     transition(ctx, FOLLOWER);
   }
 
+  @Nonnull
   @Override
-  public RequestVoteResponse requestVote(Context ctx, RequestVote request) {
+  public RequestVoteResponse requestVote(@Nonnull Context ctx, @Nonnull RequestVote request) {
 
     LOGGER.debug("RequestVote received for term {}", request.getTerm());
 
@@ -122,129 +139,108 @@ public class Candidate implements State {
 
     boolean voteGranted = false;
 
-    if (request.getTerm() > rctx.term()) {
-      rctx.term(request.getTerm());
+    if (request.getTerm() > log.term()) {
+      log.term(request.getTerm());
       stepDown(ctx);
-      voteGranted = Voting.shouldVoteFor(rctx, request);
+      voteGranted = Voting.shouldVoteFor(log, request);
       if (voteGranted) {
-        rctx.votedFor(Optional.of(candidate));
+        log.votedFor(Optional.of(candidate));
       }
     }
 
     return RequestVoteResponse.newBuilder()
-      .setTerm(rctx.term())
+      .setTerm(log.term())
       .setVoteGranted(voteGranted)
       .build();
 
   }
 
+  @Nonnull
   @Override
-  public AppendEntriesResponse appendEntries(Context ctx, AppendEntries request) {
+  public AppendEntriesResponse appendEntries(@Nonnull Context ctx, @Nonnull AppendEntries request) {
 
     LOGGER.debug("AppendEntries received for term {}", request.getTerm());
 
     boolean success = false;
 
-    if (request.getTerm() >= rctx.term()) {
+    if (request.getTerm() >= log.term()) {
 
-      if (request.getTerm() > rctx.term()) {
-        rctx.term(request.getTerm());
+      if (request.getTerm() > log.term()) {
+        log.term(request.getTerm());
       }
 
       stepDown(ctx);
 
-      success = rctx.log().append(request);
+      long prevLogIndex = request.getPrevLogIndex();
+      long prevLogTerm = request.getPrevLogTerm();
+      List<RaftEntry.Entry> entries = request.getEntriesList();
+      success = log.append(prevLogIndex, prevLogTerm, entries);
 
     }
 
     return AppendEntriesResponse.newBuilder()
-      .setTerm(rctx.term())
+      .setTerm(log.term())
       .setSuccess(success)
       .build();
 
   }
 
+  @Nonnull
+  @Override
+  public ListenableFuture<CommitOperationResponse> commitOperation(@Nonnull Context ctx, @Nonnull CommitOperation request) throws RaftException {
+    throw new NoLeaderException();
+  }
+
   @VisibleForTesting
   List<ListenableFuture<RequestVoteResponse>> sendRequests() {
     List<ListenableFuture<RequestVoteResponse>> responses = Lists.newArrayList();
-    for (Replica replica : rctx.log().members()) {
-      RaftClient client = clientProvider.get(replica);
+    for (Replica replica : log.members()) {
       RequestVote request =
         RequestVote.newBuilder()
-          .setTerm(rctx.term())
-          .setCandidateId(rctx.self().toString())
-          .setLastLogIndex(rctx.log().lastLogIndex())
-          .setLastLogTerm(rctx.log().lastLogTerm())
+          .setTerm(log.term())
+          .setCandidateId(log.self().toString())
+          .setLastLogIndex(log.lastLogIndex())
+          .setLastLogTerm(log.lastLogTerm())
           .build();
-      responses.add(client.requestVote(request));
+      responses.add(client.requestVote(replica, request));
     }
     return responses;
   }
 
+
   @Immutable
-  static final class IsElectedFunction implements Function<Integer, Boolean> {
+  @VisibleForTesting
+  static enum IsElectedFunction implements Function<List<RequestVoteResponse>, Boolean> {
 
-    private final int membershipCount;
-
-    private IsElectedFunction(int membershipCount) {
-      this.membershipCount = membershipCount;
-    }
+    IsElected;
 
     @Nullable
     @Override
-    public Boolean apply(@Nullable Integer input) {
-      return input > (membershipCount / 2.0);
-    }
-
-    static Function<Integer, Boolean> isElected(int membershipCount) {
-      return new IsElectedFunction(membershipCount);
-    }
-
-  }
-
-  @Immutable
-  static enum CountVotesFunction implements Function<List<RequestVoteResponse>, Integer> {
-
-    CountVotes;
-
-    @Override
-    public Integer apply(List<RequestVoteResponse> responses) {
-      return FluentIterable
-        .from(responses)
-        .filter(notNull())
-        .filter(voteGranted())
-        .size() + 1;
-    }
-
-    static Function<List<RequestVoteResponse>, Integer> countVotes() {
-      return CountVotes;
+    public Boolean apply(@Nullable List<RequestVoteResponse> input) {
+      checkNotNull(input);
+      final int numSent = input.size();
+      final int numGranted =
+        FluentIterable
+          .from(input)
+          .filter(notNull())
+          .filter(VoteGranted)
+          .size();
+      return numGranted >= (numSent / 2.0);
     }
 
   }
 
   @Immutable
+  @VisibleForTesting
   static enum VoteGrantedPredicate implements Predicate<RequestVoteResponse> {
 
-    Granted(true),
-    NotGranted(false);
-
-    boolean offset;
-
-    VoteGrantedPredicate(boolean offset) {
-      this.offset = offset;
-    }
+    VoteGranted;
 
     @Override
-    public boolean apply(RequestVoteResponse input) {
-      return input.getVoteGranted() && offset;
-    }
-
-    static Predicate<RequestVoteResponse> voteGranted() {
-      return Granted;
-    }
-
-    static Predicate<RequestVoteResponse> voteNotGranted() {
-      return NotGranted;
+    public boolean apply(@Nullable RequestVoteResponse input) {
+      checkNotNull(input);
+      //noinspection ConstantConditions
+      return input.getVoteGranted();
     }
 
   }

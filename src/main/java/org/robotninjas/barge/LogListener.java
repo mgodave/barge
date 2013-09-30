@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package org.robotninjas.barge.state;
+package org.robotninjas.barge;
 
 import javax.annotation.Nonnull;
+import java.nio.ByteBuffer;
 
-interface StateFactory {
+public interface LogListener {
 
-  @Nonnull
-  Candidate candidate();
+  void applyOperation(@Nonnull ByteBuffer entry);
 
-  @Nonnull
-  Leader leader();
-
-  @Nonnull
-  Follower follower();
+//  void takeSnapshot(@Nonnull OutputStream snapshot);
+//
+//  void installSnapshot(@Nonnull InputStream snapshot);
 
 }

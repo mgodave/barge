@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package org.robotninjas.barge.context;
+package org.robotninjas.barge.annotations;
 
-import com.google.inject.PrivateModule;
+import com.google.inject.BindingAnnotation;
 
-public class ContextModule extends PrivateModule {
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-  @Override
-  protected void configure() {
-    bind(RaftContext.class).asEagerSingleton();
-    expose(RaftContext.class);
-  }
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+@BindingAnnotation
+@Target({FIELD, PARAMETER, METHOD})
+@Retention(RUNTIME)
+public @interface LogListenerExecutor {
 }

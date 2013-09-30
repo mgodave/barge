@@ -18,7 +18,6 @@ package org.robotninjas.barge.rpc;
 
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.PrivateModule;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -29,16 +28,20 @@ import org.robotninjas.barge.annotations.RaftScheduler;
 import org.robotninjas.protobuf.netty.client.RpcClient;
 import org.robotninjas.protobuf.netty.server.RpcServer;
 
+import javax.annotation.Nonnull;
 import java.net.SocketAddress;
 import java.util.concurrent.ScheduledExecutorService;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator;
 
 public class RpcModule extends PrivateModule {
 
   private static final int NUM_THREADS = 1;
   private final SocketAddress saddr;
 
-  public RpcModule(SocketAddress saddr) {
-    this.saddr = saddr;
+  public RpcModule(@Nonnull SocketAddress saddr) {
+    this.saddr = checkNotNull(saddr);
   }
 
   @Override
@@ -59,13 +62,23 @@ public class RpcModule extends PrivateModule {
       }
     }));
 
-    ListeningExecutorService listeningExecutorService = MoreExecutors.listeningDecorator(eventExecutor);
-    bind(ListeningExecutorService.class).annotatedWith(RaftExecutor.class).toInstance(listeningExecutorService);
-    expose(ListeningExecutorService.class).annotatedWith(RaftExecutor.class);
+    ListeningExecutorService listeningExecutorService = listeningDecorator(eventExecutor);
 
-    ListeningScheduledExecutorService listeningScheduler = MoreExecutors.listeningDecorator(eventExecutor);
-    bind(ScheduledExecutorService.class).annotatedWith(RaftScheduler.class).toInstance(listeningScheduler);
-    expose(ScheduledExecutorService.class).annotatedWith(RaftScheduler.class);
+    bind(ListeningExecutorService.class)
+      .annotatedWith(RaftExecutor.class)
+      .toInstance(listeningExecutorService);
+
+    expose(ListeningExecutorService.class)
+      .annotatedWith(RaftExecutor.class);
+
+    ListeningScheduledExecutorService listeningScheduler = listeningDecorator(eventExecutor);
+
+    bind(ScheduledExecutorService.class)
+      .annotatedWith(RaftScheduler.class)
+      .toInstance(listeningScheduler);
+
+    expose(ScheduledExecutorService.class)
+      .annotatedWith(RaftScheduler.class);
 
     NioEventLoopGroup eventLoop = new NioEventLoopGroup(NUM_THREADS);
     bind(NioEventLoopGroup.class).toInstance(eventLoop);
@@ -74,11 +87,12 @@ public class RpcModule extends PrivateModule {
     bind(RpcServer.class).toInstance(rpcServer);
     expose(RpcServer.class);
 
-    bind(RpcClientProvider.class);
-    expose(RpcClientProvider.class);
-
+    bind(RpcClientProvider.class)
+      .asEagerSingleton();
     bind(RpcClient.class);
-    expose(RpcClient.class);
+
+    bind(Client.class);
+    expose(Client.class);
   }
 
 }

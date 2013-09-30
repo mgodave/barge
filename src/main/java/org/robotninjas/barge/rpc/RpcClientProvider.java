@@ -16,53 +16,44 @@
 
 package org.robotninjas.barge.rpc;
 
-import com.google.common.cache.*;
-import org.apache.commons.pool.ObjectPool;
-import org.apache.commons.pool.impl.GenericObjectPool;
+import org.apache.commons.pool.KeyedObjectPool;
+import org.apache.commons.pool.impl.GenericKeyedObjectPool;
+import org.robotninjas.barge.Replica;
 import org.robotninjas.protobuf.netty.client.NettyRpcChannel;
 import org.robotninjas.protobuf.netty.client.RpcClient;
-import org.robotninjas.barge.Replica;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.Immutable;
 import javax.inject.Inject;
-import java.util.concurrent.TimeUnit;
 
-public class RpcClientProvider
-  extends CacheLoader<Replica, ObjectPool<NettyRpcChannel>>
-  implements RemovalListener<Replica, ObjectPool<NettyRpcChannel>> {
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.pool.PoolUtils.adapt;
+
+@Immutable
+class RpcClientProvider {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(RpcClientProvider.class);
 
   private final RpcClient client;
-  private final LoadingCache<Replica, ObjectPool<NettyRpcChannel>> pools =
-    CacheBuilder.newBuilder()
-      .expireAfterAccess(10, TimeUnit.SECONDS)
-      .removalListener(this)
-      .build(this);
+  private final KeyedObjectPool<Object, NettyRpcChannel> connectionPools;
 
   @Inject
-  public RpcClientProvider(RpcClient client) {
-    this.client = client;
+  public RpcClientProvider(@Nonnull RpcClient client) {
+    this.client = checkNotNull(client);
+    RpcChannelFactory channelFactory = new RpcChannelFactory(client);
+    GenericKeyedObjectPool.Config config = new GenericKeyedObjectPool.Config();
+    config.maxActive = 1;
+    config.testOnBorrow = true;
+    config.testOnReturn = true;
+    this.connectionPools = new GenericKeyedObjectPool(channelFactory, config);
   }
 
-  public RaftClient get(Replica replica) {
-    return new RaftClient(pools.getUnchecked(replica));
+  @Nonnull
+  public RaftClient get(@Nonnull Replica replica) {
+    checkNotNull(replica);
+    return new RaftClient(adapt(connectionPools, replica));
   }
 
-  @Override
-  public void onRemoval(RemovalNotification<Replica, ObjectPool<NettyRpcChannel>> notification) {
-    try {
-      notification.getValue().close();
-    } catch (Exception e) {
-
-    }
-  }
-
-  @Override
-  public ObjectPool<NettyRpcChannel> load(Replica key) throws Exception {
-    GenericObjectPool<NettyRpcChannel> pool =
-      new GenericObjectPool<NettyRpcChannel>(
-        new RpcChannelFactory(client, key.address()));
-    pool.setMaxActive(1);
-    pool.setTestOnBorrow(true);
-    pool.setTestWhileIdle(true);
-    return pool;
-  }
 }

@@ -14,19 +14,25 @@
  * limitations under the License.
  */
 
-package org.robotninjas.barge.state;
+package org.robotninjas.barge;
 
-import javax.annotation.Nonnull;
+import javax.annotation.concurrent.Immutable;
 
-interface StateFactory {
+@Immutable
+public class NoLeaderException extends RaftException {
 
-  @Nonnull
-  Candidate candidate();
+  public NoLeaderException() {
+  }
 
-  @Nonnull
-  Leader leader();
+  public NoLeaderException(String s) {
+    super(s);
+  }
 
-  @Nonnull
-  Follower follower();
+  public NoLeaderException(String s, Throwable throwable) {
+    super(s, throwable);
+  }
 
+  public NoLeaderException(Throwable throwable) {
+    super(throwable);
+  }
 }
