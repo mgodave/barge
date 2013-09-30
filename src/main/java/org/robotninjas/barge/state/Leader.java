@@ -306,7 +306,7 @@ class Leader implements State {
         final double half = numSent / 2.0;
         if (numSuccess >= half) {
           set(true);
-        } else if (numFailed >= half) {
+        } else if (numFailed > half) {
           set(false);
         }
       }
