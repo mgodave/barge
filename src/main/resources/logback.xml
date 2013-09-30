@@ -6,12 +6,13 @@
         </encoder>
     </appender>
 
-    <logger name="io.netty" level="INFO"/>
+    <!--<logger name="io.netty" level="INFO"/>-->
     <!--<logger name="org.robotninjas.protobuf.netty.client" level="DEBUG"/>-->
     <!--<logger name="org.robotninjas.protobuf.netty.server" level="DEBUG"/>-->
     <!--<logger name="org.robotninjas.barge.state" level="INFO"/>-->
     <!--<logger name="org.robotninjas.barge" level="INFO"/>-->
-    <logger name="org.robotninjas.barge.rpc" level="INFO"/>
+    <!--<logger name="org.robotninjas.barge.rpc" level="INFO"/>-->
+    <!--<logger name="org.robotninjas.barge.state.Leader$CommitAggregator" level="DEBUG"/>-->
 
     <root level="INFO">
         <appender-ref ref="STDOUT"/>

@@ -75,9 +75,9 @@ public class TestClient {
 
         CommitOperation.Builder operation =
           CommitOperation.newBuilder()
-          .setClientId("client1")
-          .setOp(ByteString.copyFrom(message))
-          .setSequence(seq++);
+            .setClientId("client1")
+            .setOp(ByteString.copyFrom(message))
+            .setSequence(seq++);
 
         ObjectPool<NettyRpcChannel> pool = PoolUtils.adapt(channelPool, leader);
         CommitOperationCommand command = new CommitOperationCommand(operation, pool);
@@ -154,6 +154,11 @@ public class TestClient {
         stub.commitOperation(controller, request, callback);
 
         return callback.get(10, SECONDS);
+
+      } catch (Exception e) {
+
+        System.out.println(e.getMessage());
+        throw e;
 
       } finally {
 
