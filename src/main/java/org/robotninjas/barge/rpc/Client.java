@@ -19,13 +19,14 @@ package org.robotninjas.barge.rpc;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Inject;
 import org.robotninjas.barge.Replica;
-import org.robotninjas.barge.proto.ClientProto;
-import org.robotninjas.barge.proto.RaftProto;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.robotninjas.barge.proto.ClientProto.CommitOperation;
+import static org.robotninjas.barge.proto.ClientProto.CommitOperationResponse;
+import static org.robotninjas.barge.proto.RaftProto.*;
 
 @Immutable
 public class Client {
@@ -40,7 +41,7 @@ public class Client {
   }
 
   @Nonnull
-  public ListenableFuture<RaftProto.RequestVoteResponse> requestVote(@Nonnull Replica replica, @Nonnull RaftProto.RequestVote request) {
+  public ListenableFuture<RequestVoteResponse> requestVote(@Nonnull Replica replica, @Nonnull RequestVote request) {
     checkNotNull(replica);
     checkNotNull(request);
     RaftClient client = clientProvider.get(replica);
@@ -48,7 +49,7 @@ public class Client {
   }
 
   @Nonnull
-  public ListenableFuture<RaftProto.AppendEntriesResponse> appendEntries(@Nonnull Replica replica, @Nonnull RaftProto.AppendEntries request) {
+  public ListenableFuture<AppendEntriesResponse> appendEntries(@Nonnull Replica replica, @Nonnull AppendEntries request) {
     checkNotNull(replica);
     checkNotNull(request);
     RaftClient client = clientProvider.get(replica);
@@ -56,7 +57,7 @@ public class Client {
   }
 
   @Nonnull
-  public ListenableFuture<ClientProto.CommitOperationResponse> commitOperation(@Nonnull Replica replica, @Nonnull ClientProto.CommitOperation request) {
+  public ListenableFuture<CommitOperationResponse> commitOperation(@Nonnull Replica replica, @Nonnull CommitOperation request) {
     checkNotNull(replica);
     checkNotNull(request);
     RaftClient client = clientProvider.get(replica);

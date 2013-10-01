@@ -80,6 +80,7 @@ class DefaultRaftLog implements RaftLog {
     this.eventBus = eventBus;
     EntryCacheLoader loader = new EntryCacheLoader(entryIndex, journal);
     this.entryCache = CacheBuilder.newBuilder()
+      .recordStats()
       .maximumSize(100000)
       .build(loader);
   }

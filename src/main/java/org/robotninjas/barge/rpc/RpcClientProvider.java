@@ -35,16 +35,23 @@ import static org.apache.commons.pool.PoolUtils.adapt;
 class RpcClientProvider {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RpcClientProvider.class);
+  private static final GenericKeyedObjectPool.Config config;
+
+  static {
+    config = new GenericKeyedObjectPool.Config();
+    config.maxActive = 1;
+    config.maxIdle = -1;
+    config.testOnBorrow = true;
+    config.testOnReturn = true;
+    config.testWhileIdle = true;
+    config.whenExhaustedAction = GenericKeyedObjectPool.WHEN_EXHAUSTED_FAIL;
+  }
 
   private final KeyedObjectPool<Object, NettyRpcChannel> connectionPools;
 
   @Inject
   public RpcClientProvider(@Nonnull RpcClient client) {
     RpcChannelFactory channelFactory = new RpcChannelFactory(client);
-    GenericKeyedObjectPool.Config config = new GenericKeyedObjectPool.Config();
-    config.maxActive = 1;
-    config.testOnBorrow = true;
-    config.testOnReturn = true;
     this.connectionPools = new GenericKeyedObjectPool(channelFactory, config);
   }
 

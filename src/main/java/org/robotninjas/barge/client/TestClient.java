@@ -98,7 +98,7 @@ public class TestClient {
         System.out.println("Max retries");
       }
 
-      Thread.sleep(50);
+      //Thread.sleep(50);
 
     }
 

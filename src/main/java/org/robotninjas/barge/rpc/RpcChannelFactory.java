@@ -52,6 +52,7 @@ class RpcChannelFactory extends BaseKeyedPoolableObjectFactory<Object, NettyRpcC
     obj.close();
   }
 
+  private static long checks = 0;
   @Override
   public boolean validateObject(Object key, NettyRpcChannel obj) {
     return obj.isOpen();
