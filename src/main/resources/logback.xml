@@ -12,7 +12,7 @@
     <!--<logger name="org.robotninjas.barge.state" level="DEBUG"/>-->
     <!--<logger name="org.robotninjas.barge" level="INFO"/>-->
     <!--<logger name="org.robotninjas.barge.rpc" level="INFO"/>-->
-    <!--<logger name="org.robotninjas.barge.state.Leader$CommitAggregator" level="DEBUG"/>-->
+    <!--<logger name="org.robotninjas.barge.state.Leader$CommitResponseCollector" level="DEBUG"/>-->
     <!--<logger name="org.robotninjas.barge.DefaultRaftService" level="DEBUG"/>-->
 
     <root level="INFO">

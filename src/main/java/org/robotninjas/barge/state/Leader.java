@@ -19,13 +19,9 @@ package org.robotninjas.barge.state;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.AbstractFuture;
 import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.Replica;
@@ -48,7 +44,6 @@ import java.util.concurrent.ScheduledFuture;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Predicates.notNull;
 import static com.google.common.util.concurrent.Futures.addCallback;
 import static com.google.common.util.concurrent.Futures.transform;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -56,7 +51,8 @@ import static org.robotninjas.barge.proto.ClientProto.CommitOperation;
 import static org.robotninjas.barge.proto.ClientProto.CommitOperationResponse;
 import static org.robotninjas.barge.proto.RaftProto.*;
 import static org.robotninjas.barge.state.Context.StateType.FOLLOWER;
-import static org.robotninjas.barge.state.Leader.AppendSuccessPredicate.Success;
+import static org.robotninjas.barge.state.MajorityCollector.majorityResponse;
+import static org.robotninjas.barge.state.Predicates.appendSuccessul;
 
 @NotThreadSafe
 class Leader implements State {
@@ -216,7 +212,7 @@ class Leader implements State {
   @VisibleForTesting
   ListenableFuture<Boolean> commit() {
     List<ListenableFuture<AppendEntriesResponse>> responses = sendRequests();
-    return CommitAggregator.aggregate(responses);
+    return majorityResponse(responses, appendSuccessul());
   }
 
   /**
@@ -232,110 +228,6 @@ class Leader implements State {
       responses.add(replicaManager.fireUpdate());
     }
     return responses;
-  }
-
-  /**
-   * Function taking a list of {@link AppendEntriesResponse} and returning true if a majority of the replicas
-   * successfully stored the entry, false otherwise.
-   */
-  @VisibleForTesting
-  static enum IsCommittedFunction implements Function<List<AppendEntriesResponse>, Boolean> {
-
-    IsCommitted;
-
-    @Nullable
-    @Override
-    public Boolean apply(@Nullable List<AppendEntriesResponse> input) {
-      checkNotNull(input);
-      final int numSent = input.size();
-      final int numSucessful = FluentIterable
-        .from(input)
-        .filter(notNull())
-        .filter(Success)
-        .size();
-      return numSucessful >= (numSent / 2.0);
-    }
-
-  }
-
-  /**
-   * Predicate returning true if the {@link AppendEntriesResponse} returns success.
-   */
-  @VisibleForTesting
-  static enum AppendSuccessPredicate implements Predicate<AppendEntriesResponse> {
-
-    Success;
-
-    @Override
-    public boolean apply(@Nullable AppendEntriesResponse input) {
-      checkNotNull(input);
-      return input.getSuccess();
-    }
-
-  }
-
-  /**
-   * Aggregate requests for commit and succeed/fail fast
-   */
-  @NotThreadSafe
-  @VisibleForTesting
-  static final class CommitAggregator
-    extends AbstractFuture<Boolean>
-    implements FutureCallback<AppendEntriesResponse> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(CommitAggregator.class);
-
-    private final int numSent;
-    private int numFailed = 0;
-    private int numSuccess = 0;
-
-    private CommitAggregator(int numSent) {
-      this.numSent = numSent;
-    }
-
-    public static ListenableFuture<Boolean> aggregate(List<ListenableFuture<AppendEntriesResponse>> responses) {
-
-      CommitAggregator aggregator = new CommitAggregator(responses.size());
-      for (ListenableFuture<AppendEntriesResponse> response : responses) {
-        Futures.addCallback(response, aggregator);
-      }
-
-      return aggregator;
-
-    }
-
-    private void checkComplete() {
-      if (!isDone()) {
-        final double half = numSent / 2.0;
-        if (numSuccess >= half) {
-          set(true);
-        } else if (numFailed > half) {
-          set(false);
-        }
-      }
-    }
-
-    @Override
-    public void onSuccess(@Nonnull AppendEntriesResponse result) {
-
-      checkNotNull(result);
-
-      if (result.getSuccess()) {
-        numSuccess++;
-      } else {
-        numFailed++;
-      }
-
-      checkComplete();
-
-    }
-
-    @Override
-    public void onFailure(Throwable t) {
-      numFailed++;
-      checkComplete();
-    }
-
   }
 
 }

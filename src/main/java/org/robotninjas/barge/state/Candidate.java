@@ -17,10 +17,7 @@
 package org.robotninjas.barge.state;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -37,7 +34,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
 import java.util.List;
@@ -46,15 +42,14 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Predicates.notNull;
-import static com.google.common.util.concurrent.Futures.*;
+import static com.google.common.util.concurrent.Futures.addCallback;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.robotninjas.barge.proto.ClientProto.CommitOperation;
 import static org.robotninjas.barge.proto.ClientProto.CommitOperationResponse;
 import static org.robotninjas.barge.proto.RaftProto.*;
-import static org.robotninjas.barge.state.Candidate.IsElectedFunction.IsElected;
-import static org.robotninjas.barge.state.Candidate.VoteGrantedPredicate.VoteGranted;
 import static org.robotninjas.barge.state.Context.StateType.*;
+import static org.robotninjas.barge.state.MajorityCollector.majorityResponse;
+import static org.robotninjas.barge.state.Predicates.voteGranted;
 
 @NotThreadSafe
 class Candidate implements State {
@@ -87,7 +82,8 @@ class Candidate implements State {
     LOGGER.debug("Election starting for term {}", log.term());
 
     List<ListenableFuture<RequestVoteResponse>> responses = sendRequests();
-    electionResult = transform(successfulAsList(responses), IsElected);
+    //electionResult = transform(successfulAsList(responses), IsElected);
+    electionResult = majorityResponse(responses, voteGranted());
 
     addCallback(electionResult, new FutureCallback<Boolean>() {
       @Override
@@ -205,44 +201,6 @@ class Candidate implements State {
       responses.add(client.requestVote(replica, request));
     }
     return responses;
-  }
-
-
-  @Immutable
-  @VisibleForTesting
-  static enum IsElectedFunction implements Function<List<RequestVoteResponse>, Boolean> {
-
-    IsElected;
-
-    @Nullable
-    @Override
-    public Boolean apply(@Nullable List<RequestVoteResponse> input) {
-      checkNotNull(input);
-      final int numSent = input.size();
-      final int numGranted =
-        FluentIterable
-          .from(input)
-          .filter(notNull())
-          .filter(VoteGranted)
-          .size();
-      return numGranted >= (numSent / 2.0);
-    }
-
-  }
-
-  @Immutable
-  @VisibleForTesting
-  static enum VoteGrantedPredicate implements Predicate<RequestVoteResponse> {
-
-    VoteGranted;
-
-    @Override
-    public boolean apply(@Nullable RequestVoteResponse input) {
-      checkNotNull(input);
-      //noinspection ConstantConditions
-      return input.getVoteGranted();
-    }
-
   }
 
 }
