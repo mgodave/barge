@@ -82,7 +82,6 @@ class Candidate implements State {
     LOGGER.debug("Election starting for term {}", log.term());
 
     List<ListenableFuture<RequestVoteResponse>> responses = sendRequests();
-    //electionResult = transform(successfulAsList(responses), IsElected);
     electionResult = majorityResponse(responses, voteGranted());
 
     addCallback(electionResult, new FutureCallback<Boolean>() {
@@ -189,17 +188,20 @@ class Candidate implements State {
 
   @VisibleForTesting
   List<ListenableFuture<RequestVoteResponse>> sendRequests() {
+
+    RequestVote request =
+      RequestVote.newBuilder()
+        .setTerm(log.term())
+        .setCandidateId(log.self().toString())
+        .setLastLogIndex(log.lastLogIndex())
+        .setLastLogTerm(log.lastLogTerm())
+        .build();
+
     List<ListenableFuture<RequestVoteResponse>> responses = Lists.newArrayList();
     for (Replica replica : log.members()) {
-      RequestVote request =
-        RequestVote.newBuilder()
-          .setTerm(log.term())
-          .setCandidateId(log.self().toString())
-          .setLastLogIndex(log.lastLogIndex())
-          .setLastLogTerm(log.lastLogTerm())
-          .build();
       responses.add(client.requestVote(replica, request));
     }
+
     return responses;
   }
 
