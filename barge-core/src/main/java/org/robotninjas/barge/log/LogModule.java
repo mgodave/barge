@@ -21,6 +21,7 @@ import com.google.inject.PrivateModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import journal.io.api.Journal;
+import journal.io.api.JournalBuilder;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -57,9 +58,7 @@ public class LogModule extends PrivateModule {
 
     try {
 
-      final Journal journal = new Journal();
-      journal.setDirectory(logDirectory);
-      journal.open();
+      final Journal journal = JournalBuilder.of(logDirectory).open();
 
       Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
         @Override
