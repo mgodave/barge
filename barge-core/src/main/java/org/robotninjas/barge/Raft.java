@@ -17,7 +17,6 @@
 package org.robotninjas.barge;
 
 import com.google.common.collect.Lists;
-import com.google.common.io.Files;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.slf4j.Logger;
@@ -46,7 +45,8 @@ public class Raft {
     );
     members.remove(local);
 
-    File logDir = Files.createTempDir();
+    File logDir = new File(Integer.toString(port));
+    logDir.mkdir();
     LOGGER.info("Log dir: {}", logDir);
     Injector injector = Guice.createInjector(new RaftModule(local, members, TIMEOUT, logDir));
     RaftService service = injector.getInstance(RaftService.class);
