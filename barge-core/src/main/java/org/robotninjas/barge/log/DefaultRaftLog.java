@@ -63,8 +63,8 @@ class DefaultRaftLog implements RaftLog {
   private final Replica local;
   private final List<Replica> members;
   private final EventBus eventBus;
-  private volatile long lastLogIndex = -1;
-  private volatile long term = 0;
+  private volatile long lastLogIndex = 0;
+  private volatile long term = 1;
   private volatile Optional<Replica> votedFor = Optional.absent();
   private volatile long commitIndex = 0;
   private volatile long lastApplied = 0;
@@ -88,10 +88,10 @@ class DefaultRaftLog implements RaftLog {
 
   public void init() {
     Entry entry = Entry.newBuilder()
-      .setTerm(-1L)
+      .setTerm(0)
       .setCommand(ByteString.EMPTY)
       .build();
-    storeEntry(-1L, entry);
+    storeEntry(0, entry);
   }
 
   private void storeEntry(long index, @Nonnull Entry entry) {
@@ -155,7 +155,7 @@ class DefaultRaftLog implements RaftLog {
 
   @Nonnull
   public GetEntriesResult getEntry(@Nonnegative final long index) {
-    checkArgument(index >= 0);
+    checkArgument(index > 0);
     EntryMeta previousEntry = this.entryIndex.get(index - 1);
     Entry entry = entryCache.getIfPresent(index);
     List<Entry> list = entry == null ? Collections.<Entry>emptyList() : newArrayList(entry);
@@ -164,7 +164,7 @@ class DefaultRaftLog implements RaftLog {
 
   @Nonnull
   public GetEntriesResult getEntriesFrom(@Nonnegative long beginningIndex, @Nonnegative int max) {
-    checkArgument(beginningIndex >= 0);
+    checkArgument(beginningIndex > 0);
     Set<Long> indices = entryIndex.tailMap(beginningIndex).keySet();
     Iterable<Entry> values = Iterables.transform(Iterables.limit(indices, max), loadFromCache(entryCache));
     Entry previousEntry = entryCache.getIfPresent(beginningIndex - 1);
@@ -173,7 +173,7 @@ class DefaultRaftLog implements RaftLog {
 
   @Nonnull
   public GetEntriesResult getEntriesFrom(@Nonnegative final long beginningIndex) {
-    checkArgument(beginningIndex >= 0);
+    checkArgument(beginningIndex > 0);
     Set<Long> indices = entryIndex.tailMap(beginningIndex).keySet();
     Iterable<Entry> values = Iterables.transform(indices, loadFromCache(entryCache));
     Entry previousEntry = entryCache.getIfPresent(beginningIndex - 1);
@@ -220,7 +220,7 @@ class DefaultRaftLog implements RaftLog {
   }
 
   public void term(@Nonnegative long term) {
-    checkArgument(term >= 0);
+    checkArgument(term > 0);
     MDC.put("term", Long.toString(term));
     LOGGER.debug("New term {}", term);
     this.term = term;
