@@ -21,7 +21,7 @@ option java_outer_classname = "ClientProto";
 import "entry.proto";
 
 message CommitOperation {
-	required string client_id = 1;
+	required bytes client_id = 1;
 	required int64 sequence = 2;
 	required bytes op = 3;
 }
@@ -31,10 +31,11 @@ message Redirect {
 }
 
 message CommitOperationResponse {
-	enum ErrorCode {REDIRECT = 1; NOLEADER = 2;}
+	enum ErrorCode {NOLEADER = 2;}
 	required bool committed = 1;
 	optional ErrorCode error_code = 2;
 	optional Redirect redirect = 3;
+	repeated string cluster_members = 4;
 }
 
 service ClientService {

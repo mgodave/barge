@@ -11,20 +11,15 @@ public final class ClientProto {
   public interface CommitOperationOrBuilder
       extends com.google.protobuf.MessageOrBuilder {
 
-    // required string client_id = 1;
+    // required bytes client_id = 1;
     /**
-     * <code>required string client_id = 1;</code>
+     * <code>required bytes client_id = 1;</code>
      */
     boolean hasClientId();
     /**
-     * <code>required string client_id = 1;</code>
+     * <code>required bytes client_id = 1;</code>
      */
-    java.lang.String getClientId();
-    /**
-     * <code>required string client_id = 1;</code>
-     */
-    com.google.protobuf.ByteString
-        getClientIdBytes();
+    com.google.protobuf.ByteString getClientId();
 
     // required int64 sequence = 2;
     /**
@@ -152,47 +147,20 @@ public final class ClientProto {
     }
 
     private int bitField0_;
-    // required string client_id = 1;
+    // required bytes client_id = 1;
     public static final int CLIENT_ID_FIELD_NUMBER = 1;
-    private java.lang.Object clientId_;
+    private com.google.protobuf.ByteString clientId_;
     /**
-     * <code>required string client_id = 1;</code>
+     * <code>required bytes client_id = 1;</code>
      */
     public boolean hasClientId() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>required string client_id = 1;</code>
+     * <code>required bytes client_id = 1;</code>
      */
-    public java.lang.String getClientId() {
-      java.lang.Object ref = clientId_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          clientId_ = s;
-        }
-        return s;
-      }
-    }
-    /**
-     * <code>required string client_id = 1;</code>
-     */
-    public com.google.protobuf.ByteString
-        getClientIdBytes() {
-      java.lang.Object ref = clientId_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        clientId_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
+    public com.google.protobuf.ByteString getClientId() {
+      return clientId_;
     }
 
     // required int64 sequence = 2;
@@ -228,7 +196,7 @@ public final class ClientProto {
     }
 
     private void initFields() {
-      clientId_ = "";
+      clientId_ = com.google.protobuf.ByteString.EMPTY;
       sequence_ = 0L;
       op_ = com.google.protobuf.ByteString.EMPTY;
     }
@@ -257,7 +225,7 @@ public final class ClientProto {
                         throws java.io.IOException {
       getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeBytes(1, getClientIdBytes());
+        output.writeBytes(1, clientId_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         output.writeInt64(2, sequence_);
@@ -276,7 +244,7 @@ public final class ClientProto {
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(1, getClientIdBytes());
+          .computeBytesSize(1, clientId_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.CodedOutputStream
@@ -402,7 +370,7 @@ public final class ClientProto {
 
       public Builder clear() {
         super.clear();
-        clientId_ = "";
+        clientId_ = com.google.protobuf.ByteString.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000001);
         sequence_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -465,9 +433,7 @@ public final class ClientProto {
       public Builder mergeFrom(org.robotninjas.barge.proto.ClientProto.CommitOperation other) {
         if (other == org.robotninjas.barge.proto.ClientProto.CommitOperation.getDefaultInstance()) return this;
         if (other.hasClientId()) {
-          bitField0_ |= 0x00000001;
-          clientId_ = other.clientId_;
-          onChanged();
+          setClientId(other.getClientId());
         }
         if (other.hasSequence()) {
           setSequence(other.getSequence());
@@ -514,49 +480,24 @@ public final class ClientProto {
       }
       private int bitField0_;
 
-      // required string client_id = 1;
-      private java.lang.Object clientId_ = "";
+      // required bytes client_id = 1;
+      private com.google.protobuf.ByteString clientId_ = com.google.protobuf.ByteString.EMPTY;
       /**
-       * <code>required string client_id = 1;</code>
+       * <code>required bytes client_id = 1;</code>
        */
       public boolean hasClientId() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
-       * <code>required string client_id = 1;</code>
+       * <code>required bytes client_id = 1;</code>
        */
-      public java.lang.String getClientId() {
-        java.lang.Object ref = clientId_;
-        if (!(ref instanceof java.lang.String)) {
-          java.lang.String s = ((com.google.protobuf.ByteString) ref)
-              .toStringUtf8();
-          clientId_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
+      public com.google.protobuf.ByteString getClientId() {
+        return clientId_;
       }
       /**
-       * <code>required string client_id = 1;</code>
+       * <code>required bytes client_id = 1;</code>
        */
-      public com.google.protobuf.ByteString
-          getClientIdBytes() {
-        java.lang.Object ref = clientId_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          clientId_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>required string client_id = 1;</code>
-       */
-      public Builder setClientId(
-          java.lang.String value) {
+      public Builder setClientId(com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -566,24 +507,11 @@ public final class ClientProto {
         return this;
       }
       /**
-       * <code>required string client_id = 1;</code>
+       * <code>required bytes client_id = 1;</code>
        */
       public Builder clearClientId() {
         bitField0_ = (bitField0_ & ~0x00000001);
         clientId_ = getDefaultInstance().getClientId();
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>required string client_id = 1;</code>
-       */
-      public Builder setClientIdBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000001;
-        clientId_ = value;
         onChanged();
         return this;
       }
@@ -1183,6 +1111,26 @@ public final class ClientProto {
      * <code>optional .Redirect redirect = 3;</code>
      */
     org.robotninjas.barge.proto.ClientProto.RedirectOrBuilder getRedirectOrBuilder();
+
+    // repeated string cluster_members = 4;
+    /**
+     * <code>repeated string cluster_members = 4;</code>
+     */
+    java.util.List<java.lang.String>
+    getClusterMembersList();
+    /**
+     * <code>repeated string cluster_members = 4;</code>
+     */
+    int getClusterMembersCount();
+    /**
+     * <code>repeated string cluster_members = 4;</code>
+     */
+    java.lang.String getClusterMembers(int index);
+    /**
+     * <code>repeated string cluster_members = 4;</code>
+     */
+    com.google.protobuf.ByteString
+        getClusterMembersBytes(int index);
   }
   /**
    * Protobuf type {@code CommitOperationResponse}
@@ -1264,6 +1212,14 @@ public final class ClientProto {
               bitField0_ |= 0x00000004;
               break;
             }
+            case 34: {
+              if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+                clusterMembers_ = new com.google.protobuf.LazyStringArrayList();
+                mutable_bitField0_ |= 0x00000008;
+              }
+              clusterMembers_.add(input.readBytes());
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -1272,6 +1228,9 @@ public final class ClientProto {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e.getMessage()).setUnfinishedMessage(this);
       } finally {
+        if (((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+          clusterMembers_ = new com.google.protobuf.UnmodifiableLazyStringList(clusterMembers_);
+        }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
       }
@@ -1309,19 +1268,11 @@ public final class ClientProto {
     public enum ErrorCode
         implements com.google.protobuf.ProtocolMessageEnum {
       /**
-       * <code>REDIRECT = 1;</code>
-       */
-      REDIRECT(0, 1),
-      /**
        * <code>NOLEADER = 2;</code>
        */
-      NOLEADER(1, 2),
+      NOLEADER(0, 2),
       ;
 
-      /**
-       * <code>REDIRECT = 1;</code>
-       */
-      public static final int REDIRECT_VALUE = 1;
       /**
        * <code>NOLEADER = 2;</code>
        */
@@ -1332,7 +1283,6 @@ public final class ClientProto {
 
       public static ErrorCode valueOf(int value) {
         switch (value) {
-          case 1: return REDIRECT;
           case 2: return NOLEADER;
           default: return null;
         }
@@ -1440,10 +1390,41 @@ public final class ClientProto {
       return redirect_;
     }
 
+    // repeated string cluster_members = 4;
+    public static final int CLUSTER_MEMBERS_FIELD_NUMBER = 4;
+    private com.google.protobuf.LazyStringList clusterMembers_;
+    /**
+     * <code>repeated string cluster_members = 4;</code>
+     */
+    public java.util.List<java.lang.String>
+        getClusterMembersList() {
+      return clusterMembers_;
+    }
+    /**
+     * <code>repeated string cluster_members = 4;</code>
+     */
+    public int getClusterMembersCount() {
+      return clusterMembers_.size();
+    }
+    /**
+     * <code>repeated string cluster_members = 4;</code>
+     */
+    public java.lang.String getClusterMembers(int index) {
+      return clusterMembers_.get(index);
+    }
+    /**
+     * <code>repeated string cluster_members = 4;</code>
+     */
+    public com.google.protobuf.ByteString
+        getClusterMembersBytes(int index) {
+      return clusterMembers_.getByteString(index);
+    }
+
     private void initFields() {
       committed_ = false;
-      errorCode_ = org.robotninjas.barge.proto.ClientProto.CommitOperationResponse.ErrorCode.REDIRECT;
+      errorCode_ = org.robotninjas.barge.proto.ClientProto.CommitOperationResponse.ErrorCode.NOLEADER;
       redirect_ = org.robotninjas.barge.proto.ClientProto.Redirect.getDefaultInstance();
+      clusterMembers_ = com.google.protobuf.LazyStringArrayList.EMPTY;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -1476,6 +1457,9 @@ public final class ClientProto {
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         output.writeMessage(3, redirect_);
       }
+      for (int i = 0; i < clusterMembers_.size(); i++) {
+        output.writeBytes(4, clusterMembers_.getByteString(i));
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -1496,6 +1480,15 @@ public final class ClientProto {
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(3, redirect_);
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < clusterMembers_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeBytesSizeNoTag(clusterMembers_.getByteString(i));
+        }
+        size += dataSize;
+        size += 1 * getClusterMembersList().size();
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -1616,7 +1609,7 @@ public final class ClientProto {
         super.clear();
         committed_ = false;
         bitField0_ = (bitField0_ & ~0x00000001);
-        errorCode_ = org.robotninjas.barge.proto.ClientProto.CommitOperationResponse.ErrorCode.REDIRECT;
+        errorCode_ = org.robotninjas.barge.proto.ClientProto.CommitOperationResponse.ErrorCode.NOLEADER;
         bitField0_ = (bitField0_ & ~0x00000002);
         if (redirectBuilder_ == null) {
           redirect_ = org.robotninjas.barge.proto.ClientProto.Redirect.getDefaultInstance();
@@ -1624,6 +1617,8 @@ public final class ClientProto {
           redirectBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00000004);
+        clusterMembers_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000008);
         return this;
       }
 
@@ -1668,6 +1663,12 @@ public final class ClientProto {
         } else {
           result.redirect_ = redirectBuilder_.build();
         }
+        if (((bitField0_ & 0x00000008) == 0x00000008)) {
+          clusterMembers_ = new com.google.protobuf.UnmodifiableLazyStringList(
+              clusterMembers_);
+          bitField0_ = (bitField0_ & ~0x00000008);
+        }
+        result.clusterMembers_ = clusterMembers_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -1692,6 +1693,16 @@ public final class ClientProto {
         }
         if (other.hasRedirect()) {
           mergeRedirect(other.getRedirect());
+        }
+        if (!other.clusterMembers_.isEmpty()) {
+          if (clusterMembers_.isEmpty()) {
+            clusterMembers_ = other.clusterMembers_;
+            bitField0_ = (bitField0_ & ~0x00000008);
+          } else {
+            ensureClusterMembersIsMutable();
+            clusterMembers_.addAll(other.clusterMembers_);
+          }
+          onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -1764,7 +1775,7 @@ public final class ClientProto {
       }
 
       // optional .CommitOperationResponse.ErrorCode error_code = 2;
-      private org.robotninjas.barge.proto.ClientProto.CommitOperationResponse.ErrorCode errorCode_ = org.robotninjas.barge.proto.ClientProto.CommitOperationResponse.ErrorCode.REDIRECT;
+      private org.robotninjas.barge.proto.ClientProto.CommitOperationResponse.ErrorCode errorCode_ = org.robotninjas.barge.proto.ClientProto.CommitOperationResponse.ErrorCode.NOLEADER;
       /**
        * <code>optional .CommitOperationResponse.ErrorCode error_code = 2;</code>
        */
@@ -1794,7 +1805,7 @@ public final class ClientProto {
        */
       public Builder clearErrorCode() {
         bitField0_ = (bitField0_ & ~0x00000002);
-        errorCode_ = org.robotninjas.barge.proto.ClientProto.CommitOperationResponse.ErrorCode.REDIRECT;
+        errorCode_ = org.robotninjas.barge.proto.ClientProto.CommitOperationResponse.ErrorCode.NOLEADER;
         onChanged();
         return this;
       }
@@ -1914,6 +1925,99 @@ public final class ClientProto {
           redirect_ = null;
         }
         return redirectBuilder_;
+      }
+
+      // repeated string cluster_members = 4;
+      private com.google.protobuf.LazyStringList clusterMembers_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      private void ensureClusterMembersIsMutable() {
+        if (!((bitField0_ & 0x00000008) == 0x00000008)) {
+          clusterMembers_ = new com.google.protobuf.LazyStringArrayList(clusterMembers_);
+          bitField0_ |= 0x00000008;
+         }
+      }
+      /**
+       * <code>repeated string cluster_members = 4;</code>
+       */
+      public java.util.List<java.lang.String>
+          getClusterMembersList() {
+        return java.util.Collections.unmodifiableList(clusterMembers_);
+      }
+      /**
+       * <code>repeated string cluster_members = 4;</code>
+       */
+      public int getClusterMembersCount() {
+        return clusterMembers_.size();
+      }
+      /**
+       * <code>repeated string cluster_members = 4;</code>
+       */
+      public java.lang.String getClusterMembers(int index) {
+        return clusterMembers_.get(index);
+      }
+      /**
+       * <code>repeated string cluster_members = 4;</code>
+       */
+      public com.google.protobuf.ByteString
+          getClusterMembersBytes(int index) {
+        return clusterMembers_.getByteString(index);
+      }
+      /**
+       * <code>repeated string cluster_members = 4;</code>
+       */
+      public Builder setClusterMembers(
+          int index, java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureClusterMembersIsMutable();
+        clusterMembers_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string cluster_members = 4;</code>
+       */
+      public Builder addClusterMembers(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureClusterMembersIsMutable();
+        clusterMembers_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string cluster_members = 4;</code>
+       */
+      public Builder addAllClusterMembers(
+          java.lang.Iterable<java.lang.String> values) {
+        ensureClusterMembersIsMutable();
+        super.addAll(values, clusterMembers_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string cluster_members = 4;</code>
+       */
+      public Builder clearClusterMembers() {
+        clusterMembers_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string cluster_members = 4;</code>
+       */
+      public Builder addClusterMembersBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureClusterMembersIsMutable();
+        clusterMembers_.add(value);
+        onChanged();
+        return this;
       }
 
       // @@protoc_insertion_point(builder_scope:CommitOperationResponse)
@@ -2184,16 +2288,16 @@ public final class ClientProto {
   static {
     java.lang.String[] descriptorData = {
       "\n\014client.proto\032\013entry.proto\"B\n\017CommitOpe" +
-      "ration\022\021\n\tclient_id\030\001 \002(\t\022\020\n\010sequence\030\002 " +
+      "ration\022\021\n\tclient_id\030\001 \002(\014\022\020\n\010sequence\030\002 " +
       "\002(\003\022\n\n\002op\030\003 \002(\014\"\035\n\010Redirect\022\021\n\tleader_id" +
-      "\030\001 \002(\t\"\252\001\n\027CommitOperationResponse\022\021\n\tco" +
+      "\030\001 \002(\t\"\265\001\n\027CommitOperationResponse\022\021\n\tco" +
       "mmitted\030\001 \002(\010\0226\n\nerror_code\030\002 \001(\0162\".Comm" +
       "itOperationResponse.ErrorCode\022\033\n\010redirec" +
-      "t\030\003 \001(\0132\t.Redirect\"\'\n\tErrorCode\022\014\n\010REDIR" +
-      "ECT\020\001\022\014\n\010NOLEADER\020\0022N\n\rClientService\022=\n\017" +
-      "commitOperation\022\020.CommitOperation\032\030.Comm" +
-      "itOperationResponseB-\n\033org.robotninjas.b",
-      "arge.protoB\013ClientProto\210\001\001"
+      "t\030\003 \001(\0132\t.Redirect\022\027\n\017cluster_members\030\004 " +
+      "\003(\t\"\031\n\tErrorCode\022\014\n\010NOLEADER\020\0022N\n\rClient" +
+      "Service\022=\n\017commitOperation\022\020.CommitOpera" +
+      "tion\032\030.CommitOperationResponseB-\n\033org.ro",
+      "botninjas.barge.protoB\013ClientProto\210\001\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -2217,7 +2321,7 @@ public final class ClientProto {
           internal_static_CommitOperationResponse_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_CommitOperationResponse_descriptor,
-              new java.lang.String[] { "Committed", "ErrorCode", "Redirect", });
+              new java.lang.String[] { "Committed", "ErrorCode", "Redirect", "ClusterMembers", });
           return null;
         }
       };

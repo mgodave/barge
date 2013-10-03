@@ -131,14 +131,7 @@
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.6.3.201306030806</version>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.5</source>
-                    <target>1.5</target>
-                </configuration>
-            </plugin>
+
             <plugin>
                 <groupId>de.softwareforge.mojo</groupId>
                 <artifactId>maven-protoc-plugin</artifactId>
