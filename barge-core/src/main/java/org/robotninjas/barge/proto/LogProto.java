@@ -1298,18 +1298,980 @@ public final class LogProto {
     // @@protoc_insertion_point(class_scope:Membership)
   }
 
-  public interface JournalEntryOrBuilder
+  public interface VoteOrBuilder
       extends com.google.protobuf.MessageOrBuilder {
 
-    // required .JournalEntry.Type type = 1;
+    // required int64 term = 1;
     /**
-     * <code>required .JournalEntry.Type type = 1;</code>
+     * <code>required int64 term = 1;</code>
      */
-    boolean hasType();
+    boolean hasTerm();
     /**
-     * <code>required .JournalEntry.Type type = 1;</code>
+     * <code>required int64 term = 1;</code>
      */
-    org.robotninjas.barge.proto.LogProto.JournalEntry.Type getType();
+    long getTerm();
+
+    // required string voted_for = 2;
+    /**
+     * <code>required string voted_for = 2;</code>
+     */
+    boolean hasVotedFor();
+    /**
+     * <code>required string voted_for = 2;</code>
+     */
+    java.lang.String getVotedFor();
+    /**
+     * <code>required string voted_for = 2;</code>
+     */
+    com.google.protobuf.ByteString
+        getVotedForBytes();
+  }
+  /**
+   * Protobuf type {@code Vote}
+   */
+  public static final class Vote extends
+      com.google.protobuf.GeneratedMessage
+      implements VoteOrBuilder {
+    // Use Vote.newBuilder() to construct.
+    private Vote(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private Vote(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final Vote defaultInstance;
+    public static Vote getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public Vote getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private Vote(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              term_ = input.readInt64();
+              break;
+            }
+            case 18: {
+              bitField0_ |= 0x00000002;
+              votedFor_ = input.readBytes();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return org.robotninjas.barge.proto.LogProto.internal_static_Vote_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return org.robotninjas.barge.proto.LogProto.internal_static_Vote_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              org.robotninjas.barge.proto.LogProto.Vote.class, org.robotninjas.barge.proto.LogProto.Vote.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<Vote> PARSER =
+        new com.google.protobuf.AbstractParser<Vote>() {
+      public Vote parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new Vote(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<Vote> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    // required int64 term = 1;
+    public static final int TERM_FIELD_NUMBER = 1;
+    private long term_;
+    /**
+     * <code>required int64 term = 1;</code>
+     */
+    public boolean hasTerm() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>required int64 term = 1;</code>
+     */
+    public long getTerm() {
+      return term_;
+    }
+
+    // required string voted_for = 2;
+    public static final int VOTED_FOR_FIELD_NUMBER = 2;
+    private java.lang.Object votedFor_;
+    /**
+     * <code>required string voted_for = 2;</code>
+     */
+    public boolean hasVotedFor() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>required string voted_for = 2;</code>
+     */
+    public java.lang.String getVotedFor() {
+      java.lang.Object ref = votedFor_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          votedFor_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>required string voted_for = 2;</code>
+     */
+    public com.google.protobuf.ByteString
+        getVotedForBytes() {
+      java.lang.Object ref = votedFor_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        votedFor_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private void initFields() {
+      term_ = 0L;
+      votedFor_ = "";
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+
+      if (!hasTerm()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      if (!hasVotedFor()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, term_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeBytes(2, getVotedForBytes());
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, term_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(2, getVotedForBytes());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static org.robotninjas.barge.proto.LogProto.Vote parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.robotninjas.barge.proto.LogProto.Vote parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.robotninjas.barge.proto.LogProto.Vote parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.robotninjas.barge.proto.LogProto.Vote parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.robotninjas.barge.proto.LogProto.Vote parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static org.robotninjas.barge.proto.LogProto.Vote parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static org.robotninjas.barge.proto.LogProto.Vote parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static org.robotninjas.barge.proto.LogProto.Vote parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static org.robotninjas.barge.proto.LogProto.Vote parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static org.robotninjas.barge.proto.LogProto.Vote parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(org.robotninjas.barge.proto.LogProto.Vote prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code Vote}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements org.robotninjas.barge.proto.LogProto.VoteOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return org.robotninjas.barge.proto.LogProto.internal_static_Vote_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return org.robotninjas.barge.proto.LogProto.internal_static_Vote_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                org.robotninjas.barge.proto.LogProto.Vote.class, org.robotninjas.barge.proto.LogProto.Vote.Builder.class);
+      }
+
+      // Construct using org.robotninjas.barge.proto.LogProto.Vote.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        term_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        votedFor_ = "";
+        bitField0_ = (bitField0_ & ~0x00000002);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return org.robotninjas.barge.proto.LogProto.internal_static_Vote_descriptor;
+      }
+
+      public org.robotninjas.barge.proto.LogProto.Vote getDefaultInstanceForType() {
+        return org.robotninjas.barge.proto.LogProto.Vote.getDefaultInstance();
+      }
+
+      public org.robotninjas.barge.proto.LogProto.Vote build() {
+        org.robotninjas.barge.proto.LogProto.Vote result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public org.robotninjas.barge.proto.LogProto.Vote buildPartial() {
+        org.robotninjas.barge.proto.LogProto.Vote result = new org.robotninjas.barge.proto.LogProto.Vote(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.term_ = term_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.votedFor_ = votedFor_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof org.robotninjas.barge.proto.LogProto.Vote) {
+          return mergeFrom((org.robotninjas.barge.proto.LogProto.Vote)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(org.robotninjas.barge.proto.LogProto.Vote other) {
+        if (other == org.robotninjas.barge.proto.LogProto.Vote.getDefaultInstance()) return this;
+        if (other.hasTerm()) {
+          setTerm(other.getTerm());
+        }
+        if (other.hasVotedFor()) {
+          bitField0_ |= 0x00000002;
+          votedFor_ = other.votedFor_;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        if (!hasTerm()) {
+          
+          return false;
+        }
+        if (!hasVotedFor()) {
+          
+          return false;
+        }
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        org.robotninjas.barge.proto.LogProto.Vote parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (org.robotninjas.barge.proto.LogProto.Vote) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      // required int64 term = 1;
+      private long term_ ;
+      /**
+       * <code>required int64 term = 1;</code>
+       */
+      public boolean hasTerm() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>required int64 term = 1;</code>
+       */
+      public long getTerm() {
+        return term_;
+      }
+      /**
+       * <code>required int64 term = 1;</code>
+       */
+      public Builder setTerm(long value) {
+        bitField0_ |= 0x00000001;
+        term_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>required int64 term = 1;</code>
+       */
+      public Builder clearTerm() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        term_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // required string voted_for = 2;
+      private java.lang.Object votedFor_ = "";
+      /**
+       * <code>required string voted_for = 2;</code>
+       */
+      public boolean hasVotedFor() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>required string voted_for = 2;</code>
+       */
+      public java.lang.String getVotedFor() {
+        java.lang.Object ref = votedFor_;
+        if (!(ref instanceof java.lang.String)) {
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          votedFor_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>required string voted_for = 2;</code>
+       */
+      public com.google.protobuf.ByteString
+          getVotedForBytes() {
+        java.lang.Object ref = votedFor_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          votedFor_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>required string voted_for = 2;</code>
+       */
+      public Builder setVotedFor(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        votedFor_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>required string voted_for = 2;</code>
+       */
+      public Builder clearVotedFor() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        votedFor_ = getDefaultInstance().getVotedFor();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>required string voted_for = 2;</code>
+       */
+      public Builder setVotedForBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        votedFor_ = value;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:Vote)
+    }
+
+    static {
+      defaultInstance = new Vote(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:Vote)
+  }
+
+  public interface TermOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+
+    // required int64 term = 1;
+    /**
+     * <code>required int64 term = 1;</code>
+     */
+    boolean hasTerm();
+    /**
+     * <code>required int64 term = 1;</code>
+     */
+    long getTerm();
+  }
+  /**
+   * Protobuf type {@code Term}
+   */
+  public static final class Term extends
+      com.google.protobuf.GeneratedMessage
+      implements TermOrBuilder {
+    // Use Term.newBuilder() to construct.
+    private Term(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private Term(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final Term defaultInstance;
+    public static Term getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public Term getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private Term(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              term_ = input.readInt64();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return org.robotninjas.barge.proto.LogProto.internal_static_Term_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return org.robotninjas.barge.proto.LogProto.internal_static_Term_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              org.robotninjas.barge.proto.LogProto.Term.class, org.robotninjas.barge.proto.LogProto.Term.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<Term> PARSER =
+        new com.google.protobuf.AbstractParser<Term>() {
+      public Term parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new Term(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<Term> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    // required int64 term = 1;
+    public static final int TERM_FIELD_NUMBER = 1;
+    private long term_;
+    /**
+     * <code>required int64 term = 1;</code>
+     */
+    public boolean hasTerm() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>required int64 term = 1;</code>
+     */
+    public long getTerm() {
+      return term_;
+    }
+
+    private void initFields() {
+      term_ = 0L;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+
+      if (!hasTerm()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, term_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, term_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static org.robotninjas.barge.proto.LogProto.Term parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.robotninjas.barge.proto.LogProto.Term parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.robotninjas.barge.proto.LogProto.Term parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.robotninjas.barge.proto.LogProto.Term parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.robotninjas.barge.proto.LogProto.Term parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static org.robotninjas.barge.proto.LogProto.Term parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static org.robotninjas.barge.proto.LogProto.Term parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static org.robotninjas.barge.proto.LogProto.Term parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static org.robotninjas.barge.proto.LogProto.Term parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static org.robotninjas.barge.proto.LogProto.Term parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(org.robotninjas.barge.proto.LogProto.Term prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code Term}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements org.robotninjas.barge.proto.LogProto.TermOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return org.robotninjas.barge.proto.LogProto.internal_static_Term_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return org.robotninjas.barge.proto.LogProto.internal_static_Term_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                org.robotninjas.barge.proto.LogProto.Term.class, org.robotninjas.barge.proto.LogProto.Term.Builder.class);
+      }
+
+      // Construct using org.robotninjas.barge.proto.LogProto.Term.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        term_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return org.robotninjas.barge.proto.LogProto.internal_static_Term_descriptor;
+      }
+
+      public org.robotninjas.barge.proto.LogProto.Term getDefaultInstanceForType() {
+        return org.robotninjas.barge.proto.LogProto.Term.getDefaultInstance();
+      }
+
+      public org.robotninjas.barge.proto.LogProto.Term build() {
+        org.robotninjas.barge.proto.LogProto.Term result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public org.robotninjas.barge.proto.LogProto.Term buildPartial() {
+        org.robotninjas.barge.proto.LogProto.Term result = new org.robotninjas.barge.proto.LogProto.Term(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.term_ = term_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof org.robotninjas.barge.proto.LogProto.Term) {
+          return mergeFrom((org.robotninjas.barge.proto.LogProto.Term)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(org.robotninjas.barge.proto.LogProto.Term other) {
+        if (other == org.robotninjas.barge.proto.LogProto.Term.getDefaultInstance()) return this;
+        if (other.hasTerm()) {
+          setTerm(other.getTerm());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        if (!hasTerm()) {
+          
+          return false;
+        }
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        org.robotninjas.barge.proto.LogProto.Term parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (org.robotninjas.barge.proto.LogProto.Term) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      // required int64 term = 1;
+      private long term_ ;
+      /**
+       * <code>required int64 term = 1;</code>
+       */
+      public boolean hasTerm() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>required int64 term = 1;</code>
+       */
+      public long getTerm() {
+        return term_;
+      }
+      /**
+       * <code>required int64 term = 1;</code>
+       */
+      public Builder setTerm(long value) {
+        bitField0_ |= 0x00000001;
+        term_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>required int64 term = 1;</code>
+       */
+      public Builder clearTerm() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        term_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:Term)
+    }
+
+    static {
+      defaultInstance = new Term(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:Term)
+  }
+
+  public interface JournalEntryOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
 
     // optional .Append append = 2;
     /**
@@ -1338,6 +2300,34 @@ public final class LogProto {
      * <code>optional .Membership membership = 3;</code>
      */
     org.robotninjas.barge.proto.LogProto.MembershipOrBuilder getMembershipOrBuilder();
+
+    // optional .Vote vote = 4;
+    /**
+     * <code>optional .Vote vote = 4;</code>
+     */
+    boolean hasVote();
+    /**
+     * <code>optional .Vote vote = 4;</code>
+     */
+    org.robotninjas.barge.proto.LogProto.Vote getVote();
+    /**
+     * <code>optional .Vote vote = 4;</code>
+     */
+    org.robotninjas.barge.proto.LogProto.VoteOrBuilder getVoteOrBuilder();
+
+    // optional .Term term = 5;
+    /**
+     * <code>optional .Term term = 5;</code>
+     */
+    boolean hasTerm();
+    /**
+     * <code>optional .Term term = 5;</code>
+     */
+    org.robotninjas.barge.proto.LogProto.Term getTerm();
+    /**
+     * <code>optional .Term term = 5;</code>
+     */
+    org.robotninjas.barge.proto.LogProto.TermOrBuilder getTermOrBuilder();
   }
   /**
    * Protobuf type {@code JournalEntry}
@@ -1390,20 +2380,9 @@ public final class LogProto {
               }
               break;
             }
-            case 8: {
-              int rawValue = input.readEnum();
-              org.robotninjas.barge.proto.LogProto.JournalEntry.Type value = org.robotninjas.barge.proto.LogProto.JournalEntry.Type.valueOf(rawValue);
-              if (value == null) {
-                unknownFields.mergeVarintField(1, rawValue);
-              } else {
-                bitField0_ |= 0x00000001;
-                type_ = value;
-              }
-              break;
-            }
             case 18: {
               org.robotninjas.barge.proto.LogProto.Append.Builder subBuilder = null;
-              if (((bitField0_ & 0x00000002) == 0x00000002)) {
+              if (((bitField0_ & 0x00000001) == 0x00000001)) {
                 subBuilder = append_.toBuilder();
               }
               append_ = input.readMessage(org.robotninjas.barge.proto.LogProto.Append.PARSER, extensionRegistry);
@@ -1411,12 +2390,12 @@ public final class LogProto {
                 subBuilder.mergeFrom(append_);
                 append_ = subBuilder.buildPartial();
               }
-              bitField0_ |= 0x00000002;
+              bitField0_ |= 0x00000001;
               break;
             }
             case 26: {
               org.robotninjas.barge.proto.LogProto.Membership.Builder subBuilder = null;
-              if (((bitField0_ & 0x00000004) == 0x00000004)) {
+              if (((bitField0_ & 0x00000002) == 0x00000002)) {
                 subBuilder = membership_.toBuilder();
               }
               membership_ = input.readMessage(org.robotninjas.barge.proto.LogProto.Membership.PARSER, extensionRegistry);
@@ -1424,7 +2403,33 @@ public final class LogProto {
                 subBuilder.mergeFrom(membership_);
                 membership_ = subBuilder.buildPartial();
               }
+              bitField0_ |= 0x00000002;
+              break;
+            }
+            case 34: {
+              org.robotninjas.barge.proto.LogProto.Vote.Builder subBuilder = null;
+              if (((bitField0_ & 0x00000004) == 0x00000004)) {
+                subBuilder = vote_.toBuilder();
+              }
+              vote_ = input.readMessage(org.robotninjas.barge.proto.LogProto.Vote.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(vote_);
+                vote_ = subBuilder.buildPartial();
+              }
               bitField0_ |= 0x00000004;
+              break;
+            }
+            case 42: {
+              org.robotninjas.barge.proto.LogProto.Term.Builder subBuilder = null;
+              if (((bitField0_ & 0x00000008) == 0x00000008)) {
+                subBuilder = term_.toBuilder();
+              }
+              term_ = input.readMessage(org.robotninjas.barge.proto.LogProto.Term.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(term_);
+                term_ = subBuilder.buildPartial();
+              }
+              bitField0_ |= 0x00000008;
               break;
             }
           }
@@ -1466,105 +2471,7 @@ public final class LogProto {
       return PARSER;
     }
 
-    /**
-     * Protobuf enum {@code JournalEntry.Type}
-     */
-    public enum Type
-        implements com.google.protobuf.ProtocolMessageEnum {
-      /**
-       * <code>APPEND = 1;</code>
-       */
-      APPEND(0, 1),
-      /**
-       * <code>MEMBERSHIP = 2;</code>
-       */
-      MEMBERSHIP(1, 2),
-      ;
-
-      /**
-       * <code>APPEND = 1;</code>
-       */
-      public static final int APPEND_VALUE = 1;
-      /**
-       * <code>MEMBERSHIP = 2;</code>
-       */
-      public static final int MEMBERSHIP_VALUE = 2;
-
-
-      public final int getNumber() { return value; }
-
-      public static Type valueOf(int value) {
-        switch (value) {
-          case 1: return APPEND;
-          case 2: return MEMBERSHIP;
-          default: return null;
-        }
-      }
-
-      public static com.google.protobuf.Internal.EnumLiteMap<Type>
-          internalGetValueMap() {
-        return internalValueMap;
-      }
-      private static com.google.protobuf.Internal.EnumLiteMap<Type>
-          internalValueMap =
-            new com.google.protobuf.Internal.EnumLiteMap<Type>() {
-              public Type findValueByNumber(int number) {
-                return Type.valueOf(number);
-              }
-            };
-
-      public final com.google.protobuf.Descriptors.EnumValueDescriptor
-          getValueDescriptor() {
-        return getDescriptor().getValues().get(index);
-      }
-      public final com.google.protobuf.Descriptors.EnumDescriptor
-          getDescriptorForType() {
-        return getDescriptor();
-      }
-      public static final com.google.protobuf.Descriptors.EnumDescriptor
-          getDescriptor() {
-        return org.robotninjas.barge.proto.LogProto.JournalEntry.getDescriptor().getEnumTypes().get(0);
-      }
-
-      private static final Type[] VALUES = values();
-
-      public static Type valueOf(
-          com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
-        if (desc.getType() != getDescriptor()) {
-          throw new java.lang.IllegalArgumentException(
-            "EnumValueDescriptor is not for this type.");
-        }
-        return VALUES[desc.getIndex()];
-      }
-
-      private final int index;
-      private final int value;
-
-      private Type(int index, int value) {
-        this.index = index;
-        this.value = value;
-      }
-
-      // @@protoc_insertion_point(enum_scope:JournalEntry.Type)
-    }
-
     private int bitField0_;
-    // required .JournalEntry.Type type = 1;
-    public static final int TYPE_FIELD_NUMBER = 1;
-    private org.robotninjas.barge.proto.LogProto.JournalEntry.Type type_;
-    /**
-     * <code>required .JournalEntry.Type type = 1;</code>
-     */
-    public boolean hasType() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
-    }
-    /**
-     * <code>required .JournalEntry.Type type = 1;</code>
-     */
-    public org.robotninjas.barge.proto.LogProto.JournalEntry.Type getType() {
-      return type_;
-    }
-
     // optional .Append append = 2;
     public static final int APPEND_FIELD_NUMBER = 2;
     private org.robotninjas.barge.proto.LogProto.Append append_;
@@ -1572,7 +2479,7 @@ public final class LogProto {
      * <code>optional .Append append = 2;</code>
      */
     public boolean hasAppend() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
      * <code>optional .Append append = 2;</code>
@@ -1594,7 +2501,7 @@ public final class LogProto {
      * <code>optional .Membership membership = 3;</code>
      */
     public boolean hasMembership() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
      * <code>optional .Membership membership = 3;</code>
@@ -1609,20 +2516,61 @@ public final class LogProto {
       return membership_;
     }
 
+    // optional .Vote vote = 4;
+    public static final int VOTE_FIELD_NUMBER = 4;
+    private org.robotninjas.barge.proto.LogProto.Vote vote_;
+    /**
+     * <code>optional .Vote vote = 4;</code>
+     */
+    public boolean hasVote() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional .Vote vote = 4;</code>
+     */
+    public org.robotninjas.barge.proto.LogProto.Vote getVote() {
+      return vote_;
+    }
+    /**
+     * <code>optional .Vote vote = 4;</code>
+     */
+    public org.robotninjas.barge.proto.LogProto.VoteOrBuilder getVoteOrBuilder() {
+      return vote_;
+    }
+
+    // optional .Term term = 5;
+    public static final int TERM_FIELD_NUMBER = 5;
+    private org.robotninjas.barge.proto.LogProto.Term term_;
+    /**
+     * <code>optional .Term term = 5;</code>
+     */
+    public boolean hasTerm() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional .Term term = 5;</code>
+     */
+    public org.robotninjas.barge.proto.LogProto.Term getTerm() {
+      return term_;
+    }
+    /**
+     * <code>optional .Term term = 5;</code>
+     */
+    public org.robotninjas.barge.proto.LogProto.TermOrBuilder getTermOrBuilder() {
+      return term_;
+    }
+
     private void initFields() {
-      type_ = org.robotninjas.barge.proto.LogProto.JournalEntry.Type.APPEND;
       append_ = org.robotninjas.barge.proto.LogProto.Append.getDefaultInstance();
       membership_ = org.robotninjas.barge.proto.LogProto.Membership.getDefaultInstance();
+      vote_ = org.robotninjas.barge.proto.LogProto.Vote.getDefaultInstance();
+      term_ = org.robotninjas.barge.proto.LogProto.Term.getDefaultInstance();
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized != -1) return isInitialized == 1;
 
-      if (!hasType()) {
-        memoizedIsInitialized = 0;
-        return false;
-      }
       if (hasAppend()) {
         if (!getAppend().isInitialized()) {
           memoizedIsInitialized = 0;
@@ -1635,6 +2583,18 @@ public final class LogProto {
           return false;
         }
       }
+      if (hasVote()) {
+        if (!getVote().isInitialized()) {
+          memoizedIsInitialized = 0;
+          return false;
+        }
+      }
+      if (hasTerm()) {
+        if (!getTerm().isInitialized()) {
+          memoizedIsInitialized = 0;
+          return false;
+        }
+      }
       memoizedIsInitialized = 1;
       return true;
     }
@@ -1643,13 +2603,16 @@ public final class LogProto {
                         throws java.io.IOException {
       getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeEnum(1, type_.getNumber());
-      }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
         output.writeMessage(2, append_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
         output.writeMessage(3, membership_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeMessage(4, vote_);
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        output.writeMessage(5, term_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -1662,15 +2625,19 @@ public final class LogProto {
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeEnumSize(1, type_.getNumber());
+          .computeMessageSize(2, append_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(2, append_);
+          .computeMessageSize(3, membership_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(3, membership_);
+          .computeMessageSize(4, vote_);
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(5, term_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -1782,6 +2749,8 @@ public final class LogProto {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
           getAppendFieldBuilder();
           getMembershipFieldBuilder();
+          getVoteFieldBuilder();
+          getTermFieldBuilder();
         }
       }
       private static Builder create() {
@@ -1790,20 +2759,30 @@ public final class LogProto {
 
       public Builder clear() {
         super.clear();
-        type_ = org.robotninjas.barge.proto.LogProto.JournalEntry.Type.APPEND;
-        bitField0_ = (bitField0_ & ~0x00000001);
         if (appendBuilder_ == null) {
           append_ = org.robotninjas.barge.proto.LogProto.Append.getDefaultInstance();
         } else {
           appendBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00000002);
+        bitField0_ = (bitField0_ & ~0x00000001);
         if (membershipBuilder_ == null) {
           membership_ = org.robotninjas.barge.proto.LogProto.Membership.getDefaultInstance();
         } else {
           membershipBuilder_.clear();
         }
+        bitField0_ = (bitField0_ & ~0x00000002);
+        if (voteBuilder_ == null) {
+          vote_ = org.robotninjas.barge.proto.LogProto.Vote.getDefaultInstance();
+        } else {
+          voteBuilder_.clear();
+        }
         bitField0_ = (bitField0_ & ~0x00000004);
+        if (termBuilder_ == null) {
+          term_ = org.robotninjas.barge.proto.LogProto.Term.getDefaultInstance();
+        } else {
+          termBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000008);
         return this;
       }
 
@@ -1835,22 +2814,34 @@ public final class LogProto {
         if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
           to_bitField0_ |= 0x00000001;
         }
-        result.type_ = type_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
-          to_bitField0_ |= 0x00000002;
-        }
         if (appendBuilder_ == null) {
           result.append_ = append_;
         } else {
           result.append_ = appendBuilder_.build();
         }
-        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
-          to_bitField0_ |= 0x00000004;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
         }
         if (membershipBuilder_ == null) {
           result.membership_ = membership_;
         } else {
           result.membership_ = membershipBuilder_.build();
+        }
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        if (voteBuilder_ == null) {
+          result.vote_ = vote_;
+        } else {
+          result.vote_ = voteBuilder_.build();
+        }
+        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+          to_bitField0_ |= 0x00000008;
+        }
+        if (termBuilder_ == null) {
+          result.term_ = term_;
+        } else {
+          result.term_ = termBuilder_.build();
         }
         result.bitField0_ = to_bitField0_;
         onBuilt();
@@ -1868,24 +2859,23 @@ public final class LogProto {
 
       public Builder mergeFrom(org.robotninjas.barge.proto.LogProto.JournalEntry other) {
         if (other == org.robotninjas.barge.proto.LogProto.JournalEntry.getDefaultInstance()) return this;
-        if (other.hasType()) {
-          setType(other.getType());
-        }
         if (other.hasAppend()) {
           mergeAppend(other.getAppend());
         }
         if (other.hasMembership()) {
           mergeMembership(other.getMembership());
         }
+        if (other.hasVote()) {
+          mergeVote(other.getVote());
+        }
+        if (other.hasTerm()) {
+          mergeTerm(other.getTerm());
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
 
       public final boolean isInitialized() {
-        if (!hasType()) {
-          
-          return false;
-        }
         if (hasAppend()) {
           if (!getAppend().isInitialized()) {
             
@@ -1894,6 +2884,18 @@ public final class LogProto {
         }
         if (hasMembership()) {
           if (!getMembership().isInitialized()) {
+            
+            return false;
+          }
+        }
+        if (hasVote()) {
+          if (!getVote().isInitialized()) {
+            
+            return false;
+          }
+        }
+        if (hasTerm()) {
+          if (!getTerm().isInitialized()) {
             
             return false;
           }
@@ -1920,42 +2922,6 @@ public final class LogProto {
       }
       private int bitField0_;
 
-      // required .JournalEntry.Type type = 1;
-      private org.robotninjas.barge.proto.LogProto.JournalEntry.Type type_ = org.robotninjas.barge.proto.LogProto.JournalEntry.Type.APPEND;
-      /**
-       * <code>required .JournalEntry.Type type = 1;</code>
-       */
-      public boolean hasType() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
-      }
-      /**
-       * <code>required .JournalEntry.Type type = 1;</code>
-       */
-      public org.robotninjas.barge.proto.LogProto.JournalEntry.Type getType() {
-        return type_;
-      }
-      /**
-       * <code>required .JournalEntry.Type type = 1;</code>
-       */
-      public Builder setType(org.robotninjas.barge.proto.LogProto.JournalEntry.Type value) {
-        if (value == null) {
-          throw new NullPointerException();
-        }
-        bitField0_ |= 0x00000001;
-        type_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>required .JournalEntry.Type type = 1;</code>
-       */
-      public Builder clearType() {
-        bitField0_ = (bitField0_ & ~0x00000001);
-        type_ = org.robotninjas.barge.proto.LogProto.JournalEntry.Type.APPEND;
-        onChanged();
-        return this;
-      }
-
       // optional .Append append = 2;
       private org.robotninjas.barge.proto.LogProto.Append append_ = org.robotninjas.barge.proto.LogProto.Append.getDefaultInstance();
       private com.google.protobuf.SingleFieldBuilder<
@@ -1964,7 +2930,7 @@ public final class LogProto {
        * <code>optional .Append append = 2;</code>
        */
       public boolean hasAppend() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
+        return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
        * <code>optional .Append append = 2;</code>
@@ -1989,7 +2955,7 @@ public final class LogProto {
         } else {
           appendBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00000002;
+        bitField0_ |= 0x00000001;
         return this;
       }
       /**
@@ -2003,7 +2969,7 @@ public final class LogProto {
         } else {
           appendBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00000002;
+        bitField0_ |= 0x00000001;
         return this;
       }
       /**
@@ -2011,7 +2977,7 @@ public final class LogProto {
        */
       public Builder mergeAppend(org.robotninjas.barge.proto.LogProto.Append value) {
         if (appendBuilder_ == null) {
-          if (((bitField0_ & 0x00000002) == 0x00000002) &&
+          if (((bitField0_ & 0x00000001) == 0x00000001) &&
               append_ != org.robotninjas.barge.proto.LogProto.Append.getDefaultInstance()) {
             append_ =
               org.robotninjas.barge.proto.LogProto.Append.newBuilder(append_).mergeFrom(value).buildPartial();
@@ -2022,7 +2988,7 @@ public final class LogProto {
         } else {
           appendBuilder_.mergeFrom(value);
         }
-        bitField0_ |= 0x00000002;
+        bitField0_ |= 0x00000001;
         return this;
       }
       /**
@@ -2035,14 +3001,14 @@ public final class LogProto {
         } else {
           appendBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00000002);
+        bitField0_ = (bitField0_ & ~0x00000001);
         return this;
       }
       /**
        * <code>optional .Append append = 2;</code>
        */
       public org.robotninjas.barge.proto.LogProto.Append.Builder getAppendBuilder() {
-        bitField0_ |= 0x00000002;
+        bitField0_ |= 0x00000001;
         onChanged();
         return getAppendFieldBuilder().getBuilder();
       }
@@ -2081,7 +3047,7 @@ public final class LogProto {
        * <code>optional .Membership membership = 3;</code>
        */
       public boolean hasMembership() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
+        return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
        * <code>optional .Membership membership = 3;</code>
@@ -2106,7 +3072,7 @@ public final class LogProto {
         } else {
           membershipBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000002;
         return this;
       }
       /**
@@ -2120,7 +3086,7 @@ public final class LogProto {
         } else {
           membershipBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000002;
         return this;
       }
       /**
@@ -2128,7 +3094,7 @@ public final class LogProto {
        */
       public Builder mergeMembership(org.robotninjas.barge.proto.LogProto.Membership value) {
         if (membershipBuilder_ == null) {
-          if (((bitField0_ & 0x00000004) == 0x00000004) &&
+          if (((bitField0_ & 0x00000002) == 0x00000002) &&
               membership_ != org.robotninjas.barge.proto.LogProto.Membership.getDefaultInstance()) {
             membership_ =
               org.robotninjas.barge.proto.LogProto.Membership.newBuilder(membership_).mergeFrom(value).buildPartial();
@@ -2139,7 +3105,7 @@ public final class LogProto {
         } else {
           membershipBuilder_.mergeFrom(value);
         }
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000002;
         return this;
       }
       /**
@@ -2152,14 +3118,14 @@ public final class LogProto {
         } else {
           membershipBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000002);
         return this;
       }
       /**
        * <code>optional .Membership membership = 3;</code>
        */
       public org.robotninjas.barge.proto.LogProto.Membership.Builder getMembershipBuilder() {
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000002;
         onChanged();
         return getMembershipFieldBuilder().getBuilder();
       }
@@ -2190,6 +3156,240 @@ public final class LogProto {
         return membershipBuilder_;
       }
 
+      // optional .Vote vote = 4;
+      private org.robotninjas.barge.proto.LogProto.Vote vote_ = org.robotninjas.barge.proto.LogProto.Vote.getDefaultInstance();
+      private com.google.protobuf.SingleFieldBuilder<
+          org.robotninjas.barge.proto.LogProto.Vote, org.robotninjas.barge.proto.LogProto.Vote.Builder, org.robotninjas.barge.proto.LogProto.VoteOrBuilder> voteBuilder_;
+      /**
+       * <code>optional .Vote vote = 4;</code>
+       */
+      public boolean hasVote() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>optional .Vote vote = 4;</code>
+       */
+      public org.robotninjas.barge.proto.LogProto.Vote getVote() {
+        if (voteBuilder_ == null) {
+          return vote_;
+        } else {
+          return voteBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .Vote vote = 4;</code>
+       */
+      public Builder setVote(org.robotninjas.barge.proto.LogProto.Vote value) {
+        if (voteBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          vote_ = value;
+          onChanged();
+        } else {
+          voteBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000004;
+        return this;
+      }
+      /**
+       * <code>optional .Vote vote = 4;</code>
+       */
+      public Builder setVote(
+          org.robotninjas.barge.proto.LogProto.Vote.Builder builderForValue) {
+        if (voteBuilder_ == null) {
+          vote_ = builderForValue.build();
+          onChanged();
+        } else {
+          voteBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000004;
+        return this;
+      }
+      /**
+       * <code>optional .Vote vote = 4;</code>
+       */
+      public Builder mergeVote(org.robotninjas.barge.proto.LogProto.Vote value) {
+        if (voteBuilder_ == null) {
+          if (((bitField0_ & 0x00000004) == 0x00000004) &&
+              vote_ != org.robotninjas.barge.proto.LogProto.Vote.getDefaultInstance()) {
+            vote_ =
+              org.robotninjas.barge.proto.LogProto.Vote.newBuilder(vote_).mergeFrom(value).buildPartial();
+          } else {
+            vote_ = value;
+          }
+          onChanged();
+        } else {
+          voteBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000004;
+        return this;
+      }
+      /**
+       * <code>optional .Vote vote = 4;</code>
+       */
+      public Builder clearVote() {
+        if (voteBuilder_ == null) {
+          vote_ = org.robotninjas.barge.proto.LogProto.Vote.getDefaultInstance();
+          onChanged();
+        } else {
+          voteBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000004);
+        return this;
+      }
+      /**
+       * <code>optional .Vote vote = 4;</code>
+       */
+      public org.robotninjas.barge.proto.LogProto.Vote.Builder getVoteBuilder() {
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return getVoteFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .Vote vote = 4;</code>
+       */
+      public org.robotninjas.barge.proto.LogProto.VoteOrBuilder getVoteOrBuilder() {
+        if (voteBuilder_ != null) {
+          return voteBuilder_.getMessageOrBuilder();
+        } else {
+          return vote_;
+        }
+      }
+      /**
+       * <code>optional .Vote vote = 4;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          org.robotninjas.barge.proto.LogProto.Vote, org.robotninjas.barge.proto.LogProto.Vote.Builder, org.robotninjas.barge.proto.LogProto.VoteOrBuilder> 
+          getVoteFieldBuilder() {
+        if (voteBuilder_ == null) {
+          voteBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              org.robotninjas.barge.proto.LogProto.Vote, org.robotninjas.barge.proto.LogProto.Vote.Builder, org.robotninjas.barge.proto.LogProto.VoteOrBuilder>(
+                  vote_,
+                  getParentForChildren(),
+                  isClean());
+          vote_ = null;
+        }
+        return voteBuilder_;
+      }
+
+      // optional .Term term = 5;
+      private org.robotninjas.barge.proto.LogProto.Term term_ = org.robotninjas.barge.proto.LogProto.Term.getDefaultInstance();
+      private com.google.protobuf.SingleFieldBuilder<
+          org.robotninjas.barge.proto.LogProto.Term, org.robotninjas.barge.proto.LogProto.Term.Builder, org.robotninjas.barge.proto.LogProto.TermOrBuilder> termBuilder_;
+      /**
+       * <code>optional .Term term = 5;</code>
+       */
+      public boolean hasTerm() {
+        return ((bitField0_ & 0x00000008) == 0x00000008);
+      }
+      /**
+       * <code>optional .Term term = 5;</code>
+       */
+      public org.robotninjas.barge.proto.LogProto.Term getTerm() {
+        if (termBuilder_ == null) {
+          return term_;
+        } else {
+          return termBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .Term term = 5;</code>
+       */
+      public Builder setTerm(org.robotninjas.barge.proto.LogProto.Term value) {
+        if (termBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          term_ = value;
+          onChanged();
+        } else {
+          termBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000008;
+        return this;
+      }
+      /**
+       * <code>optional .Term term = 5;</code>
+       */
+      public Builder setTerm(
+          org.robotninjas.barge.proto.LogProto.Term.Builder builderForValue) {
+        if (termBuilder_ == null) {
+          term_ = builderForValue.build();
+          onChanged();
+        } else {
+          termBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000008;
+        return this;
+      }
+      /**
+       * <code>optional .Term term = 5;</code>
+       */
+      public Builder mergeTerm(org.robotninjas.barge.proto.LogProto.Term value) {
+        if (termBuilder_ == null) {
+          if (((bitField0_ & 0x00000008) == 0x00000008) &&
+              term_ != org.robotninjas.barge.proto.LogProto.Term.getDefaultInstance()) {
+            term_ =
+              org.robotninjas.barge.proto.LogProto.Term.newBuilder(term_).mergeFrom(value).buildPartial();
+          } else {
+            term_ = value;
+          }
+          onChanged();
+        } else {
+          termBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000008;
+        return this;
+      }
+      /**
+       * <code>optional .Term term = 5;</code>
+       */
+      public Builder clearTerm() {
+        if (termBuilder_ == null) {
+          term_ = org.robotninjas.barge.proto.LogProto.Term.getDefaultInstance();
+          onChanged();
+        } else {
+          termBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000008);
+        return this;
+      }
+      /**
+       * <code>optional .Term term = 5;</code>
+       */
+      public org.robotninjas.barge.proto.LogProto.Term.Builder getTermBuilder() {
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return getTermFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .Term term = 5;</code>
+       */
+      public org.robotninjas.barge.proto.LogProto.TermOrBuilder getTermOrBuilder() {
+        if (termBuilder_ != null) {
+          return termBuilder_.getMessageOrBuilder();
+        } else {
+          return term_;
+        }
+      }
+      /**
+       * <code>optional .Term term = 5;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          org.robotninjas.barge.proto.LogProto.Term, org.robotninjas.barge.proto.LogProto.Term.Builder, org.robotninjas.barge.proto.LogProto.TermOrBuilder> 
+          getTermFieldBuilder() {
+        if (termBuilder_ == null) {
+          termBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              org.robotninjas.barge.proto.LogProto.Term, org.robotninjas.barge.proto.LogProto.Term.Builder, org.robotninjas.barge.proto.LogProto.TermOrBuilder>(
+                  term_,
+                  getParentForChildren(),
+                  isClean());
+          term_ = null;
+        }
+        return termBuilder_;
+      }
+
       // @@protoc_insertion_point(builder_scope:JournalEntry)
     }
 
@@ -2212,6 +3412,16 @@ public final class LogProto {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_Membership_fieldAccessorTable;
   private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_Vote_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_Vote_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_Term_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_Term_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_JournalEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -2228,11 +3438,12 @@ public final class LogProto {
       "\n\tlog.proto\032\013entry.proto\".\n\006Append\022\r\n\005in" +
       "dex\030\001 \002(\003\022\025\n\005entry\030\002 \002(\0132\006.Entry\":\n\nMemb" +
       "ership\022\r\n\005index\030\001 \002(\003\022\014\n\004term\030\002 \002(\003\022\017\n\007m" +
-      "embers\030\003 \003(\t\"\216\001\n\014JournalEntry\022 \n\004type\030\001 " +
-      "\002(\0162\022.JournalEntry.Type\022\027\n\006append\030\002 \001(\0132" +
-      "\007.Append\022\037\n\nmembership\030\003 \001(\0132\013.Membershi" +
-      "p\"\"\n\004Type\022\n\n\006APPEND\020\001\022\016\n\nMEMBERSHIP\020\002B\'\n" +
-      "\033org.robotninjas.barge.protoB\010LogProto"
+      "embers\030\003 \003(\t\"\'\n\004Vote\022\014\n\004term\030\001 \002(\003\022\021\n\tvo" +
+      "ted_for\030\002 \002(\t\"\024\n\004Term\022\014\n\004term\030\001 \002(\003\"r\n\014J" +
+      "ournalEntry\022\027\n\006append\030\002 \001(\0132\007.Append\022\037\n\n" +
+      "membership\030\003 \001(\0132\013.Membership\022\023\n\004vote\030\004 " +
+      "\001(\0132\005.Vote\022\023\n\004term\030\005 \001(\0132\005.TermB\'\n\033org.r" +
+      "obotninjas.barge.protoB\010LogProto"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -2251,12 +3462,24 @@ public final class LogProto {
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_Membership_descriptor,
               new java.lang.String[] { "Index", "Term", "Members", });
-          internal_static_JournalEntry_descriptor =
+          internal_static_Vote_descriptor =
             getDescriptor().getMessageTypes().get(2);
+          internal_static_Vote_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_Vote_descriptor,
+              new java.lang.String[] { "Term", "VotedFor", });
+          internal_static_Term_descriptor =
+            getDescriptor().getMessageTypes().get(3);
+          internal_static_Term_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_Term_descriptor,
+              new java.lang.String[] { "Term", });
+          internal_static_JournalEntry_descriptor =
+            getDescriptor().getMessageTypes().get(4);
           internal_static_JournalEntry_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_JournalEntry_descriptor,
-              new java.lang.String[] { "Type", "Append", "Membership", });
+              new java.lang.String[] { "Append", "Membership", "Vote", "Term", });
           return null;
         }
       };

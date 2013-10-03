@@ -31,12 +31,18 @@ message Membership {
 	repeated string members = 3;
 }
 
+message Vote {
+	required int64 term = 1;
+	required string voted_for = 2;
+}
+
+message Term {
+	required int64 term = 1;
+}
+
 message JournalEntry {
-	enum Type {
-		APPEND = 1;
-		MEMBERSHIP = 2;
-	}
-	required Type type = 1;
 	optional Append append = 2;
 	optional Membership membership = 3;
+	optional Vote vote = 4;
+	optional Term term = 5;
 }
