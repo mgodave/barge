@@ -31,6 +31,7 @@ import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.annotations.ClusterMembers;
 import org.robotninjas.barge.annotations.LocalReplicaInfo;
 import org.robotninjas.barge.proto.ClientProto;
+import org.robotninjas.barge.proto.LogProto;
 import org.robotninjas.barge.proto.RaftEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,7 +96,15 @@ class DefaultRaftLog implements RaftLog {
 
   private void storeEntry(long index, @Nonnull Entry entry) {
     try {
-      Location loc = journal.write(entry.toByteArray(), WriteType.SYNC);
+
+      LogProto.JournalEntry journalEntry =
+        LogProto.JournalEntry.newBuilder()
+          .setAppend(LogProto.Append.newBuilder()
+            .setIndex(index)
+            .setEntry(entry))
+          .build();
+
+      Location loc = journal.write(journalEntry.toByteArray(), WriteType.SYNC);
       EntryMeta meta = new EntryMeta(index, entry.getTerm(), loc);
       this.entryIndex.put(index, meta);
       this.entryCache.put(index, entry);
@@ -267,7 +276,11 @@ class DefaultRaftLog implements RaftLog {
         EntryMeta meta = index.get(key);
         Location loc = meta.location;
         byte[] data = journal.read(loc, Journal.ReadType.ASYNC);
-        return Entry.parseFrom(data);
+        LogProto.JournalEntry journalEntry = LogProto.JournalEntry.parseFrom(data);
+        if (!journalEntry.hasAppend()) {
+          throw new IllegalStateException("Journal entry does not contain Append");
+        }
+        return journalEntry.getAppend().getEntry();
       } catch (Exception e) {
         e.printStackTrace();
         throw e;
