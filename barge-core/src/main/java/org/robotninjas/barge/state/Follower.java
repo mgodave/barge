@@ -26,14 +26,12 @@ import org.robotninjas.barge.annotations.ElectionTimeout;
 import org.robotninjas.barge.annotations.RaftScheduler;
 import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.rpc.Client;
-import org.robotninjas.barge.proto.RaftEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
@@ -82,23 +80,23 @@ class Follower implements State {
 
     boolean voteGranted = false;
 
-    if (request.getTerm() >= log.term()) {
+    if (request.getTerm() >= log.currentTerm()) {
 
-      if (request.getTerm() > log.term()) {
-        log.term(request.getTerm());
+      if (request.getTerm() > log.currentTerm()) {
+        log.updateCurrentTerm(request.getTerm());
       }
 
       Replica candidate = Replica.fromString(request.getCandidateId());
       voteGranted = Voting.shouldVoteFor(log, request);
 
       if (voteGranted) {
-        log.votedFor(Optional.of(candidate));
+        log.updateVotedFor(Optional.of(candidate));
       }
 
     }
 
     return RequestVoteResponse.newBuilder()
-      .setTerm(log.term())
+      .setTerm(log.currentTerm())
       .setVoteGranted(voteGranted)
       .build();
 
@@ -113,19 +111,14 @@ class Follower implements State {
 
     boolean success = false;
 
-    if (request.getTerm() >= log.term()) {
+    if (request.getTerm() >= log.currentTerm()) {
 
-      if (request.getTerm() > log.term()) {
-        log.term(request.getTerm());
+      if (request.getTerm() > log.currentTerm()) {
+        log.updateCurrentTerm(request.getTerm());
       }
 
       leader = Optional.of(Replica.fromString(request.getLeaderId()));
-
       resetTimeout(ctx);
-
-      long prevLogIndex = request.getPrevLogIndex();
-      long prevLogTerm = request.getPrevLogTerm();
-      List<RaftEntry.Entry> entries = request.getEntriesList();
       success = log.append(request);
 
       if (request.getCommitIndex() > log.commitIndex()) {
@@ -135,7 +128,7 @@ class Follower implements State {
     }
 
     return AppendEntriesResponse.newBuilder()
-      .setTerm(log.term())
+      .setTerm(log.currentTerm())
       .setSuccess(success)
       .setLastLogIndex(log.lastLogIndex())
       .build();

@@ -27,7 +27,6 @@ import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.annotations.ElectionTimeout;
 import org.robotninjas.barge.annotations.RaftScheduler;
 import org.robotninjas.barge.log.RaftLog;
-import org.robotninjas.barge.proto.RaftEntry;
 import org.robotninjas.barge.rpc.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,10 +75,10 @@ class Candidate implements State {
   @Override
   public void init(@Nonnull final Context ctx) {
 
-    log.term(log.term() + 1);
-    log.votedFor(Optional.of(log.self()));
+    log.updateCurrentTerm(log.currentTerm() + 1);
+    log.updateVotedFor(Optional.of(log.self()));
 
-    LOGGER.debug("Election starting for term {}", log.term());
+    LOGGER.debug("Election starting for term {}", log.currentTerm());
 
     List<ListenableFuture<RequestVoteResponse>> responses = sendRequests();
     electionResult = majorityResponse(responses, voteGranted());
@@ -134,17 +133,17 @@ class Candidate implements State {
 
     boolean voteGranted = false;
 
-    if (request.getTerm() > log.term()) {
-      log.term(request.getTerm());
+    if (request.getTerm() > log.currentTerm()) {
+      log.updateCurrentTerm(request.getTerm());
       stepDown(ctx);
       voteGranted = Voting.shouldVoteFor(log, request);
       if (voteGranted) {
-        log.votedFor(Optional.of(candidate));
+        log.updateVotedFor(Optional.of(candidate));
       }
     }
 
     return RequestVoteResponse.newBuilder()
-      .setTerm(log.term())
+      .setTerm(log.currentTerm())
       .setVoteGranted(voteGranted)
       .build();
 
@@ -158,23 +157,20 @@ class Candidate implements State {
 
     boolean success = false;
 
-    if (request.getTerm() >= log.term()) {
+    if (request.getTerm() >= log.currentTerm()) {
 
-      if (request.getTerm() > log.term()) {
-        log.term(request.getTerm());
+      if (request.getTerm() > log.currentTerm()) {
+        log.updateCurrentTerm(request.getTerm());
       }
 
       stepDown(ctx);
 
-      long prevLogIndex = request.getPrevLogIndex();
-      long prevLogTerm = request.getPrevLogTerm();
-      List<RaftEntry.Entry> entries = request.getEntriesList();
       success = log.append(request);
 
     }
 
     return AppendEntriesResponse.newBuilder()
-      .setTerm(log.term())
+      .setTerm(log.currentTerm())
       .setSuccess(success)
       .build();
 
@@ -191,7 +187,7 @@ class Candidate implements State {
 
     RequestVote request =
       RequestVote.newBuilder()
-        .setTerm(log.term())
+        .setTerm(log.currentTerm())
         .setCandidateId(log.self().toString())
         .setLastLogIndex(log.lastLogIndex())
         .setLastLogTerm(log.lastLogTerm())

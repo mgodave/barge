@@ -28,7 +28,6 @@ import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.annotations.ElectionTimeout;
 import org.robotninjas.barge.annotations.RaftScheduler;
 import org.robotninjas.barge.log.RaftLog;
-import org.robotninjas.barge.proto.RaftEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,7 +80,7 @@ class Leader implements State {
   public void init(@Nonnull Context ctx) {
 
     long nextIndex = log.lastLogIndex() + 1;
-    long term = log.term();
+    long term = log.currentTerm();
     Replica self = log.self();
 
     for (Replica replica : log.members()) {
@@ -101,9 +100,9 @@ class Leader implements State {
 
     boolean voteGranted = false;
 
-    if (request.getTerm() > log.term()) {
+    if (request.getTerm() > log.currentTerm()) {
 
-      log.term(request.getTerm());
+      log.updateCurrentTerm(request.getTerm());
       ctx.setState(FOLLOWER);
       heartbeatTask.cancel(false);
 
@@ -111,13 +110,13 @@ class Leader implements State {
       voteGranted = Voting.shouldVoteFor(log, request);
 
       if (voteGranted) {
-        log.votedFor(Optional.of(candidate));
+        log.updateVotedFor(Optional.of(candidate));
       }
 
     }
 
     return RequestVoteResponse.newBuilder()
-      .setTerm(log.term())
+      .setTerm(log.currentTerm())
       .setVoteGranted(voteGranted)
       .build();
 
@@ -129,18 +128,15 @@ class Leader implements State {
 
     boolean success = false;
 
-    if (request.getTerm() > log.term()) {
-      log.term(request.getTerm());
+    if (request.getTerm() > log.currentTerm()) {
+      log.updateCurrentTerm(request.getTerm());
       ctx.setState(FOLLOWER);
       heartbeatTask.cancel(false);
-      long prevLogIndex = request.getPrevLogIndex();
-      long prevLogTerm = request.getPrevLogTerm();
-      List<RaftEntry.Entry> entries = request.getEntriesList();
       success = log.append(request);
     }
 
     return AppendEntriesResponse.newBuilder()
-      .setTerm(log.term())
+      .setTerm(log.currentTerm())
       .setSuccess(success)
       .build();
 

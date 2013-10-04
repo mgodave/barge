@@ -30,10 +30,8 @@ import journal.io.api.Location;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.annotations.ClusterMembers;
 import org.robotninjas.barge.annotations.LocalReplicaInfo;
-import org.robotninjas.barge.proto.ClientProto;
 import org.robotninjas.barge.proto.LogProto;
 import org.robotninjas.barge.proto.RaftEntry;
-import org.robotninjas.barge.proto.RaftProto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -222,11 +220,11 @@ class DefaultRaftLog implements RaftLog {
     return Collections.unmodifiableList(members);
   }
 
-  public long term() {
+  public long currentTerm() {
     return term;
   }
 
-  public void term(@Nonnegative long term) {
+  public void updateCurrentTerm(@Nonnegative long term) {
     checkArgument(term >= 0);
     MDC.put("term", Long.toString(term));
     LOGGER.debug("New term {}", term);
@@ -234,11 +232,11 @@ class DefaultRaftLog implements RaftLog {
   }
 
   @Nonnull
-  public Optional<Replica> votedFor() {
+  public Optional<Replica> lastVotedFor() {
     return votedFor;
   }
 
-  public void votedFor(@Nonnull Optional<Replica> vote) {
+  public void updateVotedFor(@Nonnull Optional<Replica> vote) {
     LOGGER.debug("Voting for {}", vote.orNull());
     this.votedFor = checkNotNull(vote);
   }

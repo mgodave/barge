@@ -27,11 +27,11 @@ class Voting {
 
   static boolean shouldVoteFor(@Nonnull RaftLog log, @Nonnull RequestVote request) {
 
-    if (!log.votedFor().isPresent()) {
+    if (!log.lastVotedFor().isPresent()) {
       return true;
     }
 
-    if (log.votedFor().equals(Replica.fromString(request.getCandidateId()))) {
+    if (log.lastVotedFor().equals(Replica.fromString(request.getCandidateId()))) {
       return true;
     }
 
