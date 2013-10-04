@@ -169,7 +169,7 @@ class Candidate implements State {
       long prevLogIndex = request.getPrevLogIndex();
       long prevLogTerm = request.getPrevLogTerm();
       List<RaftEntry.Entry> entries = request.getEntriesList();
-      success = log.append(prevLogIndex, prevLogTerm, entries);
+      success = log.append(request);
 
     }
 

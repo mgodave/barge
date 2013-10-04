@@ -24,13 +24,13 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 import static org.robotninjas.barge.proto.ClientProto.CommitOperation;
-import static org.robotninjas.barge.proto.RaftEntry.Entry;
+import static org.robotninjas.barge.proto.RaftProto.AppendEntries;
 
 public interface RaftLog {
 
-  long append(@Nonnull CommitOperation operation, @Nonnegative long term);
+  long append(@Nonnull CommitOperation operation);
 
-  boolean append(long prevLogIndex, long prevLogTerm, @Nonnull List<Entry> entries);
+  boolean append(@Nonnull AppendEntries appendEntries);
 
   @Nonnull GetEntriesResult getEntriesFrom(@Nonnegative long begin);
 

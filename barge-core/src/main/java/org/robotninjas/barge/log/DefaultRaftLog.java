@@ -33,6 +33,7 @@ import org.robotninjas.barge.annotations.LocalReplicaInfo;
 import org.robotninjas.barge.proto.ClientProto;
 import org.robotninjas.barge.proto.LogProto;
 import org.robotninjas.barge.proto.RaftEntry;
+import org.robotninjas.barge.proto.RaftProto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -50,7 +51,9 @@ import static com.google.common.base.Throwables.propagate;
 import static com.google.common.collect.Lists.newArrayList;
 import static journal.io.api.Journal.WriteType;
 import static org.robotninjas.barge.log.DefaultRaftLog.LoadFunction.loadFromCache;
+import static org.robotninjas.barge.proto.ClientProto.CommitOperation;
 import static org.robotninjas.barge.proto.RaftEntry.Entry;
+import static org.robotninjas.barge.proto.RaftProto.AppendEntries;
 
 @NotThreadSafe
 class DefaultRaftLog implements RaftLog {
@@ -113,7 +116,7 @@ class DefaultRaftLog implements RaftLog {
     }
   }
 
-  public long append(@Nonnull ClientProto.CommitOperation operation, long term) {
+  public long append(@Nonnull CommitOperation operation) {
 
     checkState(entryIndex.containsKey(lastLogIndex));
     checkState(!entryIndex.containsKey(lastLogIndex + 1));
@@ -135,7 +138,11 @@ class DefaultRaftLog implements RaftLog {
 
   }
 
-  public boolean append(long prevLogIndex, long prevLogTerm, @Nonnull List<Entry> entries) {
+  public boolean append(@Nonnull AppendEntries appendEntries) {
+
+    final long prevLogIndex = appendEntries.getPrevLogIndex();
+    final long prevLogTerm = appendEntries.getPrevLogTerm();
+    final List<Entry> entries = appendEntries.getEntriesList();
 
     EntryMeta previousEntry = entryIndex.get(prevLogIndex);
     if ((previousEntry == null) || (previousEntry.term != prevLogTerm)) {

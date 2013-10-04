@@ -126,7 +126,7 @@ class Follower implements State {
       long prevLogIndex = request.getPrevLogIndex();
       long prevLogTerm = request.getPrevLogTerm();
       List<RaftEntry.Entry> entries = request.getEntriesList();
-      success = log.append(prevLogIndex, prevLogTerm, entries);
+      success = log.append(request);
 
       if (request.getCommitIndex() > log.commitIndex()) {
         log.commitIndex(Math.min(request.getCommitIndex(), log.lastLogIndex()));

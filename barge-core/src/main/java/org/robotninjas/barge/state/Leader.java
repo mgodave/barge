@@ -136,7 +136,7 @@ class Leader implements State {
       long prevLogIndex = request.getPrevLogIndex();
       long prevLogTerm = request.getPrevLogTerm();
       List<RaftEntry.Entry> entries = request.getEntriesList();
-      success = log.append(prevLogIndex, prevLogTerm, entries);
+      success = log.append(request);
     }
 
     return AppendEntriesResponse.newBuilder()
@@ -168,7 +168,7 @@ class Leader implements State {
 
     resetTimeout(ctx);
 
-    final long index = log.append(request, log.term());
+    final long index = log.append(request);
 
     ListenableFuture<Boolean> commit = commit();
 
