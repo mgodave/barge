@@ -122,7 +122,7 @@ class Follower implements State {
       success = log.append(request);
 
       if (request.getCommitIndex() > log.commitIndex()) {
-        log.commitIndex(Math.min(request.getCommitIndex(), log.lastLogIndex()));
+        log.updateCommitIndex(Math.min(request.getCommitIndex(), log.lastLogIndex()));
       }
 
     }

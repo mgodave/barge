@@ -32,12 +32,15 @@ message Membership {
 }
 
 message Vote {
-	required int64 term = 1;
-	required string voted_for = 2;
+	optional string voted_for = 2;
 }
 
 message Term {
 	required int64 term = 1;
+}
+
+message Commit {
+	required int64 index = 1;
 }
 
 message JournalEntry {
@@ -45,4 +48,5 @@ message JournalEntry {
 	optional Membership membership = 3;
 	optional Vote vote = 4;
 	optional Term term = 5;
+	optional Commit commit = 6;
 }

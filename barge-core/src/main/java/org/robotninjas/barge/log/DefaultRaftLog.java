@@ -19,6 +19,7 @@ package org.robotninjas.barge.log;
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
+import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -42,6 +43,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -67,7 +69,7 @@ class DefaultRaftLog implements RaftLog {
   private final List<Replica> members;
   private final EventBus eventBus;
   private volatile long lastLogIndex = 0;
-  private volatile long term = 0;
+  private volatile long currentTerm = 0;
   private volatile Optional<Replica> votedFor = Optional.absent();
   private volatile long commitIndex = 0;
   private volatile long lastApplied = 0;
@@ -91,6 +93,69 @@ class DefaultRaftLog implements RaftLog {
 
   public void init() {
     this.entryIndex.put(0L, new EntryMeta(0, 0, null));
+
+    LOGGER.info("Replaying log");
+    try {
+      for (Location loc : journal.redo()) {
+
+        byte[] data = journal.read(loc, Journal.ReadType.ASYNC);
+        LogProto.JournalEntry journalEntry = LogProto.JournalEntry.parseFrom(data);
+
+        if (journalEntry.hasAppend()) {
+
+          LogProto.Append append = journalEntry.getAppend();
+
+          long index = append.getIndex();
+          LOGGER.debug("Append {}", index);
+          Entry entry = append.getEntry();
+          long term = entry.getTerm();
+
+          this.entryCache.put(index, entry);
+
+          EntryMeta meta = new EntryMeta(index, term, loc);
+          this.entryIndex.put(index, meta);
+
+        }
+
+        if (journalEntry.hasTerm()) {
+
+          LogProto.Term term = journalEntry.getTerm();
+          LOGGER.debug("Term {}", term);
+          this.currentTerm = Math.max(currentTerm, term.getTerm());
+
+        }
+
+        if (journalEntry.hasVote()) {
+
+          LogProto.Vote vote = journalEntry.getVote();
+          if (vote.hasVotedFor()) {
+            Replica candidate = Replica.fromString(vote.getVotedFor());
+            votedFor = Optional.of(candidate);
+          } else {
+            votedFor = Optional.absent();
+          }
+          LOGGER.debug("Vote {}", votedFor.orNull());
+
+        }
+
+        if (journalEntry.hasCommit()) {
+
+          LogProto.Commit commit = journalEntry.getCommit();
+          this.commitIndex = Math.max(commit.getIndex(), commitIndex);
+          LOGGER.debug("Commit {}", commit.getIndex());
+
+        }
+
+        LOGGER.debug("lastLogIndex {}, currentTerm {}, commitIndex {}",
+          lastLogIndex, currentTerm, commitIndex );
+
+
+        //TODO committedIndex is not set or stored
+      }
+      fireComitted();
+    } catch (IOException e) {
+      Throwables.propagate(e);
+    }
   }
 
   private void storeEntry(long index, @Nonnull Entry entry) {
@@ -119,12 +184,12 @@ class DefaultRaftLog implements RaftLog {
 
     long index = ++lastLogIndex;
 
-    LOGGER.debug("leader append: index {}, term {}", index, term);
+    LOGGER.debug("leader append: index {}, term {}", index, currentTerm);
 
     Entry entry =
       Entry.newBuilder()
         .setCommand(operation.getOp())
-        .setTerm(term)
+        .setTerm(currentTerm)
         .build();
 
     storeEntry(index, entry);
@@ -190,8 +255,18 @@ class DefaultRaftLog implements RaftLog {
     return commitIndex;
   }
 
-  public void commitIndex(long index) {
+  public void updateCommitIndex(long index) {
     this.commitIndex = index;
+    LogProto.JournalEntry entry =
+      LogProto.JournalEntry.newBuilder()
+        .setCommit(LogProto.Commit.newBuilder()
+          .setIndex(index))
+        .build();
+    try {
+      journal.write(entry.toByteArray(), WriteType.SYNC);
+    } catch (IOException e) {
+      Throwables.propagate(e);
+    }
     fireComitted();
   }
 
@@ -202,14 +277,24 @@ class DefaultRaftLog implements RaftLog {
   }
 
   public long currentTerm() {
-    return term;
+    return currentTerm;
   }
 
   public void updateCurrentTerm(@Nonnegative long term) {
     checkArgument(term >= 0);
     MDC.put("term", Long.toString(term));
     LOGGER.debug("New term {}", term);
-    this.term = term;
+    this.currentTerm = term;
+    LogProto.JournalEntry entry =
+      LogProto.JournalEntry.newBuilder()
+        .setTerm(LogProto.Term.newBuilder()
+          .setTerm(term))
+        .build();
+    try {
+      journal.write(entry.toByteArray(), WriteType.SYNC);
+    } catch (IOException e) {
+      Throwables.propagate(e);
+    }
   }
 
   @Nonnull
@@ -220,6 +305,20 @@ class DefaultRaftLog implements RaftLog {
   public void updateVotedFor(@Nonnull Optional<Replica> vote) {
     LOGGER.debug("Voting for {}", vote.orNull());
     this.votedFor = checkNotNull(vote);
+    LogProto.Vote.Builder voteBuilder =
+      LogProto.Vote.newBuilder();
+    if (vote.isPresent()) {
+      voteBuilder.setVotedFor(vote.get().toString());
+    }
+    LogProto.JournalEntry entry =
+      LogProto.JournalEntry.newBuilder()
+        .setVote(voteBuilder)
+        .build();
+    try {
+      journal.write(entry.toByteArray(), WriteType.SYNC);
+    } catch (IOException e) {
+      Throwables.propagate(e);
+    }
   }
 
   @Nonnull

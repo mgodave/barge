@@ -175,7 +175,7 @@ class Leader implements State {
         if (comitted) {
           long oldCommitIndex = log.commitIndex();
           long newCommitIndex = Math.max(oldCommitIndex, index);
-          log.commitIndex(newCommitIndex);
+          log.updateCommitIndex(newCommitIndex);
           LOGGER.debug("CommitIndex: {}", newCommitIndex);
         }
       }

@@ -42,16 +42,16 @@ public interface RaftLog {
 
   long commitIndex();
 
-  void commitIndex(long index);
-
   long currentTerm();
 
-  void updateCurrentTerm(@Nonnegative long term);
+  @Nonnull Replica self();
 
   @Nonnull Optional<Replica> lastVotedFor();
 
-  void updateVotedFor(@Nonnull Optional<Replica> candidate);
+  void updateCommitIndex(long index);
 
-  @Nonnull Replica self();
+  void updateCurrentTerm(@Nonnegative long term);
+
+  void updateVotedFor(@Nonnull Optional<Replica> candidate);
 
 }
