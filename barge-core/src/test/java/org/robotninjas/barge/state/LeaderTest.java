@@ -72,7 +72,7 @@ public class LeaderTest {
     Entry.Builder entry = Entry.newBuilder().setTerm(0).setCommand(ByteString.EMPTY);
     ImmutableList<Entry> entries = ImmutableList.of(entry.build(), entry.build());
     GetEntriesResult getResult = new GetEntriesResult(0, 0, entries);
-    when(log.getEntriesFrom(anyLong())).thenReturn(getResult);
+//    when(log.getEntriesFrom(anyLong())).thenReturn(getResult);
 
     Replica self = Replica.fromString("loalhost:10000");
     Replica remote = Replica.fromString("localhost:10001");

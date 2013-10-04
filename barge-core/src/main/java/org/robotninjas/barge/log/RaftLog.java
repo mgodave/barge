@@ -32,11 +32,7 @@ public interface RaftLog {
 
   boolean append(@Nonnull AppendEntries appendEntries);
 
-  @Nonnull GetEntriesResult getEntriesFrom(@Nonnegative long begin);
-
   @Nonnull GetEntriesResult getEntriesFrom(@Nonnegative long begin, @Nonnegative int max);
-
-  @Nonnull GetEntriesResult getEntry(@Nonnegative final long index);
 
   @Nonnull List<Replica> members();
 

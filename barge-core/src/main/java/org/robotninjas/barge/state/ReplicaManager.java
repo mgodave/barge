@@ -84,9 +84,7 @@ class ReplicaManager {
     // probing backwards, only send one entry as a probe, as
     // soon as we have a successful call forwards will become
     // true and we can catch up quickly
-    GetEntriesResult result = forwards ?
-      log.getEntriesFrom(nextIndex, BATCH_SIZE) :
-      log.getEntry(nextIndex);
+    GetEntriesResult result = log.getEntriesFrom(nextIndex, forwards ? BATCH_SIZE : 1);
 
     final AppendEntries request =
       AppendEntries.newBuilder()

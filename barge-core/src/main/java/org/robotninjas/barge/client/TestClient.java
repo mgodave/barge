@@ -37,7 +37,7 @@ public class TestClient {
         System.out.println(e.getMessage());
       }
 
-      //Thread.sleep(50);
+      Thread.sleep(10);
 
     }
 

@@ -159,28 +159,10 @@ class DefaultRaftLog implements RaftLog {
   }
 
   @Nonnull
-  public GetEntriesResult getEntry(@Nonnegative final long index) {
-    checkArgument(index >= 0);
-    EntryMeta previousEntry = this.entryIndex.get(index - 1);
-    Entry entry = entryCache.getIfPresent(index);
-    List<Entry> list = entry == null ? Collections.<Entry>emptyList() : newArrayList(entry);
-    return new GetEntriesResult(previousEntry.term, index - 1, list);
-  }
-
-  @Nonnull
   public GetEntriesResult getEntriesFrom(@Nonnegative long beginningIndex, @Nonnegative int max) {
     checkArgument(beginningIndex >= 0);
     Set<Long> indices = entryIndex.tailMap(beginningIndex).keySet();
     Iterable<Entry> values = Iterables.transform(Iterables.limit(indices, max), loadFromCache(entryCache));
-    Entry previousEntry = entryCache.getIfPresent(beginningIndex - 1);
-    return new GetEntriesResult(previousEntry.getTerm(), beginningIndex - 1, newArrayList(values));
-  }
-
-  @Nonnull
-  public GetEntriesResult getEntriesFrom(@Nonnegative final long beginningIndex) {
-    checkArgument(beginningIndex >= 0);
-    Set<Long> indices = entryIndex.tailMap(beginningIndex).keySet();
-    Iterable<Entry> values = Iterables.transform(indices, loadFromCache(entryCache));
     Entry previousEntry = entryCache.getIfPresent(beginningIndex - 1);
     return new GetEntriesResult(previousEntry.getTerm(), beginningIndex - 1, newArrayList(values));
   }
