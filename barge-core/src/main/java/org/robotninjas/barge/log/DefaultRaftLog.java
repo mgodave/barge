@@ -17,6 +17,7 @@
 package org.robotninjas.barge.log;
 
 import com.google.common.base.Function;
+import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -57,6 +58,7 @@ import static org.robotninjas.barge.proto.RaftProto.AppendEntries;
 class DefaultRaftLog implements RaftLog {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRaftLog.class);
+  private static final Entry SENTINEL_ENTRY = Entry.newBuilder().setCommand(ByteString.EMPTY).setTerm(0).build();
 
   private final Journal journal;
   private final LoadingCache<Long, Entry> entryCache;
@@ -64,7 +66,7 @@ class DefaultRaftLog implements RaftLog {
   private final Replica local;
   private final List<Replica> members;
   private final EventBus eventBus;
-  private volatile long lastLogIndex = -1;
+  private volatile long lastLogIndex = 0;
   private volatile long term = 0;
   private volatile Optional<Replica> votedFor = Optional.absent();
   private volatile long commitIndex = 0;
@@ -88,11 +90,7 @@ class DefaultRaftLog implements RaftLog {
   }
 
   public void init() {
-    Entry entry = Entry.newBuilder()
-      .setTerm(-1L)
-      .setCommand(ByteString.EMPTY)
-      .build();
-    storeEntry(-1L, entry);
+    this.entryIndex.put(0L, new EntryMeta(0, 0, null));
   }
 
   private void storeEntry(long index, @Nonnull Entry entry) {
@@ -164,12 +162,13 @@ class DefaultRaftLog implements RaftLog {
     Set<Long> indices = entryIndex.tailMap(beginningIndex).keySet();
     Iterable<Entry> values = Iterables.transform(Iterables.limit(indices, max), loadFromCache(entryCache));
     Entry previousEntry = entryCache.getIfPresent(beginningIndex - 1);
+    previousEntry = Objects.firstNonNull(previousEntry, SENTINEL_ENTRY);
     return new GetEntriesResult(previousEntry.getTerm(), beginningIndex - 1, newArrayList(values));
   }
 
   private void fireComitted() {
     try {
-      for (long i = lastApplied; i <= commitIndex; ++i, ++lastApplied) {
+      for (long i = lastApplied + 1; i <= commitIndex; ++i, ++lastApplied) {
         byte[] rawCommand = entryCache.get(i).getCommand().toByteArray();
         ByteBuffer operation = ByteBuffer.wrap(rawCommand).asReadOnlyBuffer();
         eventBus.post(new ComittedEvent(operation));
@@ -246,7 +245,8 @@ class DefaultRaftLog implements RaftLog {
   @Immutable
   static final class EntryCacheLoader extends CacheLoader<Long, Entry> {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private static final Logger logger = LoggerFactory.getLogger(EntryCacheLoader.class);
+
     private final Map<Long, EntryMeta> index;
     private final Journal journal;
 
