@@ -115,6 +115,8 @@ class DefaultRaftLog implements RaftLog {
           EntryMeta meta = new EntryMeta(index, term, loc);
           this.entryIndex.put(index, meta);
 
+          this.lastLogIndex = Math.max(lastLogIndex, index);
+
         }
 
         if (journalEntry.hasTerm()) {
@@ -147,7 +149,7 @@ class DefaultRaftLog implements RaftLog {
         }
 
         LOGGER.debug("lastLogIndex {}, currentTerm {}, commitIndex {}",
-          lastLogIndex, currentTerm, commitIndex );
+          lastLogIndex, currentTerm, commitIndex);
 
 
         //TODO committedIndex is not set or stored
@@ -156,6 +158,8 @@ class DefaultRaftLog implements RaftLog {
     } catch (IOException e) {
       Throwables.propagate(e);
     }
+    LOGGER.info("Finished replaying log lastIndex {}, currentTerm {}, commitIndex {}",
+      lastLogIndex, currentTerm, commitIndex);
   }
 
   private void storeEntry(long index, @Nonnull Entry entry) {
@@ -231,7 +235,7 @@ class DefaultRaftLog implements RaftLog {
     return new GetEntriesResult(previousEntry.getTerm(), beginningIndex - 1, newArrayList(values));
   }
 
-  private void fireComitted() {
+  void fireComitted() {
     try {
       for (long i = lastApplied + 1; i <= commitIndex; ++i, ++lastApplied) {
         byte[] rawCommand = entryCache.get(i).getCommand().toByteArray();
@@ -256,13 +260,16 @@ class DefaultRaftLog implements RaftLog {
   }
 
   public void updateCommitIndex(long index) {
-    this.commitIndex = index;
-    LogProto.JournalEntry entry =
-      LogProto.JournalEntry.newBuilder()
-        .setCommit(LogProto.Commit.newBuilder()
-          .setIndex(index))
-        .build();
+
+    setCommitIndex(index);
+
     try {
+      LogProto.JournalEntry entry =
+        LogProto.JournalEntry.newBuilder()
+          .setCommit(LogProto.Commit.newBuilder()
+            .setIndex(index))
+          .build();
+
       journal.write(entry.toByteArray(), WriteType.SYNC);
     } catch (IOException e) {
       Throwables.propagate(e);
@@ -281,16 +288,20 @@ class DefaultRaftLog implements RaftLog {
   }
 
   public void updateCurrentTerm(@Nonnegative long term) {
+
     checkArgument(term >= 0);
+
     MDC.put("term", Long.toString(term));
     LOGGER.debug("New term {}", term);
-    this.currentTerm = term;
-    LogProto.JournalEntry entry =
-      LogProto.JournalEntry.newBuilder()
-        .setTerm(LogProto.Term.newBuilder()
-          .setTerm(term))
-        .build();
+
+    setCurrentTerm(term);
+
     try {
+      LogProto.JournalEntry entry =
+        LogProto.JournalEntry.newBuilder()
+          .setTerm(LogProto.Term.newBuilder()
+            .setTerm(term))
+          .build();
       journal.write(entry.toByteArray(), WriteType.SYNC);
     } catch (IOException e) {
       Throwables.propagate(e);
@@ -302,19 +313,41 @@ class DefaultRaftLog implements RaftLog {
     return votedFor;
   }
 
+  void setLastVotedFor(@Nonnull Optional<Replica> candidate) {
+    this.votedFor = votedFor;
+  }
+
+  void setCurrentTerm(@Nonnegative long currentTerm) {
+    this.currentTerm = currentTerm;
+  }
+
+  void setLastLogIndex(long lastLogIndex) {
+    this.lastLogIndex = lastLogIndex;
+  }
+
+  void setCommitIndex(long commitIndex) {
+    this.commitIndex = commitIndex;
+  }
+
   public void updateVotedFor(@Nonnull Optional<Replica> vote) {
+
     LOGGER.debug("Voting for {}", vote.orNull());
-    this.votedFor = checkNotNull(vote);
-    LogProto.Vote.Builder voteBuilder =
-      LogProto.Vote.newBuilder();
-    if (vote.isPresent()) {
-      voteBuilder.setVotedFor(vote.get().toString());
-    }
-    LogProto.JournalEntry entry =
-      LogProto.JournalEntry.newBuilder()
-        .setVote(voteBuilder)
-        .build();
+
+    setLastVotedFor(vote);
+
     try {
+      LogProto.Vote.Builder voteBuilder =
+        LogProto.Vote.newBuilder();
+
+      if (vote.isPresent()) {
+        voteBuilder.setVotedFor(vote.get().toString());
+      }
+
+      LogProto.JournalEntry entry =
+        LogProto.JournalEntry.newBuilder()
+          .setVote(voteBuilder)
+          .build();
+
       journal.write(entry.toByteArray(), WriteType.SYNC);
     } catch (IOException e) {
       Throwables.propagate(e);

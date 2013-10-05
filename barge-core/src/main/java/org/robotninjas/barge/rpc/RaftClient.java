@@ -33,6 +33,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
+import java.util.concurrent.TimeUnit;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.util.concurrent.Futures.immediateFailedFuture;
 import static org.robotninjas.barge.proto.ClientProto.CommitOperation;
@@ -44,6 +46,7 @@ import static org.robotninjas.barge.proto.RaftProto.*;
 class RaftClient {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RaftClient.class);
+  private static final long DEFAULT_TIMEOUT = 2000;
 
   private final ObjectPool<NettyRpcChannel> channelPool;
 
@@ -62,6 +65,7 @@ class RaftClient {
       channel = channelPool.borrowObject();
       RaftProto.RaftService.Stub stub = RaftProto.RaftService.newStub(channel);
       ClientController controller = new ClientController(channel);
+      controller.setTimeout(DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
       RpcHandlerFuture<RequestVoteResponse> responseHandler =
         new RpcHandlerFuture<RequestVoteResponse>(controller);
       stub.requestVote(controller, request, responseHandler);
@@ -102,6 +106,7 @@ class RaftClient {
       channel = channelPool.borrowObject();
       RaftProto.RaftService.Stub stub = RaftProto.RaftService.newStub(channel);
       ClientController controller = new ClientController(channel);
+      controller.setTimeout(DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
       RpcHandlerFuture<AppendEntriesResponse> responseHandler =
         new RpcHandlerFuture<AppendEntriesResponse>(controller);
       stub.appendEntries(controller, request, responseHandler);
@@ -142,6 +147,7 @@ class RaftClient {
       channel = channelPool.borrowObject();
       ClientProto.ClientService.Stub stub = ClientProto.ClientService.newStub(channel);
       ClientController controller = new ClientController(channel);
+      controller.setTimeout(DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
       RpcHandlerFuture<CommitOperationResponse> responseHandler =
         new RpcHandlerFuture<CommitOperationResponse>(controller);
       stub.commitOperation(controller, request, responseHandler);
