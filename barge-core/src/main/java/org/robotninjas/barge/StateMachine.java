@@ -19,7 +19,7 @@ package org.robotninjas.barge;
 import javax.annotation.Nonnull;
 import java.nio.ByteBuffer;
 
-public interface LogListener {
+public interface StateMachine {
 
   void applyOperation(@Nonnull ByteBuffer entry);
 

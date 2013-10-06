@@ -6,6 +6,6 @@ import javax.annotation.Nonnull;
 
 interface RaftServiceFactory {
 
-  RaftService create(@Nonnull @Assisted LogListener stateMachine);
+  RaftService create(@Nonnull @Assisted StateMachine stateMachine);
 
 }

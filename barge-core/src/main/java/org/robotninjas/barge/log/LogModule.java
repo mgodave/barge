@@ -24,7 +24,7 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import journal.io.api.Journal;
 import journal.io.api.JournalBuilder;
-import org.robotninjas.barge.LogListener;
+import org.robotninjas.barge.StateMachine;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -39,9 +39,9 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 public class LogModule extends PrivateModule {
 
   private final File logDirectory;
-  private final LogListener stateMachine;
+  private final StateMachine stateMachine;
 
-  public LogModule(@Nonnull File logDirectory, @Nonnull LogListener stateMachine) {
+  public LogModule(@Nonnull File logDirectory, @Nonnull StateMachine stateMachine) {
     this.logDirectory = checkNotNull(logDirectory);
     this.stateMachine = checkNotNull(stateMachine);
   }
@@ -63,7 +63,7 @@ public class LogModule extends PrivateModule {
       }
     }));
 
-    bind(LogListener.class).toInstance(stateMachine);
+    bind(StateMachine.class).toInstance(stateMachine);
 
   }
 

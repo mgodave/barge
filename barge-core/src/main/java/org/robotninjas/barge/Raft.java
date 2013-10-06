@@ -49,7 +49,7 @@ public class Raft {
     logDir.mkdir();
     LOGGER.info("Log dir: {}", logDir);
 
-    RaftService service = newDistributedStateMachine(local, members, logDir, new LogListener() {
+    RaftService service = newDistributedStateMachine(local, members, logDir, new StateMachine() {
       @Override
       public void applyOperation(@Nonnull ByteBuffer entry) {
         System.out.println(entry.getLong());
@@ -61,7 +61,7 @@ public class Raft {
   }
 
   public static RaftService newDistributedStateMachine(@Nonnull Replica local, @Nonnull List<Replica> members,
-                                                @Nonnull File logDir, @Nonnull LogListener listener) {
+                                                @Nonnull File logDir, @Nonnull StateMachine listener) {
 
     Injector injector = Guice.createInjector(new RaftModule(local, members, TIMEOUT, logDir, listener));
     RaftServiceFactory factory = injector.getInstance(RaftServiceFactory.class);

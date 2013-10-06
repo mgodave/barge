@@ -43,10 +43,10 @@ class RaftModule extends PrivateModule {
   private final long timeout;
   private final File logDir;
   private final List<Replica> members;
-  private final LogListener stateMachine;
+  private final StateMachine stateMachine;
 
   public RaftModule(@Nonnull Replica local, @Nonnull List<Replica> members, @Nonnegative long timeout,
-                    @Nonnull File logDir, @Nonnull LogListener stateMachine) {
+                    @Nonnull File logDir, @Nonnull StateMachine stateMachine) {
     this.local = checkNotNull(local);
     checkArgument(timeout > 0);
     this.timeout = timeout;

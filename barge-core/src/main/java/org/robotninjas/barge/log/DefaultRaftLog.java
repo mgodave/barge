@@ -29,7 +29,7 @@ import com.google.inject.Inject;
 import com.google.protobuf.ByteString;
 import journal.io.api.Journal;
 import journal.io.api.Location;
-import org.robotninjas.barge.LogListener;
+import org.robotninjas.barge.StateMachine;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.annotations.ClusterMembers;
 import org.robotninjas.barge.annotations.LocalReplicaInfo;
@@ -68,7 +68,7 @@ class DefaultRaftLog implements RaftLog {
   private final SortedMap<Long, EntryMeta> entryIndex = new TreeMap<Long, EntryMeta>();
   private final Replica local;
   private final List<Replica> members;
-  private final LogListener stateMachine;
+  private final StateMachine stateMachine;
   private final ListeningExecutorService stateMachineExecutor;
   private volatile long lastLogIndex = 0;
   private volatile long currentTerm = 0;
@@ -80,7 +80,7 @@ class DefaultRaftLog implements RaftLog {
   DefaultRaftLog(@Nonnull Journal journal,
                  @LocalReplicaInfo @Nonnull Replica local,
                  @ClusterMembers @Nonnull List<Replica> members,
-                 @Nonnull LogListener stateMachine,
+                 @Nonnull StateMachine stateMachine,
                  @StateMachineExecutor @Nonnull ListeningExecutorService stateMachineExecutor) {
 
     this.local = checkNotNull(local);
