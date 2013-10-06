@@ -16,12 +16,11 @@
 
 package org.robotninjas.barge;
 
-import com.google.common.eventbus.EventBus;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.inject.PrivateModule;
 import com.google.inject.TypeLiteral;
-import org.robotninjas.barge.annotations.*;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
+import org.robotninjas.barge.annotations.ClusterMembers;
+import org.robotninjas.barge.annotations.LocalReplicaInfo;
 import org.robotninjas.barge.log.LogModule;
 import org.robotninjas.barge.rpc.RpcModule;
 import org.robotninjas.barge.state.StateModule;
@@ -29,19 +28,14 @@ import org.robotninjas.barge.state.StateModule;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
 @Immutable
-@ThreadSafe
-public class RaftModule extends PrivateModule {
+class RaftModule extends PrivateModule {
 
   private static final long DEFAULT_TIMEOUT = 225;
 
@@ -49,25 +43,24 @@ public class RaftModule extends PrivateModule {
   private final long timeout;
   private final File logDir;
   private final List<Replica> members;
+  private final LogListener stateMachine;
 
-  public RaftModule(@Nonnull Replica local, @Nonnull List<Replica> members, @Nonnegative long timeout, @Nonnull File logDir) {
+  public RaftModule(@Nonnull Replica local, @Nonnull List<Replica> members, @Nonnegative long timeout,
+                    @Nonnull File logDir, @Nonnull LogListener stateMachine) {
     this.local = checkNotNull(local);
     checkArgument(timeout > 0);
     this.timeout = timeout;
     this.logDir = checkNotNull(logDir);
     this.members = checkNotNull(members);
-  }
-
-  public RaftModule(@Nonnull Replica local, @Nonnull List<Replica> members, @Nonnull File logDir) {
-    this(local, members, DEFAULT_TIMEOUT, logDir);
+    this.stateMachine = checkNotNull(stateMachine);
   }
 
   @Override
   protected void configure() {
 
-    install(new StateModule());
+    install(new StateModule(timeout));
     install(new RpcModule(local.address()));
-    install(new LogModule(logDir));
+    install(new LogModule(logDir, stateMachine));
 
     bind(Replica.class)
       .annotatedWith(LocalReplicaInfo.class)
@@ -77,25 +70,10 @@ public class RaftModule extends PrivateModule {
       .annotatedWith(ClusterMembers.class)
       .toInstance(members);
 
-    bind(Long.class)
-      .annotatedWith(ElectionTimeout.class)
-      .toInstance(timeout);
-
-    bind(ExecutorService.class)
-      .annotatedWith(LogListenerExecutor.class)
-      .toInstance(newSingleThreadExecutor());
-
-    bind(RaftService.class).to(DefaultRaftService.class);
-    expose(RaftService.class);
-
-    ListeningExecutorService stateMachineExecutor =
-      MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor());
-
-    bind(ListeningExecutorService.class)
-      .annotatedWith(StateMachineExecutor.class)
-      .toInstance(stateMachineExecutor);
-
-    bind(EventBus.class).toInstance(new EventBus());
+    install(new FactoryModuleBuilder()
+      .implement(RaftService.class, DefaultRaftService.class)
+      .build(RaftServiceFactory.class));
+    expose(RaftServiceFactory.class);
 
   }
 }

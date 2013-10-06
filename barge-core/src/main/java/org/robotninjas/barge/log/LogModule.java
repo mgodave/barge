@@ -16,29 +16,54 @@
 
 package org.robotninjas.barge.log;
 
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Exposed;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import journal.io.api.Journal;
 import journal.io.api.JournalBuilder;
+import org.robotninjas.barge.LogListener;
 
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.ThreadFactory;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Throwables.propagate;
+import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
 public class LogModule extends PrivateModule {
 
   private final File logDirectory;
+  private final LogListener stateMachine;
 
-  public LogModule(File logDirectory) {
-    this.logDirectory = logDirectory;
+  public LogModule(@Nonnull File logDirectory, @Nonnull LogListener stateMachine) {
+    this.logDirectory = checkNotNull(logDirectory);
+    this.stateMachine = checkNotNull(stateMachine);
   }
 
   @Override
   protected void configure() {
+
+    ThreadFactory threadFactory = new ThreadFactoryBuilder().setDaemon(true).setNameFormat("State Machine Thread").build();
+    final ListeningExecutorService stateMachineExecutor = listeningDecorator(newSingleThreadExecutor(threadFactory));
+
+    bind(ListeningExecutorService.class)
+      .annotatedWith(StateMachineExecutor.class)
+      .toInstance(stateMachineExecutor);
+
+    Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+      @Override
+      public void run() {
+        stateMachineExecutor.shutdownNow();
+      }
+    }));
+
+    bind(LogListener.class).toInstance(stateMachine);
 
   }
 

@@ -16,18 +16,13 @@
 
 package org.robotninjas.barge;
 
-import com.google.common.base.Optional;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import com.google.common.util.concurrent.*;
 import com.google.protobuf.RpcCallback;
 import com.google.protobuf.RpcController;
 import com.google.protobuf.Service;
-import org.robotninjas.barge.annotations.RaftExecutor;
-import org.robotninjas.barge.annotations.StateMachineExecutor;
-import org.robotninjas.barge.log.ComittedEvent;
 import org.robotninjas.barge.proto.ClientProto;
 import org.robotninjas.barge.proto.RaftProto;
+import org.robotninjas.barge.rpc.RaftExecutor;
 import org.robotninjas.barge.state.Context;
 import org.robotninjas.protobuf.netty.server.RpcServer;
 import org.slf4j.Logger;
@@ -58,22 +53,15 @@ class DefaultRaftService extends AbstractService
   private final RpcServer rpcServer;
   private final Context ctx;
   private final ListeningExecutorService executor;
-  private final ListeningExecutorService stateExecutor;
-  private final EventBus eventBus;
-  private Optional<LogListener> listener = Optional.absent();
 
   @Inject
   DefaultRaftService(@RaftExecutor @Nonnull ListeningExecutorService executor,
-                     @StateMachineExecutor @Nonnull ListeningExecutorService stateExecutor,
                      @Nonnull RpcServer rpcServer,
-                     @Nonnull Context ctx,
-                     @Nonnull EventBus eventBus) {
+                     @Nonnull Context ctx) {
 
     this.rpcServer = checkNotNull(rpcServer);
     this.ctx = checkNotNull(ctx);
     this.executor = checkNotNull(executor);
-    this.eventBus = checkNotNull(eventBus);
-    this.stateExecutor = checkNotNull(stateExecutor);
 
   }
 
@@ -99,8 +87,6 @@ class DefaultRaftService extends AbstractService
       rpcServer.registerService(clientService);
 
       rpcServer.startAsync().awaitRunning();
-
-      eventBus.register(this);
 
       notifyStarted();
 
@@ -161,11 +147,6 @@ class DefaultRaftService extends AbstractService
 
   }
 
-  //  @Override
-//  public CommitOperationResponse commitOperation(@Nonnull CommitOperation request) throws ExecutionException, InterruptedException {
-//    return commitOperationAsync(request).get();
-//  }
-
   @Override
   public synchronized void commitOperation(@Nonnull final RpcController controller, @Nonnull CommitOperation request, @Nonnull final RpcCallback<CommitOperationResponse> done) {
 
@@ -186,23 +167,6 @@ class DefaultRaftService extends AbstractService
 
     });
 
-  }
-
-  @Override
-  public void addLogListener(@Nullable LogListener listener) {
-    this.listener = Optional.fromNullable(listener);
-  }
-
-  @Subscribe
-  public void EntryComitted(final ComittedEvent e) {
-    if (listener.isPresent()) {
-      stateExecutor.execute(new Runnable() {
-        @Override
-        public void run() {
-          listener.get().applyOperation(e.command());
-        }
-      });
-    }
   }
 
 }

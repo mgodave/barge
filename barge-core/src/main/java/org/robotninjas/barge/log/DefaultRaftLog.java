@@ -24,11 +24,12 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Iterables;
-import com.google.common.eventbus.EventBus;
+import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.inject.Inject;
 import com.google.protobuf.ByteString;
 import journal.io.api.Journal;
 import journal.io.api.Location;
+import org.robotninjas.barge.LogListener;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.annotations.ClusterMembers;
 import org.robotninjas.barge.annotations.LocalReplicaInfo;
@@ -67,7 +68,8 @@ class DefaultRaftLog implements RaftLog {
   private final SortedMap<Long, EntryMeta> entryIndex = new TreeMap<Long, EntryMeta>();
   private final Replica local;
   private final List<Replica> members;
-  private final EventBus eventBus;
+  private final LogListener stateMachine;
+  private final ListeningExecutorService stateMachineExecutor;
   private volatile long lastLogIndex = 0;
   private volatile long currentTerm = 0;
   private volatile Optional<Replica> votedFor = Optional.absent();
@@ -78,12 +80,14 @@ class DefaultRaftLog implements RaftLog {
   DefaultRaftLog(@Nonnull Journal journal,
                  @LocalReplicaInfo @Nonnull Replica local,
                  @ClusterMembers @Nonnull List<Replica> members,
-                 @Nonnull EventBus eventBus) {
+                 @Nonnull LogListener stateMachine,
+                 @StateMachineExecutor @Nonnull ListeningExecutorService stateMachineExecutor) {
 
     this.local = checkNotNull(local);
     this.journal = checkNotNull(journal);
-    this.members = members;
-    this.eventBus = eventBus;
+    this.members = checkNotNull(members);
+    this.stateMachine = checkNotNull(stateMachine);
+    this.stateMachineExecutor = checkNotNull(stateMachineExecutor);
     EntryCacheLoader loader = new EntryCacheLoader(entryIndex, journal);
     this.entryCache = CacheBuilder.newBuilder()
       .recordStats()
@@ -239,8 +243,13 @@ class DefaultRaftLog implements RaftLog {
     try {
       for (long i = lastApplied + 1; i <= commitIndex; ++i, ++lastApplied) {
         byte[] rawCommand = entryCache.get(i).getCommand().toByteArray();
-        ByteBuffer operation = ByteBuffer.wrap(rawCommand).asReadOnlyBuffer();
-        eventBus.post(new ComittedEvent(operation));
+        final ByteBuffer operation = ByteBuffer.wrap(rawCommand).asReadOnlyBuffer();
+        stateMachineExecutor.execute(new Runnable() {
+          @Override
+          public void run() {
+            stateMachine.applyOperation(operation);
+          }
+        });
       }
     } catch (Exception e) {
       throw propagate(e);

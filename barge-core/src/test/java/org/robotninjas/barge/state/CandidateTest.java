@@ -44,7 +44,7 @@ public class CandidateTest {
     when(mockRaftClient.requestVote(any(Replica.class), any(RequestVote.class)))
       .thenReturn(Futures.<RequestVoteResponse>immediateFailedFuture(new Exception("")));
 
-    Injector injector = Guice.createInjector(new LogModule(Files.createTempDir()));
+    Injector injector = Guice.createInjector(new LogModule(Files.createTempDir(), null));
     raftLog = injector.getInstance(RaftLog.class);
 
     Candidate mockCandidate = mock(Candidate.class);

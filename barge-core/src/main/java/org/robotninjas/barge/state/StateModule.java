@@ -26,6 +26,12 @@ import javax.annotation.Nonnull;
 
 public class StateModule extends PrivateModule {
 
+  private final long electionTimeout;
+
+  public StateModule(long electionTimeout) {
+    this.electionTimeout = electionTimeout;
+  }
+
   @Override
   protected void configure() {
 
@@ -35,6 +41,10 @@ public class StateModule extends PrivateModule {
 
     install(new FactoryModuleBuilder()
       .build(ReplicaManagerFactory.class));
+
+    bind(Long.class)
+      .annotatedWith(ElectionTimeout.class)
+      .toInstance(electionTimeout);
 
   }
 

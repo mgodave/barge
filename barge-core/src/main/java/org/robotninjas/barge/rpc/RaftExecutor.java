@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.robotninjas.barge.annotations;
+package org.robotninjas.barge.rpc;
 
 import com.google.inject.BindingAnnotation;
 
@@ -29,5 +29,5 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @BindingAnnotation
 @Target({FIELD, PARAMETER, METHOD})
 @Retention(RUNTIME)
-public @interface ElectionTimeout {
+public @interface RaftExecutor {
 }
