@@ -20,8 +20,4 @@ import com.google.common.util.concurrent.Service;
 
 public interface RaftService extends Service {
 
-//  ListenableFuture<CommitOperationResponse> commitOperationAsync(@Nonnull CommitOperation request);
-//
-//  CommitOperationResponse commitOperation(@Nonnull CommitOperation request) throws ExecutionException, InterruptedException;
-
 }

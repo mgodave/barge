@@ -16,26 +16,25 @@
 
 package org.robotninjas.barge;
 
-import com.google.common.util.concurrent.*;
+import com.google.common.util.concurrent.AbstractService;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.RpcCallback;
 import com.google.protobuf.RpcController;
 import com.google.protobuf.Service;
 import org.robotninjas.barge.proto.ClientProto;
 import org.robotninjas.barge.proto.RaftProto;
-import org.robotninjas.barge.rpc.RaftExecutor;
 import org.robotninjas.barge.state.Context;
 import org.robotninjas.protobuf.netty.server.RpcServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Inject;
-import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.nullToEmpty;
@@ -52,16 +51,12 @@ class DefaultRaftService extends AbstractService
 
   private final RpcServer rpcServer;
   private final Context ctx;
-  private final ListeningExecutorService executor;
 
   @Inject
-  DefaultRaftService(@RaftExecutor @Nonnull ListeningExecutorService executor,
-                     @Nonnull RpcServer rpcServer,
-                     @Nonnull Context ctx) {
+  DefaultRaftService(@Nonnull RpcServer rpcServer, @Nonnull Context ctx) {
 
     this.rpcServer = checkNotNull(rpcServer);
     this.ctx = checkNotNull(ctx);
-    this.executor = checkNotNull(executor);
 
   }
 
@@ -69,16 +64,6 @@ class DefaultRaftService extends AbstractService
   protected void doStart() {
 
     try {
-
-      // Due to the fact that MDC uses ThreadLocal state to store the properties map
-      // we need to make sure these properties are initialized on the Raft Thread
-      executor.submit(new Runnable() {
-        @Override
-        public void run() {
-          MDC.put("state", "START");
-          MDC.put("term", "0");
-        }
-      }).get(10, TimeUnit.SECONDS);
 
       Service replicaService = RaftProto.RaftService.newReflectiveService(this);
       rpcServer.registerService(replicaService);
@@ -130,18 +115,6 @@ class DefaultRaftService extends AbstractService
     }
   }
 
-  public synchronized ListenableFuture<CommitOperationResponse> commitOperationAsync(@Nonnull final CommitOperation request) {
-    // Run the operation on the raft thread
-    ListenableFuture<ListenableFuture<CommitOperationResponse>> response =
-      executor.submit(new Callable<ListenableFuture<CommitOperationResponse>>() {
-        @Override
-        public ListenableFuture<CommitOperationResponse> call() throws Exception {
-          return ctx.commitOperation(request);
-        }
-      });
-    return Futures.dereference(response);
-  }
-
   @Override
   public void installSnapshot(RpcController controller, InstallSnapshot request, RpcCallback<InstallSnapshotResponse> done) {
 
@@ -150,22 +123,29 @@ class DefaultRaftService extends AbstractService
   @Override
   public synchronized void commitOperation(@Nonnull final RpcController controller, @Nonnull CommitOperation request, @Nonnull final RpcCallback<CommitOperationResponse> done) {
 
-    ListenableFuture<CommitOperationResponse> response = commitOperationAsync(request);
-    Futures.addCallback(response, new FutureCallback<CommitOperationResponse>() {
+    try {
 
-      @Override
-      public void onSuccess(@Nullable CommitOperationResponse result) {
-        done.run(result);
-      }
+      ListenableFuture<CommitOperationResponse> response = ctx.commitOperation(request);
+      Futures.addCallback(response, new FutureCallback<CommitOperationResponse>() {
 
-      @Override
-      public void onFailure(@Nonnull Throwable t) {
-        LOGGER.debug("Exception caught servicing CommitOperation", t);
-        controller.setFailed(nullToEmpty(t.getMessage()));
-        done.run(null);
-      }
+        @Override
+        public void onSuccess(@Nullable CommitOperationResponse result) {
+          done.run(result);
+        }
 
-    });
+        @Override
+        public void onFailure(@Nonnull Throwable t) {
+          LOGGER.debug("Exception caught servicing CommitOperation", t);
+          controller.setFailed(nullToEmpty(t.getMessage()));
+          done.run(null);
+        }
+
+      });
+
+    } catch (RaftException e) {
+      controller.setFailed(nullToEmpty(e.getMessage()));
+      done.run(null);
+    }
 
   }
 

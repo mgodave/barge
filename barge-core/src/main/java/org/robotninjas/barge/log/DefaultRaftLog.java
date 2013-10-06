@@ -156,9 +156,9 @@ class DefaultRaftLog implements RaftLog {
           lastLogIndex, currentTerm, commitIndex);
 
 
-        //TODO committedIndex is not set or stored
+        fireComitted();
+
       }
-      fireComitted();
     } catch (IOException e) {
       Throwables.propagate(e);
     }
