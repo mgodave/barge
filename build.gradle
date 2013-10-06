@@ -1,0 +1,40 @@
+ext.githubProjectName = rootProject.name
+
+allprojects {
+    repositories { 
+        mavenLocal()
+        mavenCentral()
+    }
+    apply plugin: 'idea'
+}
+
+apply from: file('gradle/convention.gradle')
+apply from: file('gradle/maven.gradle')
+
+subprojects {
+
+    /* TODO tinker with checkstyle and jacoco
+    apply plugin: "jacoco"
+    apply plugin: 'checkstyle'
+    checkstyle {
+        ignoreFailures = true 
+        configFile = rootProject.file('codequality/checkstyle.xml')
+    }
+    */
+
+    // customize Idea's provided deps
+    idea {
+        module {
+            // include 'provided' dependencies on the classpath
+            scopes.PROVIDED.plus += configurations.provided
+        }
+    }
+
+    group = "org.robotninjas.${githubProjectName}"
+
+    sourceSets.test.java.srcDir 'src/main/java'
+
+    tasks.withType(Javadoc).each {
+        it.classpath = sourceSets.main.compileClasspath
+    }
+}
