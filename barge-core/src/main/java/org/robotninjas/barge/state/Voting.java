@@ -43,7 +43,7 @@ class Voting {
       return false;
     }
 
-    return request.getLastLogIndex() > log.lastLogIndex();
+    return request.getLastLogIndex() >= log.lastLogIndex();
 
   }
 

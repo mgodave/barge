@@ -31,7 +31,7 @@ import java.util.List;
 public class Raft {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Raft.class);
-  private static long TIMEOUT = 300;
+  private static long TIMEOUT = 150;
 
   public static void main(String... args) throws UnknownHostException {
 

@@ -162,8 +162,8 @@ class DefaultRaftLog implements RaftLog {
     } catch (IOException e) {
       Throwables.propagate(e);
     }
-    LOGGER.info("Finished replaying log lastIndex {}, currentTerm {}, commitIndex {}",
-      lastLogIndex, currentTerm, commitIndex);
+    LOGGER.info("Finished replaying log lastIndex {}, currentTerm {}, commitIndex {}, votedFor {}",
+      lastLogIndex, currentTerm, commitIndex, votedFor.orNull());
   }
 
   private void storeEntry(long index, @Nonnull Entry entry) {
