@@ -171,6 +171,7 @@ public class BargeClient {
 
         channel = channelPool.borrowObject();
         ClientController controller = new ClientController(channel);
+        controller.setTimeout(10, SECONDS);
         ClientService.Stub stub = ClientService.newStub(channel);
 
         CommitOperation request = operation.build();
