@@ -43,10 +43,17 @@ message Commit {
 	required int64 index = 1;
 }
 
+message Snapshot {
+	required int64 last_included_index = 1;
+	required int64 last_included_term = 2;
+	required bytes state_machine_state = 3;
+}
+
 message JournalEntry {
 	optional Append append = 2;
 	optional Membership membership = 3;
 	optional Vote vote = 4;
 	optional Term term = 5;
 	optional Commit commit = 6;
+	optional Snapshot snapshot  = 7;
 }
