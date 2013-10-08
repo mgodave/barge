@@ -167,7 +167,7 @@ public class BargeClient {
       NettyRpcChannel channel = null;
       try {
 
-        System.out.println("Sending " + operation.getSequence());
+//        System.out.println("Sending " + operation.getSequence());
 
         channel = channelPool.borrowObject();
         ClientController controller = new ClientController(channel);

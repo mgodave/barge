@@ -1,0 +1,7 @@
+option java_package = "org.robotninjas.barge.test.proto";
+
+option java_outer_classname = "CounterProto";
+
+message CounterOp {
+	required int64 amount = 1;
+}
