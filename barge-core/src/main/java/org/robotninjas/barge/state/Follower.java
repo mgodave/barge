@@ -17,11 +17,13 @@
 package org.robotninjas.barge.state;
 
 import com.google.common.base.Optional;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Inject;
 import org.robotninjas.barge.NoLeaderException;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.Replica;
+import org.robotninjas.barge.proto.ClientProto;
 import org.robotninjas.barge.rpc.RaftScheduler;
 import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.rpc.Client;
@@ -142,7 +144,13 @@ class Follower implements State {
       throw new NoLeaderException();
     }
 
-    return client.commitOperation(leader.get(), request);
+    CommitOperationResponse response = CommitOperationResponse.newBuilder()
+      .setCommitted(false)
+      .setRedirect(ClientProto.Redirect.newBuilder()
+        .setLeaderId(leader.get().toString()))
+      .build();
+
+    return Futures.immediateFuture(response);
 
   }
 

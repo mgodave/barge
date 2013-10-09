@@ -64,6 +64,7 @@ public class LogModule extends PrivateModule {
     }));
 
     bind(StateMachine.class).toInstance(stateMachine);
+    bind(StateMachineProxy.class);
 
   }
 
