@@ -16,12 +16,10 @@
 
 package org.robotninjas.barge.log;
 
+import com.google.common.base.Supplier;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.google.inject.Exposed;
-import com.google.inject.PrivateModule;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
+import com.google.inject.*;
 import journal.io.api.Journal;
 import journal.io.api.JournalBuilder;
 import org.robotninjas.barge.StateMachine;
@@ -65,6 +63,13 @@ public class LogModule extends PrivateModule {
 
     bind(StateMachine.class).toInstance(stateMachine);
     bind(StateMachineProxy.class);
+
+    bind(new TypeLiteral<Supplier<File>>() {}).toInstance(new Supplier<File>() {
+      @Override
+      public File get() {
+        return new File("");
+      }
+    });
 
   }
 
