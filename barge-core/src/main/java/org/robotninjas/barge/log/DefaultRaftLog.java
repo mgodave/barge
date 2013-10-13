@@ -16,7 +16,6 @@
 
 package org.robotninjas.barge.log;
 
-import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
@@ -32,14 +31,12 @@ import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.annotations.ClusterMembers;
 import org.robotninjas.barge.annotations.LocalReplicaInfo;
 import org.robotninjas.barge.proto.LogProto;
-import org.robotninjas.barge.proto.RaftEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
@@ -50,7 +47,6 @@ import static com.google.common.base.Preconditions.*;
 import static com.google.common.base.Throwables.propagate;
 import static com.google.common.collect.Lists.newArrayList;
 import static journal.io.api.Journal.WriteType;
-import static org.robotninjas.barge.log.DefaultRaftLog.LoadFunction.loadFromCache;
 import static org.robotninjas.barge.proto.ClientProto.CommitOperation;
 import static org.robotninjas.barge.proto.RaftEntry.Entry;
 import static org.robotninjas.barge.proto.RaftProto.AppendEntries;
@@ -228,7 +224,7 @@ class DefaultRaftLog implements RaftLog {
   public GetEntriesResult getEntriesFrom(@Nonnegative long beginningIndex, @Nonnegative int max) {
     checkArgument(beginningIndex >= 0);
     Set<Long> indices = entryIndex.tailMap(beginningIndex).keySet();
-    Iterable<Entry> values = Iterables.transform(Iterables.limit(indices, max), loadFromCache(entryCache));
+    Iterable<Entry> values = Iterables.transform(Iterables.limit(indices, max), entryCache);
     Entry previousEntry = entryCache.getIfPresent(beginningIndex - 1);
     previousEntry = Objects.firstNonNull(previousEntry, SENTINEL_ENTRY);
     return new GetEntriesResult(previousEntry.getTerm(), beginningIndex - 1, newArrayList(values));
@@ -403,28 +399,6 @@ class DefaultRaftLog implements RaftLog {
         e.printStackTrace();
         throw e;
       }
-    }
-  }
-
-  @Immutable
-  static final class LoadFunction implements Function<Long, RaftEntry.Entry> {
-
-    private final LoadingCache<Long, Entry> cache;
-
-    private LoadFunction(LoadingCache<Long, Entry> cache) {
-      this.cache = cache;
-    }
-
-    @Nullable
-    @Override
-    public Entry apply(@Nullable Long input) {
-      checkNotNull(input);
-      return cache.getUnchecked(input);
-    }
-
-    @Nonnull
-    public static Function<Long, Entry> loadFromCache(@Nonnull LoadingCache<Long, Entry> cache) {
-      return new LoadFunction(cache);
     }
   }
 
