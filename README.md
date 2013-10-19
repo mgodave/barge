@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/mgodave/barge.png)](https://travis-ci.org/mgodave/barge)
+
+
 barge
 =====
 
