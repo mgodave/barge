@@ -53,7 +53,7 @@ import static org.robotninjas.barge.state.MajorityCollector.majorityResponse;
 import static org.robotninjas.barge.state.RaftPredicates.appendSuccessul;
 
 @NotThreadSafe
-class Leader implements State {
+class Leader extends BaseState {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Leader.class);
 
@@ -106,7 +106,7 @@ class Leader implements State {
       heartbeatTask.cancel(false);
 
       Replica candidate = Replica.fromString(request.getCandidateId());
-      voteGranted = Voting.shouldVoteFor(log, request);
+      voteGranted = shouldVoteFor(log, request);
 
       if (voteGranted) {
         log.updateVotedFor(Optional.of(candidate));

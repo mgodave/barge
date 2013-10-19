@@ -45,7 +45,7 @@ import static org.robotninjas.barge.proto.RaftProto.*;
 import static org.robotninjas.barge.state.Context.StateType.CANDIDATE;
 
 @NotThreadSafe
-class Follower implements State {
+class Follower extends BaseState {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Follower.class);
 
@@ -88,7 +88,7 @@ class Follower implements State {
       }
 
       Replica candidate = Replica.fromString(request.getCandidateId());
-      voteGranted = Voting.shouldVoteFor(log, request);
+      voteGranted = shouldVoteFor(log, request);
 
       if (voteGranted) {
         log.updateVotedFor(Optional.of(candidate));

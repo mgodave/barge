@@ -50,7 +50,7 @@ import static org.robotninjas.barge.state.MajorityCollector.majorityResponse;
 import static org.robotninjas.barge.state.RaftPredicates.voteGranted;
 
 @NotThreadSafe
-class Candidate implements State {
+class Candidate extends BaseState {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Candidate.class);
   private static final Random RAND = new Random(System.nanoTime());
@@ -135,7 +135,7 @@ class Candidate implements State {
     if (request.getTerm() > log.currentTerm()) {
       log.updateCurrentTerm(request.getTerm());
       stepDown(ctx);
-      voteGranted = Voting.shouldVoteFor(log, request);
+      voteGranted = shouldVoteFor(log, request);
       if (voteGranted) {
         log.updateVotedFor(Optional.of(candidate));
       }
