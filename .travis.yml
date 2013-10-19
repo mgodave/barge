@@ -1,4 +1,4 @@
-script: mvn clean test
+script: mvn -P bintray clean test
 jdk:
   - openjdk6
   - openjdk7
