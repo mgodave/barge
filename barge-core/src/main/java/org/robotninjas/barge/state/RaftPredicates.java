@@ -28,7 +28,7 @@ import static org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse;
 import static org.robotninjas.barge.proto.RaftProto.RequestVoteResponse;
 
 @Immutable
-class Predicates {
+class RaftPredicates {
 
   @Nonnull
   static Predicate<AppendEntriesResponse> appendSuccessul() {

@@ -16,7 +16,6 @@
 
 package org.robotninjas.barge.state;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Predicate;
 import com.google.common.util.concurrent.AbstractFuture;
 import com.google.common.util.concurrent.FutureCallback;
@@ -44,8 +43,7 @@ class MajorityCollector<T> extends AbstractFuture<Boolean> implements FutureCall
   @GuardedBy("lock")
   private int numFailed = 0;
 
-  @VisibleForTesting
-  MajorityCollector(@Nonnegative int totalNum, @Nonnull Predicate<T> isSuccess) {
+  private MajorityCollector(@Nonnegative int totalNum, @Nonnull Predicate<T> isSuccess) {
     this.totalNum = totalNum;
     this.isSuccess = isSuccess;
   }

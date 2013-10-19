@@ -47,7 +47,7 @@ import static org.robotninjas.barge.proto.ClientProto.CommitOperationResponse;
 import static org.robotninjas.barge.proto.RaftProto.*;
 import static org.robotninjas.barge.state.Context.StateType.*;
 import static org.robotninjas.barge.state.MajorityCollector.majorityResponse;
-import static org.robotninjas.barge.state.Predicates.voteGranted;
+import static org.robotninjas.barge.state.RaftPredicates.voteGranted;
 
 @NotThreadSafe
 class Candidate implements State {

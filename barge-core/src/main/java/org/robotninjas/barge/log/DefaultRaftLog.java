@@ -46,6 +46,7 @@ import java.util.*;
 import static com.google.common.base.Preconditions.*;
 import static com.google.common.base.Throwables.propagate;
 import static com.google.common.collect.Lists.newArrayList;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static journal.io.api.Journal.WriteType;
 import static org.robotninjas.barge.proto.ClientProto.CommitOperation;
 import static org.robotninjas.barge.proto.RaftEntry.Entry;
@@ -81,8 +82,9 @@ class DefaultRaftLog implements RaftLog {
     this.stateMachine = checkNotNull(stateMachine);
     EntryCacheLoader loader = new EntryCacheLoader(entryIndex, journal);
     this.entryCache = CacheBuilder.newBuilder()
+      .expireAfterAccess(10, SECONDS)
       .recordStats()
-      .maximumSize(100000)
+      .maximumSize(10000)
       .build(loader);
   }
 
@@ -104,8 +106,6 @@ class DefaultRaftLog implements RaftLog {
           LOGGER.debug("Append {}", index);
           Entry entry = append.getEntry();
           long term = entry.getTerm();
-
-          this.entryCache.put(index, entry);
 
           EntryMeta meta = new EntryMeta(index, term, loc);
           this.entryIndex.put(index, meta);
@@ -170,7 +170,6 @@ class DefaultRaftLog implements RaftLog {
       Location loc = journal.write(journalEntry.toByteArray(), WriteType.SYNC);
       EntryMeta meta = new EntryMeta(index, entry.getTerm(), loc);
       this.entryIndex.put(index, meta);
-      this.entryCache.put(index, entry);
     } catch (Exception e) {
       throw propagate(e);
     }

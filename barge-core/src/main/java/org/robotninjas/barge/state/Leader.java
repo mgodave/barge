@@ -50,7 +50,7 @@ import static org.robotninjas.barge.proto.ClientProto.CommitOperationResponse;
 import static org.robotninjas.barge.proto.RaftProto.*;
 import static org.robotninjas.barge.state.Context.StateType.FOLLOWER;
 import static org.robotninjas.barge.state.MajorityCollector.majorityResponse;
-import static org.robotninjas.barge.state.Predicates.appendSuccessul;
+import static org.robotninjas.barge.state.RaftPredicates.appendSuccessul;
 
 @NotThreadSafe
 class Leader implements State {
