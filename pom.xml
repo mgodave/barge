@@ -28,17 +28,4 @@
         </plugins>
     </build>
 
-
-    <repositories>
-        <repository>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <id>central</id>
-            <name>bintray</name>
-            <url>http://dl.bintray.com/mgodave/robotninjas</url>
-        </repository>
-    </repositories>
-
-
 </project>
