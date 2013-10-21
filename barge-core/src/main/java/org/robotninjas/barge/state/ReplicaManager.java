@@ -17,7 +17,8 @@
 package org.robotninjas.barge.state;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Throwables;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.inject.assistedinject.Assisted;
@@ -29,11 +30,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
-import java.util.concurrent.ExecutionException;
 
-import static com.google.common.util.concurrent.MoreExecutors.sameThreadExecutor;
 import static org.robotninjas.barge.proto.RaftProto.AppendEntries;
 import static org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse;
 
@@ -93,12 +93,24 @@ class ReplicaManager {
 
     final SettableFuture<AppendEntriesResponse> previousResponse = nextResponse;
 
-    response.addListener(new Runnable() {
+    Futures.addCallback(response, new FutureCallback<AppendEntriesResponse>() {
+
       @Override
-      public void run() {
-        update(request, response, previousResponse);
+      public void onSuccess(@Nullable AppendEntriesResponse result) {
+        updateNextIndex(request, result);
+        if (result.getSuccess()) {
+          previousResponse.set(result);
+        }
       }
-    }, sameThreadExecutor());
+
+      @Override
+      public void onFailure(Throwable t) {
+        running = requested;
+        requested = false;
+        previousResponse.setException(t);
+      }
+
+    });
 
     nextResponse = SettableFuture.create();
 
@@ -106,39 +118,21 @@ class ReplicaManager {
 
   }
 
-  private void update(@Nonnull AppendEntries request, @Nonnull ListenableFuture<AppendEntriesResponse> f,
-              @Nonnull SettableFuture<AppendEntriesResponse> returnable) {
+  private void updateNextIndex(@Nonnull AppendEntries request, @Nonnull AppendEntriesResponse response) {
 
-    running = requested;
+    running = requested || !response.getSuccess();
+    forwards = response.getSuccess();
     requested = false;
 
-    try {
+    if (response.getSuccess()) {
+      nextIndex += request.getEntriesCount();
+      matchIndex = request.getPrevLogIndex() + request.getEntriesCount();
+    } else {
+      nextIndex = Math.max(1, nextIndex - 1);
+    }
 
-      AppendEntriesResponse response = f.get();
-
-      running = running || !response.getSuccess();
-      forwards = response.getSuccess();
-
-      if (response.getSuccess()) {
-        nextIndex += request.getEntriesCount();
-        matchIndex = request.getPrevLogIndex() + request.getEntriesCount();
-        returnable.set(response);
-      } else {
-        nextIndex = (nextIndex <= 0 ? 1 : nextIndex - 1);
-      }
-
-      if (running) {
-        sendUpdate();
-      }
-
-    } catch (InterruptedException e) {
-
-      throw Throwables.propagate(e);
-
-    } catch (ExecutionException e) {
-
-      returnable.setException(e);
-
+    if (running) {
+      sendUpdate();
     }
 
   }
@@ -172,7 +166,7 @@ class ReplicaManager {
   }
 
   @Nonnull
-  public ListenableFuture<AppendEntriesResponse> fireUpdate() {
+  public ListenableFuture<AppendEntriesResponse> requestUpdate() {
     requested = true;
     if (!running) {
       return sendUpdate();

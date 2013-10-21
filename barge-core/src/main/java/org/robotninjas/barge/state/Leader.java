@@ -182,6 +182,12 @@ class Leader extends BaseState {
 
   }
 
+  /**
+   * Find the median value of the list of matchIndex, this value is the committedIndex
+   * since, by definition, half of the matchIndex values are greater and half are less
+   * than this value. So, at least half of the replicas have stored the median value,
+   * this is the definition of committed.
+   */
   private void updateCommitted() {
 
     List<ReplicaManager> sorted = newArrayList(managers.values());
@@ -229,7 +235,7 @@ class Leader extends BaseState {
   List<ListenableFuture<AppendEntriesResponse>> sendRequests() {
     List<ListenableFuture<AppendEntriesResponse>> responses = newArrayList();
     for (ReplicaManager replicaManager : managers.values()) {
-      ListenableFuture<AppendEntriesResponse> response = replicaManager.fireUpdate();
+      ListenableFuture<AppendEntriesResponse> response = replicaManager.requestUpdate();
       responses.add(response);
       response.addListener(new Runnable() {
         @Override
