@@ -395,7 +395,7 @@ class DefaultRaftLog implements RaftLog {
         }
         return journalEntry.getAppend().getEntry();
       } catch (Exception e) {
-        e.printStackTrace();
+        System.out.println("Trying to load " + key);
         throw e;
       }
     }

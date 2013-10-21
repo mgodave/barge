@@ -78,12 +78,8 @@ class Leader extends BaseState {
   @Override
   public void init(@Nonnull Context ctx) {
 
-    long nextIndex = log.lastLogIndex() + 1;
-    long term = log.currentTerm();
-    Replica self = log.self();
-
     for (Replica replica : log.members()) {
-      managers.put(replica, replicaManagerFactory.create(term, nextIndex, replica, self));
+      managers.put(replica, replicaManagerFactory.create(replica));
     }
 
     sendRequests();

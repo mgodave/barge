@@ -16,7 +16,6 @@
 
 package org.robotninjas.barge.state;
 
-import com.google.inject.assistedinject.Assisted;
 import org.robotninjas.barge.Replica;
 
 import javax.annotation.Nonnull;
@@ -24,7 +23,6 @@ import javax.annotation.Nonnull;
 interface ReplicaManagerFactory {
 
   @Nonnull
-  ReplicaManager create(@Assisted("term") long term, @Assisted("nextIndex") long nextIndex,
-                        @Assisted("remote") @Nonnull Replica remote, @Assisted("self") @Nonnull Replica self);
+  ReplicaManager create(@Nonnull Replica remote);
 
 }

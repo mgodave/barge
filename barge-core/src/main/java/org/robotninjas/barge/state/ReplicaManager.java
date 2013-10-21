@@ -49,32 +49,25 @@ class ReplicaManager {
 
   private final Client client;
   private final RaftLog log;
-  private final long term;
-  private final Replica self;
   private final Replica remote;
   private long nextIndex;
+  private long matchIndex = 0;
   private boolean running = false;
   private boolean requested = false;
   private boolean forwards = false;
-  private SettableFuture<AppendEntriesResponse> returnable = SettableFuture.create();
+  private SettableFuture<AppendEntriesResponse> nextResponse = SettableFuture.create();
 
-  @SuppressWarnings("ConstructorWithTooManyParameters")
   @Inject
-  ReplicaManager(Client client, RaftLog log, @Assisted("term") long term,
-                 @Assisted("nextIndex") long nextIndex, @Assisted("remote") Replica remote,
-                 @Assisted("self") Replica self) {
+  ReplicaManager(Client client, RaftLog log, @Assisted Replica remote) {
 
-    this.nextIndex = nextIndex;
-    this.term = term;
+    this.nextIndex = log.lastLogIndex() + 1;
     this.log = log;
     this.client = client;
     this.remote = remote;
-    this.self = self;
 
   }
 
-  @VisibleForTesting
-  void sendUpdate() {
+  private ListenableFuture<AppendEntriesResponse> sendUpdate() {
 
     running = true;
     requested = false;
@@ -88,8 +81,8 @@ class ReplicaManager {
 
     final AppendEntries request =
       AppendEntries.newBuilder()
-        .setTerm(term)
-        .setLeaderId(self.toString())
+        .setTerm(log.currentTerm())
+        .setLeaderId(log.self().toString())
         .setPrevLogIndex(result.lastLogIndex())
         .setPrevLogTerm(result.lastLogTerm())
         .setCommitIndex(log.commitIndex())
@@ -98,19 +91,22 @@ class ReplicaManager {
 
     final ListenableFuture<AppendEntriesResponse> response = client.appendEntries(remote, request);
 
+    final SettableFuture<AppendEntriesResponse> previousResponse = nextResponse;
+
     response.addListener(new Runnable() {
       @Override
       public void run() {
-        update(request, response, returnable);
+        update(request, response, previousResponse);
       }
     }, sameThreadExecutor());
 
-    returnable = SettableFuture.create();
+    nextResponse = SettableFuture.create();
+
+    return response;
 
   }
 
-  @VisibleForTesting
-  void update(@Nonnull AppendEntries request, @Nonnull ListenableFuture<AppendEntriesResponse> f,
+  private void update(@Nonnull AppendEntries request, @Nonnull ListenableFuture<AppendEntriesResponse> f,
               @Nonnull SettableFuture<AppendEntriesResponse> returnable) {
 
     running = requested;
@@ -125,11 +121,10 @@ class ReplicaManager {
 
       if (response.getSuccess()) {
         nextIndex += request.getEntriesCount();
+        matchIndex += request.getEntriesCount();
         returnable.set(response);
-      } else if (response.hasLastLogIndex()) {
-        nextIndex = response.getLastLogIndex() + 1;
       } else {
-        nextIndex = nextIndex == 0 ? 0 : nextIndex - 1;
+        nextIndex = (nextIndex <= 0 ? 1 : nextIndex - 1);
       }
 
       if (running) {
@@ -163,13 +158,18 @@ class ReplicaManager {
     return nextIndex;
   }
 
+  @VisibleForTesting
+  long getMatchIndex() {
+    return matchIndex;
+  }
+
   @Nonnull
   public ListenableFuture<AppendEntriesResponse> fireUpdate() {
     requested = true;
     if (!running) {
-      sendUpdate();
+      return sendUpdate();
     }
-    return returnable;
+    return nextResponse;
   }
 
 }
