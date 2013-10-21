@@ -1,6 +1,7 @@
 package org.robotninjas.barge.state;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Optional;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.log.RaftLog;
 
@@ -13,11 +14,14 @@ public abstract class BaseState implements State {
   @VisibleForTesting
   boolean shouldVoteFor(@Nonnull RaftLog log, @Nonnull RequestVote request) {
 
-    if (!log.lastVotedFor().isPresent()) {
+    Optional<Replica> lastVotedFor = log.lastVotedFor();
+
+    if (!lastVotedFor.isPresent()) {
       return true;
     }
 
-    if (log.lastVotedFor().equals(Replica.fromString(request.getCandidateId()))) {
+    Replica candidate = Replica.fromString(request.getCandidateId());
+    if (lastVotedFor.equals(Optional.of(candidate))) {
       return true;
     }
 
