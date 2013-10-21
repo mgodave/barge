@@ -19,14 +19,13 @@ package org.robotninjas.barge.state;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.Replica;
-import org.robotninjas.barge.rpc.RaftScheduler;
 import org.robotninjas.barge.log.RaftLog;
+import org.robotninjas.barge.rpc.RaftScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +34,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
@@ -42,8 +43,9 @@ import java.util.concurrent.ScheduledFuture;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.util.concurrent.Futures.addCallback;
+import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.util.concurrent.Futures.transform;
+import static com.google.common.util.concurrent.MoreExecutors.sameThreadExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.robotninjas.barge.proto.ClientProto.CommitOperation;
 import static org.robotninjas.barge.proto.ClientProto.CommitOperationResponse;
@@ -84,6 +86,10 @@ class Leader extends BaseState {
 
     sendRequests();
     resetTimeout(ctx);
+
+  }
+
+  private void stepDown(Context ctx) {
 
   }
 
@@ -159,38 +165,43 @@ class Leader extends BaseState {
 
     resetTimeout(ctx);
 
-    final long index = log.append(request);
+    log.append(request);
 
     ListenableFuture<Boolean> commit = commit();
-
-    addCallback(commit, new FutureCallback<Boolean>() {
-
-      @Override
-      public void onSuccess(@Nullable Boolean comitted) {
-        if (comitted) {
-          long oldCommitIndex = log.commitIndex();
-          long newCommitIndex = Math.max(oldCommitIndex, index);
-          log.updateCommitIndex(newCommitIndex);
-          LOGGER.debug("CommitIndex: {}", newCommitIndex);
-        }
-      }
-
-      @Override
-      public void onFailure(Throwable t) {
-
-      }
-
-    });
 
     return transform(commit, new Function<Boolean, CommitOperationResponse>() {
       @Nullable
       @Override
       public CommitOperationResponse apply(@Nullable Boolean input) {
         checkNotNull(input);
-        //noinspection ConstantConditions
         return CommitOperationResponse.newBuilder().setCommitted(input).build();
       }
     });
+
+  }
+
+  private void updateCommitted() {
+
+    List<ReplicaManager> sorted = newArrayList(managers.values());
+    Collections.sort(sorted, new Comparator<ReplicaManager>() {
+      @Override
+      public int compare(ReplicaManager o, ReplicaManager o2) {
+        return Longs.compare(o.getMatchIndex(), o2.getMatchIndex());
+      }
+    });
+
+    final int middle = sorted.size() / 2;
+    final long committed = sorted.get(middle).getMatchIndex();
+    log.updateCommitIndex(committed);
+
+  }
+
+  private void checkTermOnResponse(Context ctx, AppendEntriesResponse response) {
+
+    if (response.getTerm() > log.currentTerm()) {
+      log.updateCurrentTerm(response.getTerm());
+      stepDown(ctx);
+    }
 
   }
 
@@ -214,9 +225,17 @@ class Leader extends BaseState {
   @Nonnull
   @VisibleForTesting
   List<ListenableFuture<AppendEntriesResponse>> sendRequests() {
-    List<ListenableFuture<AppendEntriesResponse>> responses = Lists.newArrayList();
+    List<ListenableFuture<AppendEntriesResponse>> responses = newArrayList();
     for (ReplicaManager replicaManager : managers.values()) {
-      responses.add(replicaManager.fireUpdate());
+      ListenableFuture<AppendEntriesResponse> response = replicaManager.fireUpdate();
+      responses.add(response);
+      response.addListener(new Runnable() {
+        @Override
+        public void run() {
+          updateCommitted();
+        }
+      }, sameThreadExecutor());
+
     }
     return responses;
   }

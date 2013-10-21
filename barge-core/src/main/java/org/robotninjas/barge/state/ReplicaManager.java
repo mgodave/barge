@@ -121,7 +121,7 @@ class ReplicaManager {
 
       if (response.getSuccess()) {
         nextIndex += request.getEntriesCount();
-        matchIndex += request.getEntriesCount();
+        matchIndex = request.getPrevLogIndex() + request.getEntriesCount();
         returnable.set(response);
       } else {
         nextIndex = (nextIndex <= 0 ? 1 : nextIndex - 1);
@@ -143,6 +143,10 @@ class ReplicaManager {
 
   }
 
+  public Replica getRemote() {
+    return remote;
+  }
+
   @VisibleForTesting
   boolean isRunning() {
     return running;
@@ -161,6 +165,10 @@ class ReplicaManager {
   @VisibleForTesting
   long getMatchIndex() {
     return matchIndex;
+  }
+
+  public void shutdown() {
+
   }
 
   @Nonnull
