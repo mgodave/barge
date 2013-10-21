@@ -90,7 +90,11 @@ class Leader extends BaseState {
   }
 
   private void stepDown(Context ctx) {
-
+    ctx.setState(FOLLOWER);
+    heartbeatTask.cancel(false);
+    for (ReplicaManager mgr : managers.values()) {
+      mgr.shutdown();
+    }
   }
 
   @Nonnull
@@ -104,8 +108,7 @@ class Leader extends BaseState {
     if (request.getTerm() > log.currentTerm()) {
 
       log.updateCurrentTerm(request.getTerm());
-      ctx.setState(FOLLOWER);
-      heartbeatTask.cancel(false);
+      stepDown(ctx);
 
       Replica candidate = Replica.fromString(request.getCandidateId());
       voteGranted = shouldVoteFor(log, request);
@@ -131,8 +134,7 @@ class Leader extends BaseState {
 
     if (request.getTerm() > log.currentTerm()) {
       log.updateCurrentTerm(request.getTerm());
-      ctx.setState(FOLLOWER);
-      heartbeatTask.cancel(false);
+      stepDown(ctx);
       success = log.append(request);
     }
 
