@@ -29,7 +29,7 @@
         <!-- Compile Dependencies -->
         <dependency>
             <groupId>org.robotninjas</groupId>
-            <artifactId>netty-protobuf-rpc</artifactId>
+            <artifactId>protorpc</artifactId>
             <version>0.1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
