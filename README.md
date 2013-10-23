@@ -1,6 +1,5 @@
 [![Build Status](https://travis-ci.org/mgodave/barge.png)](https://travis-ci.org/mgodave/barge)
 
-
 barge
 =====
 
@@ -10,7 +9,32 @@ An implementation of the [Raft Concensus Protocol][1]. This supercedes my [previ
 [2]: https://github.com/mgodave/raft
 [3]: https://github.com/mgodave/netty-protobuf-rpc
 
-Notes
-=====
+Run a server state machine
 
-* In order to catch a replica up, either because it crashed and restarted or it's just being slow, the leader will probe for the last entry in the follower with single entries then, once it has found the correct place, batch update the client to catch it up as soon as possible.
+```java
+
+List<Replica> members = Lists.newArrayList(
+  Replica.fromString("localhost:10001"),
+  Replica.fromString("localhost:10002")
+);
+
+RaftService service = Raft.newDistributedStateMachine(local, members, logDir, new StateMachine() {
+
+  long count = 0;
+
+  @Override
+  public void applyOperation(@Nonnull ByteBuffer entry) {
+    try {
+      CounterOp op = CounterOp.parseFrom(ByteString.copyFrom(entry));
+      count += op.getAmount();
+      System.out.println("count " + count);
+    } catch (InvalidProtocolBufferException e) {
+      e.printStackTrace();
+    }
+  }
+
+});
+
+service.startAsync().awaitRunning();
+
+```
