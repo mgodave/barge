@@ -40,7 +40,7 @@ public class Test implements StateMachine {
       .local(local)
       .members(members)
       .logDir(logDir)
-      .timeout(300)
+      .timeout(150)
       .build(machine);
 
     raft.startAsync().awaitRunning();
