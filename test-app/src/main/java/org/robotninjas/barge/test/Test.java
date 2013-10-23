@@ -11,8 +11,6 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-
 public class Test implements StateMachine {
 
   @Override
@@ -35,14 +33,14 @@ public class Test implements StateMachine {
     File logDir = new File(args[0]);
     logDir.mkdir();
 
-    RaftService raftService = RaftService.newBuilder()
+    RaftService raft = RaftService.newBuilder()
       .local(local)
       .members(members)
       .logDir(logDir)
-      .timeout(300, MILLISECONDS)
+      .timeout(300)
       .build(new Test());
 
-    raftService.startAsync().awaitRunning();
+    raft.startAsync().awaitRunning();
 
     while (true) {
 
@@ -52,7 +50,7 @@ public class Test implements StateMachine {
         ByteBuffer buffer = ByteBuffer.allocate(8);
         for (long i = 0; i < 100000; ++i) {
           buffer.putLong(i).rewind();
-          raftService.commit(buffer.array()).get();
+          raft.commit(buffer.array());
           Thread.sleep(10);
         }
       } catch (RaftException e) {

@@ -37,7 +37,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutionException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -87,7 +87,7 @@ public class RaftService extends AbstractService {
 
   }
 
-  public ListenableFuture<Boolean> commit(final byte[] operation) throws RaftException {
+  public ListenableFuture<Boolean> commitAsync(final byte[] operation) throws RaftException {
 
     // Make sure this happens on the Barge thread
     ListenableFuture<ListenableFuture<Boolean>> response =
@@ -100,6 +100,14 @@ public class RaftService extends AbstractService {
 
     return Futures.dereference(response);
 
+  }
+
+  public boolean commit(final byte[] operation) throws RaftException, InterruptedException {
+    try {
+      return commitAsync(operation).get();
+    } catch (ExecutionException e) {
+      throw new RaftException(e.getCause());
+    }
   }
 
   public static Builder newBuilder() {
@@ -117,8 +125,8 @@ public class RaftService extends AbstractService {
 
     protected Builder() {}
 
-    public Builder timeout(long to, TimeUnit unit) {
-      this.timeout = unit.convert(to, TimeUnit.MILLISECONDS);
+    public Builder timeout(long timeout) {
+      this.timeout = timeout;
       return this;
     }
 
