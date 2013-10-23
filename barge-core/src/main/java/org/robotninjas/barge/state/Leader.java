@@ -181,7 +181,7 @@ class Leader extends BaseState {
       }
     });
 
-    final int middle = sorted.size() / 2;
+    final int middle = (int) Math.ceil(sorted.size() / 2.0);
     final long committed = sorted.get(middle).getMatchIndex();
     log.updateCommitIndex(committed);
 

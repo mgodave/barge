@@ -1,6 +1,7 @@
 package org.robotninjas.barge.test;
 
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.RateLimiter;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.RaftService;
 import org.robotninjas.barge.Replica;
@@ -33,32 +34,35 @@ public class Test implements StateMachine {
     File logDir = new File(args[0]);
     logDir.mkdir();
 
+    StateMachine machine = new Test();
+
     RaftService raft = RaftService.newBuilder()
       .local(local)
       .members(members)
       .logDir(logDir)
       .timeout(300)
-      .build(new Test());
+      .build(machine);
 
     raft.startAsync().awaitRunning();
 
-    while (true) {
+//    while (true) {
 
       Thread.sleep(10000);
 
+      RateLimiter limiter = RateLimiter.create(200);
       try {
         ByteBuffer buffer = ByteBuffer.allocate(8);
         for (long i = 0; i < 100000; ++i) {
+          limiter.acquire();
           buffer.putLong(i).rewind();
           raft.commit(buffer.array());
-          Thread.sleep(10);
         }
       } catch (RaftException e) {
         //e.printStackTrace();
         //NOT LEADER, ignore
       }
 
-    }
+//    }
   }
 
 }

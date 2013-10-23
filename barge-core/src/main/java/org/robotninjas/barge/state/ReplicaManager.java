@@ -45,7 +45,7 @@ import static org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse;
 class ReplicaManager {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ReplicaManager.class);
-  private static final int BATCH_SIZE = 1000;
+  private static final int BATCH_SIZE = 200;
 
   private final Client client;
   private final RaftLog log;

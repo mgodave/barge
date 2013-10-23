@@ -16,6 +16,7 @@
 
 package org.robotninjas.barge;
 
+import com.google.common.base.Optional;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.AbstractService;
 import com.google.common.util.concurrent.Futures;
@@ -24,6 +25,7 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.protobuf.Service;
+import io.netty.channel.nio.NioEventLoopGroup;
 import org.robotninjas.barge.proto.RaftProto;
 import org.robotninjas.barge.rpc.RaftExecutor;
 import org.robotninjas.barge.state.Context;
@@ -122,6 +124,7 @@ public class RaftService extends AbstractService {
     private Replica local = Replica.fromString("localhost:10000");
     private long timeout = TIMEOUT;
     private List<Replica> members = Collections.emptyList();
+    private Optional<NioEventLoopGroup> eventLoop = Optional.absent();
 
     protected Builder() {}
 
@@ -145,12 +148,21 @@ public class RaftService extends AbstractService {
       return this;
     }
 
+    public Builder eventLoop(NioEventLoopGroup eventLoop) {
+      this.eventLoop = Optional.of(eventLoop);
+      return this;
+    }
+
     public RaftService build(StateMachine stateMachine) {
-      RaftModule raftModule = new RaftModule(local, members, timeout, logDir, stateMachine);
+
+      RaftModule raftModule = new RaftModule(local, members, logDir, stateMachine);
+      raftModule.setTimeout(timeout);
+      if (eventLoop.isPresent()) {
+        raftModule.setNioEventLoop(eventLoop.get());
+      }
+
       Injector injector = Guice.createInjector(raftModule);
-      RaftServiceFactory factory = injector.getInstance(RaftServiceFactory.class);
-      RaftService service = factory.create(stateMachine);
-      return service;
+      return injector.getInstance(RaftService.class);
     }
 
   }

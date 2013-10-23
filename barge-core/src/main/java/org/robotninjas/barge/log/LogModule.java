@@ -27,12 +27,14 @@ import org.robotninjas.barge.StateMachine;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Throwables.propagate;
 import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator;
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
 public class LogModule extends PrivateModule {
 
@@ -48,7 +50,9 @@ public class LogModule extends PrivateModule {
   protected void configure() {
 
     ThreadFactory threadFactory = new ThreadFactoryBuilder().setDaemon(true).setNameFormat("State Machine Thread").build();
-    final ListeningExecutorService stateMachineExecutor = listeningDecorator(newSingleThreadExecutor(threadFactory));
+    ArrayBlockingQueue<Runnable> queue = new ArrayBlockingQueue<Runnable>(10);
+    ThreadPoolExecutor executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, queue, threadFactory);
+    final ListeningExecutorService stateMachineExecutor = listeningDecorator(executor);
 
     bind(ListeningExecutorService.class)
       .annotatedWith(StateMachineExecutor.class)
