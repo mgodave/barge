@@ -13,28 +13,57 @@ Run a server state machine
 
 ```java
 
-List<Replica> members = Lists.newArrayList(
-  Replica.fromString("localhost:10001"),
-  Replica.fromString("localhost:10002")
-);
-
-RaftService service = Raft.newDistributedStateMachine(local, members, logDir, new StateMachine() {
-
-  long count = 0;
+public class Test implements StateMachine {
 
   @Override
   public void applyOperation(@Nonnull ByteBuffer entry) {
-    try {
-      CounterOp op = CounterOp.parseFrom(ByteString.copyFrom(entry));
-      count += op.getAmount();
-      System.out.println("count " + count);
-    } catch (InvalidProtocolBufferException e) {
-      e.printStackTrace();
+    System.out.println(entry.getLong());
+  }
+
+  public static void main(String... args) throws Exception {
+
+    final int port = Integer.parseInt(args[0]);
+
+    Replica local = Replica.fromString("localhost:" + port);
+    List<Replica> members = Lists.newArrayList(
+      Replica.fromString("localhost:10000"),
+      Replica.fromString("localhost:10001"),
+      Replica.fromString("localhost:10002")
+    );
+    members.remove(local);
+
+    File logDir = new File(args[0]);
+    logDir.mkdir();
+
+    RaftService raft = RaftService.newBuilder()
+      .local(local)
+      .members(members)
+      .logDir(logDir)
+      .timeout(300)
+      .build(new Test());
+
+    raft.startAsync().awaitRunning();
+
+    while (true) {
+
+      Thread.sleep(10000);
+
+      try {
+        ByteBuffer buffer = ByteBuffer.allocate(8);
+        for (long i = 0; i < 100000; ++i) {
+          buffer.putLong(i).rewind();
+          raft.commit(buffer.array());
+          Thread.sleep(10);
+        }
+      } catch (RaftException e) {
+        //e.printStackTrace();
+        //NOT LEADER, ignore
+      }
+
     }
   }
 
-});
+}
 
-service.startAsync().awaitRunning();
 
 ```
