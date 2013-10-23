@@ -72,7 +72,7 @@ class RaftModule extends PrivateModule {
       .toInstance(members);
 
     install(new FactoryModuleBuilder()
-      .implement(RaftService.class, DefaultRaftService.class)
+      .implement(RaftService.class, RaftService.class)
       .build(RaftServiceFactory.class));
     expose(RaftServiceFactory.class);
 

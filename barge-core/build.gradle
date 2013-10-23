@@ -7,7 +7,7 @@ sourceCompatibility = JavaVersion.VERSION_1_6
 targetCompatibility = JavaVersion.VERSION_1_6
 
 // used by the application plugin
-mainClassName = 'org.robotninjas.barge.Raft'
+mainClassName = 'org.robotninjas.barge.Barge'
 
 dependencies {
     compile 'org.robotninjas:netty-protobuf-rpc:2.0.0-SNAPSHOT'

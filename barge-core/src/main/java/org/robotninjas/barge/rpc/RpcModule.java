@@ -47,7 +47,7 @@ public class RpcModule extends PrivateModule {
 
     ThreadFactoryBuilder factoryBuilder =
       new ThreadFactoryBuilder()
-        .setNameFormat("Raft Thread")
+        .setNameFormat("Barge Thread")
         .setDaemon(true);
 
     final DefaultEventExecutorGroup eventExecutor = new DefaultEventExecutorGroup(1, factoryBuilder.build());
