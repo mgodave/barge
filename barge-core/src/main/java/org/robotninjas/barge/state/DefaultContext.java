@@ -28,8 +28,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.robotninjas.barge.proto.ClientProto.CommitOperation;
-import static org.robotninjas.barge.proto.ClientProto.CommitOperationResponse;
 import static org.robotninjas.barge.proto.RaftProto.*;
 
 @NotThreadSafe
@@ -65,9 +63,9 @@ class DefaultContext implements Context {
 
   @Override
   @Nonnull
-  public ListenableFuture<CommitOperationResponse> commitOperation(@Nonnull CommitOperation request) throws RaftException {
-    checkNotNull(request);
-    return delegate.commitOperation(this, request);
+  public ListenableFuture<Boolean> commitOperation(@Nonnull byte[] op) throws RaftException {
+    checkNotNull(op);
+    return delegate.commitOperation(this, op);
   }
 
   public void setState(@Nonnull StateType state) {

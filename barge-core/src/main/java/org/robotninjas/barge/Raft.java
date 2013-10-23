@@ -27,13 +27,14 @@ import java.io.File;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class Raft {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Raft.class);
   private static long TIMEOUT = 150;
 
-  public static void main(String... args) throws UnknownHostException {
+  public static void main(String... args) throws UnknownHostException, InterruptedException, ExecutionException {
 
     int port = Integer.parseInt(args[0]);
 
@@ -58,10 +59,20 @@ public class Raft {
 
     service.startAsync().awaitRunning();
 
+    Thread.sleep(10000);
+
+    try {
+      for (long i = 0; i < 100000; i++) {
+        service.commit((byte[]) ByteBuffer.allocate(8).putLong(i).rewind().array()).get();
+      }
+    } catch (RaftException e) {
+      e.printStackTrace();
+    }
+
   }
 
   public static RaftService newDistributedStateMachine(@Nonnull Replica local, @Nonnull List<Replica> members,
-                                                @Nonnull File logDir, @Nonnull StateMachine listener) {
+                                                       @Nonnull File logDir, @Nonnull StateMachine listener) {
 
     Injector injector = Guice.createInjector(new RaftModule(local, members, TIMEOUT, logDir, listener));
     RaftServiceFactory factory = injector.getInstance(RaftServiceFactory.class);

@@ -24,9 +24,9 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.robotninjas.barge.NoLeaderException;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.Replica;
-import org.robotninjas.barge.rpc.RaftScheduler;
 import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.rpc.Client;
+import org.robotninjas.barge.rpc.RaftScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,8 +42,6 @@ import java.util.concurrent.ScheduledFuture;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.util.concurrent.Futures.addCallback;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.robotninjas.barge.proto.ClientProto.CommitOperation;
-import static org.robotninjas.barge.proto.ClientProto.CommitOperationResponse;
 import static org.robotninjas.barge.proto.RaftProto.*;
 import static org.robotninjas.barge.state.Context.StateType.*;
 import static org.robotninjas.barge.state.MajorityCollector.majorityResponse;
@@ -177,7 +175,7 @@ class Candidate extends BaseState {
 
   @Nonnull
   @Override
-  public ListenableFuture<CommitOperationResponse> commitOperation(@Nonnull Context ctx, @Nonnull CommitOperation request) throws RaftException {
+  public ListenableFuture<Boolean> commitOperation(@Nonnull Context ctx, @Nonnull byte[] operation) throws RaftException {
     throw new NoLeaderException();
   }
 

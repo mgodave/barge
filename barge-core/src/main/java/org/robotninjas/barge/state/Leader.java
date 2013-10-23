@@ -17,7 +17,6 @@
 package org.robotninjas.barge.state;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Longs;
@@ -31,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
 import java.util.Collections;
@@ -44,11 +42,8 @@ import java.util.concurrent.ScheduledFuture;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.util.concurrent.Futures.transform;
 import static com.google.common.util.concurrent.MoreExecutors.sameThreadExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.robotninjas.barge.proto.ClientProto.CommitOperation;
-import static org.robotninjas.barge.proto.ClientProto.CommitOperationResponse;
 import static org.robotninjas.barge.proto.RaftProto.*;
 import static org.robotninjas.barge.state.Context.StateType.FOLLOWER;
 import static org.robotninjas.barge.state.MajorityCollector.majorityResponse;
@@ -163,30 +158,18 @@ class Leader extends BaseState {
 
   @Nonnull
   @Override
-  public ListenableFuture<CommitOperationResponse> commitOperation(@Nonnull Context ctx, @Nonnull CommitOperation request) throws RaftException {
+  public ListenableFuture<Boolean> commitOperation(@Nonnull Context ctx, @Nonnull byte[] operation) throws RaftException {
 
     resetTimeout(ctx);
-
-    log.append(request);
-
-    ListenableFuture<Boolean> commit = commit();
-
-    return transform(commit, new Function<Boolean, CommitOperationResponse>() {
-      @Nullable
-      @Override
-      public CommitOperationResponse apply(@Nullable Boolean input) {
-        checkNotNull(input);
-        return CommitOperationResponse.newBuilder().setCommitted(input).build();
-      }
-    });
+    log.append(operation);
+    return commit();
 
   }
 
   /**
-   * Find the median value of the list of matchIndex, this value is the committedIndex
-   * since, by definition, half of the matchIndex values are greater and half are less
-   * than this value. So, at least half of the replicas have stored the median value,
-   * this is the definition of committed.
+   * Find the median value of the list of matchIndex, this value is the committedIndex since, by definition, half of the
+   * matchIndex values are greater and half are less than this value. So, at least half of the replicas have stored the
+   * median value, this is the definition of committed.
    */
   private void updateCommitted() {
 

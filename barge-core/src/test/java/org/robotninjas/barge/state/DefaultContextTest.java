@@ -8,7 +8,6 @@ import org.robotninjas.barge.RaftException;
 
 import static junit.framework.Assert.assertEquals;
 import static org.mockito.Mockito.*;
-import static org.robotninjas.barge.proto.ClientProto.CommitOperation;
 import static org.robotninjas.barge.proto.RaftProto.AppendEntries;
 import static org.robotninjas.barge.proto.RaftProto.RequestVote;
 import static org.robotninjas.barge.state.Context.StateType;
@@ -21,7 +20,6 @@ public class DefaultContextTest {
   private @Mock Candidate mockCandidate;
   private final AppendEntries appendEntries = AppendEntries.getDefaultInstance();
   private final RequestVote requestVote = RequestVote.getDefaultInstance();
-  private final CommitOperation commitOperation = CommitOperation.getDefaultInstance();
 
   @Before
   public void initMocks() {
@@ -51,10 +49,6 @@ public class DefaultContextTest {
     verify(mockFollower).requestVote(ctx, requestVote);
     verifyNoMoreInteractions(mockFollower);
 
-    ctx.commitOperation(commitOperation);
-    verify(mockFollower).commitOperation(ctx, commitOperation);
-    verifyNoMoreInteractions(mockFollower);
-
 
     ctx.setState(StateType.LEADER);
     verify(mockLeader).init(ctx);
@@ -66,10 +60,6 @@ public class DefaultContextTest {
 
     ctx.requestVote(requestVote);
     verify(mockLeader).requestVote(ctx, requestVote);
-    verifyNoMoreInteractions(mockLeader);
-
-    ctx.commitOperation(commitOperation);
-    verify(mockLeader).commitOperation(ctx, commitOperation);
     verifyNoMoreInteractions(mockLeader);
 
 
@@ -85,9 +75,6 @@ public class DefaultContextTest {
     verify(mockCandidate).requestVote(ctx, requestVote);
     verifyNoMoreInteractions(mockCandidate);
 
-    ctx.commitOperation(commitOperation);
-    verify(mockCandidate).commitOperation(ctx, commitOperation);
-    verifyNoMoreInteractions(mockCandidate);
 
   }
 

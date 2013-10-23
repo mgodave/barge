@@ -9,7 +9,6 @@ import org.mockito.MockitoAnnotations;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.log.RaftLog;
-import org.robotninjas.barge.proto.ClientProto;
 import org.robotninjas.barge.proto.RaftProto;
 
 import javax.annotation.Nonnull;
@@ -22,7 +21,9 @@ public class BaseStateTest {
 
   private final Replica self = Replica.fromString("localhost:8001");
   private final Replica candidate = Replica.fromString("localhost:8000");
-  private @Mock RaftLog mockRaftLog;
+  private
+  @Mock
+  RaftLog mockRaftLog;
 
   @Before
   public void initMocks() {
@@ -168,9 +169,10 @@ public class BaseStateTest {
 
     @Nonnull
     @Override
-    public ListenableFuture<ClientProto.CommitOperationResponse> commitOperation(@Nonnull Context ctx, @Nonnull ClientProto.CommitOperation request) throws RaftException {
+    public ListenableFuture<Boolean> commitOperation(@Nonnull Context ctx, @Nonnull byte[] operation) throws RaftException {
       return null;
     }
+
   }
 
 }

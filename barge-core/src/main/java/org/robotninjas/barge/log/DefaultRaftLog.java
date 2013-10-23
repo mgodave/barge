@@ -48,7 +48,6 @@ import static com.google.common.base.Throwables.propagate;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static journal.io.api.Journal.WriteType;
-import static org.robotninjas.barge.proto.ClientProto.CommitOperation;
 import static org.robotninjas.barge.proto.RaftEntry.Entry;
 import static org.robotninjas.barge.proto.RaftProto.AppendEntries;
 
@@ -175,7 +174,7 @@ class DefaultRaftLog implements RaftLog {
     }
   }
 
-  public long append(@Nonnull CommitOperation operation) {
+  public long append(@Nonnull byte[] operation) {
 
     checkState(entryIndex.containsKey(lastLogIndex));
     checkState(!entryIndex.containsKey(lastLogIndex + 1));
@@ -186,7 +185,7 @@ class DefaultRaftLog implements RaftLog {
 
     Entry entry =
       Entry.newBuilder()
-        .setCommand(operation.getOp())
+        .setCommand(ByteString.copyFrom(operation))
         .setTerm(currentTerm)
         .build();
 

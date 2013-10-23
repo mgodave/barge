@@ -17,16 +17,15 @@
 package org.robotninjas.barge.state;
 
 import com.google.common.base.Optional;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Inject;
 import org.robotninjas.barge.NoLeaderException;
+import org.robotninjas.barge.NotLeaderException;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.Replica;
-import org.robotninjas.barge.proto.ClientProto;
-import org.robotninjas.barge.rpc.RaftScheduler;
 import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.rpc.Client;
+import org.robotninjas.barge.rpc.RaftScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,8 +38,6 @@ import java.util.concurrent.ScheduledFuture;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.robotninjas.barge.proto.ClientProto.CommitOperation;
-import static org.robotninjas.barge.proto.ClientProto.CommitOperationResponse;
 import static org.robotninjas.barge.proto.RaftProto.*;
 import static org.robotninjas.barge.state.Context.StateType.CANDIDATE;
 
@@ -138,20 +135,12 @@ class Follower extends BaseState {
 
   @Nonnull
   @Override
-  public ListenableFuture<CommitOperationResponse> commitOperation(@Nonnull Context ctx, @Nonnull CommitOperation request) throws RaftException {
-
-    if (!leader.isPresent()) {
+  public ListenableFuture<Boolean> commitOperation(@Nonnull Context ctx, @Nonnull byte[] operation) throws RaftException {
+    if (leader.isPresent()) {
+      throw new NotLeaderException(leader.get());
+    } else {
       throw new NoLeaderException();
     }
-
-    CommitOperationResponse response = CommitOperationResponse.newBuilder()
-      .setCommitted(false)
-      .setRedirect(ClientProto.Redirect.newBuilder()
-        .setLeaderId(leader.get().toString()))
-      .build();
-
-    return Futures.immediateFuture(response);
-
   }
 
   void resetTimeout(@Nonnull final Context ctx) {

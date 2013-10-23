@@ -17,44 +17,44 @@
 package org.robotninjas.barge;
 
 import com.google.common.util.concurrent.AbstractService;
-import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.protobuf.RpcCallback;
 import com.google.protobuf.RpcController;
 import com.google.protobuf.Service;
-import org.robotninjas.barge.proto.ClientProto;
 import org.robotninjas.barge.proto.RaftProto;
+import org.robotninjas.barge.rpc.RaftExecutor;
 import org.robotninjas.barge.state.Context;
 import org.robotninjas.protobuf.netty.server.RpcServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Inject;
+import java.util.concurrent.Callable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.nullToEmpty;
-import static org.robotninjas.barge.proto.ClientProto.CommitOperation;
-import static org.robotninjas.barge.proto.ClientProto.CommitOperationResponse;
 import static org.robotninjas.barge.proto.RaftProto.*;
 
 @ThreadSafe
 @Immutable
 class DefaultRaftService extends AbstractService
-  implements RaftProto.RaftService.Interface, ClientProto.ClientService.Interface, RaftService {
+  implements RaftProto.RaftService.Interface, RaftService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRaftService.class);
 
+  private final ListeningExecutorService executor;
   private final RpcServer rpcServer;
   private final Context ctx;
 
   @Inject
-  DefaultRaftService(@Nonnull RpcServer rpcServer, @Nonnull Context ctx) {
+  DefaultRaftService(@Nonnull RpcServer rpcServer, @RaftExecutor ListeningExecutorService executor, @Nonnull Context ctx) {
 
+    this.executor = checkNotNull(executor);
     this.rpcServer = checkNotNull(rpcServer);
     this.ctx = checkNotNull(ctx);
 
@@ -67,9 +67,6 @@ class DefaultRaftService extends AbstractService
 
       Service replicaService = RaftProto.RaftService.newReflectiveService(this);
       rpcServer.registerService(replicaService);
-
-      Service clientService = ClientProto.ClientService.newReflectiveService(this);
-      rpcServer.registerService(clientService);
 
       rpcServer.startAsync().awaitRunning();
 
@@ -115,38 +112,20 @@ class DefaultRaftService extends AbstractService
     }
   }
 
-  @Override
-  public void installSnapshot(RpcController controller, InstallSnapshot request, RpcCallback<InstallSnapshotResponse> done) {
+  public ListenableFuture<Boolean> commit(final byte[] operation) throws RaftException {
 
-  }
-
-  @Override
-  public void commitOperation(@Nonnull final RpcController controller, @Nonnull CommitOperation request, @Nonnull final RpcCallback<CommitOperationResponse> done) {
-
-    try {
-
-      ListenableFuture<CommitOperationResponse> response = ctx.commitOperation(request);
-      Futures.addCallback(response, new FutureCallback<CommitOperationResponse>() {
-
+    // Make sure this happens on the Raft thread
+    ListenableFuture<ListenableFuture<Boolean>> response =
+      executor.submit(new Callable<ListenableFuture<Boolean>>() {
         @Override
-        public void onSuccess(@Nullable CommitOperationResponse result) {
-          done.run(result);
+        public ListenableFuture<Boolean> call() throws Exception {
+          return ctx.commitOperation(operation);
         }
-
-        @Override
-        public void onFailure(@Nonnull Throwable t) {
-          LOGGER.debug("Exception caught servicing CommitOperation", t);
-          controller.setFailed(nullToEmpty(t.getMessage()));
-          done.run(null);
-        }
-
       });
 
-    } catch (RaftException e) {
-      controller.setFailed(nullToEmpty(e.getMessage()));
-      done.run(null);
-    }
+    return Futures.dereference(response);
 
   }
+
 
 }

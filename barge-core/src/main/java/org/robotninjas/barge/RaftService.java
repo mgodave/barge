@@ -16,8 +16,11 @@
 
 package org.robotninjas.barge;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.Service;
 
 public interface RaftService extends Service {
+
+  ListenableFuture<Boolean> commit(final byte[] operation) throws RaftException;
 
 }

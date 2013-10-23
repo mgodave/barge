@@ -1,6 +1,5 @@
 package org.robotninjas.barge.test;
 
-import com.github.rholder.retry.RetryException;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.Futures;
@@ -11,8 +10,10 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
-import org.robotninjas.barge.*;
-import org.robotninjas.barge.client.BargeClient;
+import org.robotninjas.barge.Raft;
+import org.robotninjas.barge.RaftService;
+import org.robotninjas.barge.Replica;
+import org.robotninjas.barge.StateMachine;
 import org.robotninjas.protobuf.netty.client.RpcClient;
 
 import javax.annotation.Nonnull;
@@ -80,10 +81,10 @@ public class Counter {
   public static class CounterClient implements Runnable {
 
 
-    private final BargeClient client;
+   // private final BargeClient client;
 
     public CounterClient(RpcClient rpcClient, String id) {
-      this.client = new BargeClient(rpcClient, id, 0, "localhost:10000");
+      //this.client = new BargeClient(rpcClient, id, 0, "localhost:10000");
     }
 
     @Override
@@ -93,13 +94,13 @@ public class Counter {
 
       for (int i = 0; i < 1000; ++i) {
 
-        try {
-          client.commit(op.toByteArray());
-        } catch (RaftException e) {
-          e.printStackTrace();
-        } catch (RetryException e) {
-          --i;
-        }
+//        try {
+//          client.commit(op.toByteArray());
+//        } catch (RaftException e) {
+//          e.printStackTrace();
+//        } catch (RetryException e) {
+//          --i;
+//        }
 
       }
 

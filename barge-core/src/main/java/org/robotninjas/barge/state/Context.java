@@ -21,8 +21,6 @@ import org.robotninjas.barge.RaftException;
 
 import javax.annotation.Nonnull;
 
-import static org.robotninjas.barge.proto.ClientProto.CommitOperation;
-import static org.robotninjas.barge.proto.ClientProto.CommitOperationResponse;
 import static org.robotninjas.barge.proto.RaftProto.*;
 
 public interface Context {
@@ -36,7 +34,7 @@ public interface Context {
   AppendEntriesResponse appendEntries(@Nonnull AppendEntries request);
 
   @Nonnull
-  ListenableFuture<CommitOperationResponse> commitOperation(@Nonnull CommitOperation request) throws RaftException;
+  ListenableFuture<Boolean> commitOperation(@Nonnull byte[] op) throws RaftException;
 
   void setState(@Nonnull StateType state);
 
