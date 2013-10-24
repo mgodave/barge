@@ -70,7 +70,7 @@ public class Test implements StateMachine {
     try {
       ByteBuffer buffer = ByteBuffer.allocate(8);
       for (long i = 0; i < 100000; ++i) {
-        //System.out.println("Sending " + i);
+        System.out.println("Sending " + i);
         limiter.acquire();
         buffer.putLong(i).rewind();
         raft.commit(buffer.array());

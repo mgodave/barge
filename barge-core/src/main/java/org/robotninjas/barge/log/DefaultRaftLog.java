@@ -42,6 +42,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.*;
 import static com.google.common.base.Throwables.propagate;
@@ -80,9 +81,8 @@ class DefaultRaftLog implements RaftLog {
     this.stateMachine = checkNotNull(stateMachine);
     EntryCacheLoader loader = new EntryCacheLoader(entryIndex, journal);
     this.entryCache = CacheBuilder.newBuilder()
-//      .expireAfterAccess(10, SECONDS)
+      .expireAfterAccess(10, TimeUnit.SECONDS)
       .recordStats()
-      .maximumSize(200000)
       .build(loader);
   }
 
@@ -206,7 +206,15 @@ class DefaultRaftLog implements RaftLog {
       return false;
     }
 
-    this.entryIndex.tailMap(prevLogIndex + 1).clear();
+    SortedMap<Long, EntryMeta> old = this.entryIndex.tailMap(prevLogIndex + 1);
+    for (EntryMeta e : old.values()) {
+      try {
+        journal.delete(e.location);
+      } catch (IOException e1) {
+        e1.printStackTrace();
+      }
+    }
+    old.clear();
     lastLogIndex = prevLogIndex;
 
     for (Entry entry : entries) {
@@ -229,7 +237,7 @@ class DefaultRaftLog implements RaftLog {
 
   void fireComitted() {
     try {
-      for (long i = lastApplied + 1; i <= commitIndex; ++i, ++lastApplied) {
+      for (long i = lastApplied + 1; i <= Math.min(commitIndex, lastLogIndex); ++i, ++lastApplied) {
         byte[] rawCommand = entryCache.get(i).getCommand().toByteArray();
         final ByteBuffer operation = ByteBuffer.wrap(rawCommand).asReadOnlyBuffer();
         stateMachine.dispatchOperation(operation);
@@ -393,7 +401,6 @@ class DefaultRaftLog implements RaftLog {
         }
         return journalEntry.getAppend().getEntry();
       } catch (Exception e) {
-        System.out.println("Trying to load " + key);
         throw e;
       }
     }

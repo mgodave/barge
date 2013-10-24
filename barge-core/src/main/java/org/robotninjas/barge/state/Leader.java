@@ -21,6 +21,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.log.RaftLog;
@@ -32,10 +33,7 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
@@ -60,6 +58,7 @@ class Leader extends BaseState {
   private final Map<Replica, ReplicaManager> managers = Maps.newHashMap();
   private final ReplicaManagerFactory replicaManagerFactory;
   private ScheduledFuture<?> heartbeatTask;
+  private final SortedMap<Long, SettableFuture<Boolean>> requests = Maps.newTreeMap();
 
   @Inject
   Leader(RaftLog log, @RaftScheduler ScheduledExecutorService scheduler,
@@ -161,8 +160,14 @@ class Leader extends BaseState {
   public ListenableFuture<Boolean> commitOperation(@Nonnull Context ctx, @Nonnull byte[] operation) throws RaftException {
 
     resetTimeout(ctx);
-    log.append(operation);
-    return commit();
+    long index = log.append(operation);
+//    System.out.println(index);
+    SettableFuture<Boolean> f = SettableFuture.create();
+    requests.put(index, f);
+//    System.out.println("puttted");
+    commit();
+    return f;
+    //return commit();
 
   }
 
@@ -184,6 +189,13 @@ class Leader extends BaseState {
     final int middle = (int) Math.ceil(sorted.size() / 2.0);
     final long committed = sorted.get(middle).getMatchIndex();
     log.updateCommitIndex(committed);
+
+    SortedMap<Long, SettableFuture<Boolean>> entries = requests.headMap(committed + 1);
+    for (SettableFuture<Boolean> f : entries.values()) {
+      f.set(true);
+    }
+
+    entries.clear();
 
   }
 

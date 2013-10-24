@@ -71,15 +71,8 @@ public class RaftService extends AbstractService {
 
       RaftServiceEndpoint endpoint = new RaftServiceEndpoint(ctx);
       final Service replicaService = RaftProto.RaftService.newReflectiveService(endpoint);
+      rpcServer.registerService(replicaService);
       rpcServer.startAsync().awaitRunning();
-
-      executor.submit(new Runnable() {
-        @Override
-        public void run() {
-          ctx.setState(Context.StateType.FOLLOWER);
-          rpcServer.registerService(replicaService);
-        }
-      });
 
       notifyStarted();
 
@@ -108,7 +101,7 @@ public class RaftService extends AbstractService {
       executor.submit(new Callable<ListenableFuture<Boolean>>() {
         @Override
         public ListenableFuture<Boolean> call() throws Exception {
-          LOGGER.debug("Sending operation");
+//          System.out.println("Sending operation");
           return ctx.commitOperation(operation);
         }
       });
@@ -121,7 +114,7 @@ public class RaftService extends AbstractService {
     try {
       return commitAsync(operation).get();
     } catch (ExecutionException e) {
-      throw new RaftException(e.getCause());
+      throw new RaftException(e);
     }
   }
 
