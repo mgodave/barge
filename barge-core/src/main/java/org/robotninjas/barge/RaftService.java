@@ -30,6 +30,8 @@ import org.robotninjas.barge.proto.RaftProto;
 import org.robotninjas.barge.rpc.RaftExecutor;
 import org.robotninjas.barge.state.Context;
 import org.robotninjas.protobuf.netty.server.RpcServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
@@ -46,6 +48,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @ThreadSafe
 @Immutable
 public class RaftService extends AbstractService {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(RaftService.class);
 
   private final ListeningExecutorService executor;
   private final RpcServer rpcServer;
@@ -66,9 +70,17 @@ public class RaftService extends AbstractService {
     try {
 
       RaftServiceEndpoint endpoint = new RaftServiceEndpoint(ctx);
-      Service replicaService = RaftProto.RaftService.newReflectiveService(endpoint);
-      rpcServer.registerService(replicaService);
+      final Service replicaService = RaftProto.RaftService.newReflectiveService(endpoint);
       rpcServer.startAsync().awaitRunning();
+
+      executor.submit(new Runnable() {
+        @Override
+        public void run() {
+          ctx.setState(Context.StateType.FOLLOWER);
+          rpcServer.registerService(replicaService);
+        }
+      });
+
       notifyStarted();
 
     } catch (Exception e) {
@@ -96,6 +108,7 @@ public class RaftService extends AbstractService {
       executor.submit(new Callable<ListenableFuture<Boolean>>() {
         @Override
         public ListenableFuture<Boolean> call() throws Exception {
+          LOGGER.debug("Sending operation");
           return ctx.commitOperation(operation);
         }
       });

@@ -67,7 +67,7 @@ class Follower extends BaseState {
 
   @Override
   public void init(@Nonnull Context ctx) {
-    resetTimeout(ctx);
+    resetTimeout(ctx, timeout * 10);
   }
 
   @Nonnull
@@ -116,7 +116,7 @@ class Follower extends BaseState {
       }
 
       leader = Optional.of(Replica.fromString(request.getLeaderId()));
-      resetTimeout(ctx);
+      resetTimeout(ctx, timeout * 2);
       success = log.append(request);
 
       if (request.getCommitIndex() > log.commitIndex()) {
@@ -143,18 +143,21 @@ class Follower extends BaseState {
     }
   }
 
-  void resetTimeout(@Nonnull final Context ctx) {
+  void resetTimeout(@Nonnull final Context ctx, long delay) {
 
     if (null != timeoutTask) {
+      LOGGER.debug("Canceling timeout");
       timeoutTask.cancel(false);
     }
 
+    LOGGER.debug("Resetting timeout");
     timeoutTask = scheduler.schedule(new Runnable() {
       @Override
       public void run() {
+        LOGGER.debug("Timeout expired, starting election");
         ctx.setState(CANDIDATE);
       }
-    }, timeout * 2, MILLISECONDS);
+    }, delay, MILLISECONDS);
 
   }
 

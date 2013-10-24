@@ -53,7 +53,7 @@ public class StateModule extends PrivateModule {
   @Singleton
   @Exposed
   Context getContext(@Nonnull DefaultContext ctx) {
-    ctx.init();
+//    ctx.init();
     return ctx;
   }
 

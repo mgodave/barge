@@ -46,8 +46,13 @@ public class LogModule extends PrivateModule {
   @Override
   protected void configure() {
 
-    ThreadFactory threadFactory = new ThreadFactoryBuilder().setDaemon(true).setNameFormat("State Machine Thread").build();
-    final ListeningExecutorService stateMachineExecutor = listeningDecorator(Executors.newSingleThreadExecutor());
+    ThreadFactory threadFactory = new ThreadFactoryBuilder()
+      .setDaemon(true)
+      .setNameFormat("State Machine Thread")
+      .build();
+
+    final ListeningExecutorService stateMachineExecutor =
+      listeningDecorator(Executors.newSingleThreadExecutor());
 
     bind(ListeningExecutorService.class)
       .annotatedWith(StateMachineExecutor.class)

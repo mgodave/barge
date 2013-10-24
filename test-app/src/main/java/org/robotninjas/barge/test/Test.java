@@ -9,14 +9,32 @@ import org.robotninjas.barge.StateMachine;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.util.List;
 
 public class Test implements StateMachine {
 
+  private final String fileName;
+  private PrintStream out;
+
+  public Test(String fileName) {
+    this.fileName = fileName;
+  }
+
+  public void init() throws IOException {
+    this.out = new PrintStream(new FileOutputStream(fileName));
+  }
+
   @Override
   public void applyOperation(@Nonnull ByteBuffer entry) {
-    System.out.println(entry.getLong());
+    out.println(entry.getLong());
+  }
+
+  public void shutdown() {
+    this.out.close();
   }
 
   public static void main(String... args) throws Exception {
@@ -34,35 +52,36 @@ public class Test implements StateMachine {
     File logDir = new File(args[0]);
     logDir.mkdir();
 
-    StateMachine machine = new Test();
+    Test machine = new Test(args[0] + "/out");
+    machine.init();
 
     RaftService raft = RaftService.newBuilder()
       .local(local)
       .members(members)
       .logDir(logDir)
-      .timeout(150)
+      .timeout(300)
       .build(machine);
 
     raft.startAsync().awaitRunning();
 
-//    while (true) {
+    Thread.sleep(20000);
 
-      Thread.sleep(10000);
-
-      RateLimiter limiter = RateLimiter.create(200);
-      try {
-        ByteBuffer buffer = ByteBuffer.allocate(8);
-        for (long i = 0; i < 100000; ++i) {
-          limiter.acquire();
-          buffer.putLong(i).rewind();
-          raft.commit(buffer.array());
-        }
-      } catch (RaftException e) {
-        //e.printStackTrace();
-        //NOT LEADER, ignore
+    RateLimiter limiter = RateLimiter.create(10000);
+    try {
+      ByteBuffer buffer = ByteBuffer.allocate(8);
+      for (long i = 0; i < 100000; ++i) {
+        //System.out.println("Sending " + i);
+        limiter.acquire();
+        buffer.putLong(i).rewind();
+        raft.commit(buffer.array());
       }
+      System.out.println("done.");
+    } catch (RaftException e) {
+      System.out.println("Not leader");
+      //e.printStackTrace();
+      //NOT LEADER, ignore
+    }
 
-//    }
   }
 
 }
