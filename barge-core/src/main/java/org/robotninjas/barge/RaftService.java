@@ -114,7 +114,14 @@ public class RaftService extends AbstractService {
     try {
       return commitAsync(operation).get();
     } catch (ExecutionException e) {
-      throw new RaftException(e);
+      Throwable cause = e.getCause();
+      if (cause instanceof NotLeaderException) {
+        throw (NotLeaderException) cause;
+      }
+      if (cause instanceof NoLeaderException) {
+        throw (NoLeaderException) cause;
+      }
+      throw new RaftException(e.getCause());
     }
   }
 

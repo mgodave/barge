@@ -3,6 +3,7 @@ package org.robotninjas.barge.state;
 import com.google.common.base.Optional;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -74,6 +75,7 @@ public class BaseStateTest {
   }
 
   @Test
+  @Ignore
   public void testCandidateWithGreaterTerm() {
 
     BaseState state = new EmptyState();
@@ -131,6 +133,7 @@ public class BaseStateTest {
   }
 
   @Test
+  @Ignore
   public void testCandidateWithGreaterIndex() {
 
     BaseState state = new EmptyState();

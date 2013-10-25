@@ -1,5 +1,8 @@
 package org.robotninjas.barge.test;
 
+import com.codahale.metrics.ConsoleReporter;
+import com.codahale.metrics.Meter;
+import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.RateLimiter;
 import org.robotninjas.barge.RaftException;
@@ -14,8 +17,11 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class Test implements StateMachine {
+
+  private static final MetricRegistry metrics = new MetricRegistry();
 
   private final String fileName;
   private PrintStream out;
@@ -38,6 +44,9 @@ public class Test implements StateMachine {
   }
 
   public static void main(String... args) throws Exception {
+
+    ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics).build();
+    reporter.start(1, TimeUnit.SECONDS);
 
     final int port = Integer.parseInt(args[0]);
 
@@ -66,20 +75,18 @@ public class Test implements StateMachine {
 
     Thread.sleep(20000);
 
-    RateLimiter limiter = RateLimiter.create(10000);
+    Meter meter = metrics.meter("commit-rate");
+    RateLimiter limiter = RateLimiter.create(1000);
     try {
       ByteBuffer buffer = ByteBuffer.allocate(8);
       for (long i = 0; i < 100000; ++i) {
-        System.out.println("Sending " + i);
         limiter.acquire();
         buffer.putLong(i).rewind();
         raft.commit(buffer.array());
+        meter.mark();
       }
       System.out.println("done.");
     } catch (RaftException e) {
-      System.out.println("Not leader");
-      //e.printStackTrace();
-      //NOT LEADER, ignore
     }
 
   }

@@ -5,7 +5,7 @@
     <parent>
         <artifactId>barge</artifactId>
         <groupId>org.robotninjas.barge</groupId>
-        <version>0.1.0-SNAPSHOT</version>
+        <version>0.1.0-alpha1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -28,6 +28,11 @@
             <artifactId>logback-classic</artifactId>
             <version>1.0.11</version>
             <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.codahale.metrics</groupId>
+            <artifactId>metrics-core</artifactId>
+            <version>3.0.1</version>
         </dependency>
     </dependencies>
 

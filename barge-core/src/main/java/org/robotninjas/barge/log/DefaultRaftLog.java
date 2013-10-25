@@ -81,7 +81,7 @@ class DefaultRaftLog implements RaftLog {
     this.stateMachine = checkNotNull(stateMachine);
     EntryCacheLoader loader = new EntryCacheLoader(entryIndex, journal);
     this.entryCache = CacheBuilder.newBuilder()
-      .expireAfterAccess(10, TimeUnit.SECONDS)
+      .expireAfterAccess(1, TimeUnit.MINUTES)
       .recordStats()
       .build(loader);
   }
@@ -107,6 +107,8 @@ class DefaultRaftLog implements RaftLog {
 
           EntryMeta meta = new EntryMeta(index, term, loc);
           this.entryIndex.put(index, meta);
+
+          this.entryCache.put(index, entry);
 
           this.lastLogIndex = Math.max(lastLogIndex, index);
 
@@ -168,6 +170,7 @@ class DefaultRaftLog implements RaftLog {
       Location loc = journal.write(journalEntry.toByteArray(), WriteType.SYNC);
       EntryMeta meta = new EntryMeta(index, entry.getTerm(), loc);
       this.entryIndex.put(index, meta);
+      this.entryCache.put(index, entry);
     } catch (Exception e) {
       throw propagate(e);
     }
@@ -180,7 +183,7 @@ class DefaultRaftLog implements RaftLog {
 
     long index = ++lastLogIndex;
 
-    LOGGER.debug("leader append: index {}, term {}", index, currentTerm);
+//    LOGGER.debug("leader append: index {}, term {}", index, currentTerm);
 
     Entry entry =
       Entry.newBuilder()
@@ -261,20 +264,25 @@ class DefaultRaftLog implements RaftLog {
 
   public void updateCommitIndex(long index) {
 
-    setCommitIndex(index);
+    if (index > commitIndex) {
 
-    try {
-      LogProto.JournalEntry entry =
-        LogProto.JournalEntry.newBuilder()
-          .setCommit(LogProto.Commit.newBuilder()
-            .setIndex(index))
-          .build();
+      setCommitIndex(index);
 
-      journal.write(entry.toByteArray(), WriteType.SYNC);
-    } catch (IOException e) {
-      Throwables.propagate(e);
+      try {
+        LogProto.JournalEntry entry =
+          LogProto.JournalEntry.newBuilder()
+            .setCommit(LogProto.Commit.newBuilder()
+              .setIndex(index))
+            .build();
+
+        journal.write(entry.toByteArray(), WriteType.SYNC);
+      } catch (IOException e) {
+        Throwables.propagate(e);
+      }
+
+      fireComitted();
     }
-    fireComitted();
+
   }
 
   @Nonnull
@@ -294,17 +302,19 @@ class DefaultRaftLog implements RaftLog {
     MDC.put("term", Long.toString(term));
     LOGGER.debug("New term {}", term);
 
-    setCurrentTerm(term);
+    if (term > currentTerm) {
+      setCurrentTerm(term);
 
-    try {
-      LogProto.JournalEntry entry =
-        LogProto.JournalEntry.newBuilder()
-          .setTerm(LogProto.Term.newBuilder()
-            .setTerm(term))
-          .build();
-      journal.write(entry.toByteArray(), WriteType.SYNC);
-    } catch (IOException e) {
-      Throwables.propagate(e);
+      try {
+        LogProto.JournalEntry entry =
+          LogProto.JournalEntry.newBuilder()
+            .setTerm(LogProto.Term.newBuilder()
+              .setTerm(term))
+            .build();
+        journal.write(entry.toByteArray(), WriteType.SYNC);
+      } catch (IOException e) {
+        Throwables.propagate(e);
+      }
     }
   }
 
@@ -333,24 +343,27 @@ class DefaultRaftLog implements RaftLog {
 
     LOGGER.debug("Voting for {}", vote.orNull());
 
-    setLastVotedFor(vote);
+    if (!votedFor.equals(vote)) {
 
-    try {
-      LogProto.Vote.Builder voteBuilder =
-        LogProto.Vote.newBuilder();
+      setLastVotedFor(vote);
 
-      if (vote.isPresent()) {
-        voteBuilder.setVotedFor(vote.get().toString());
+      try {
+        LogProto.Vote.Builder voteBuilder =
+          LogProto.Vote.newBuilder();
+
+        if (vote.isPresent()) {
+          voteBuilder.setVotedFor(vote.get().toString());
+        }
+
+        LogProto.JournalEntry entry =
+          LogProto.JournalEntry.newBuilder()
+            .setVote(voteBuilder)
+            .build();
+
+        journal.write(entry.toByteArray(), WriteType.SYNC);
+      } catch (IOException e) {
+        Throwables.propagate(e);
       }
-
-      LogProto.JournalEntry entry =
-        LogProto.JournalEntry.newBuilder()
-          .setVote(voteBuilder)
-          .build();
-
-      journal.write(entry.toByteArray(), WriteType.SYNC);
-    } catch (IOException e) {
-      Throwables.propagate(e);
     }
   }
 
