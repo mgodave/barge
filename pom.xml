@@ -10,7 +10,6 @@
 
     <modules>
         <module>barge-core</module>
-        <module>test-app</module>
     </modules>
 
     <build>
