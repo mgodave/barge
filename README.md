@@ -44,23 +44,6 @@ public class Test implements StateMachine {
 
     raft.startAsync().awaitRunning();
 
-    while (true) {
-
-      Thread.sleep(10000);
-
-      try {
-        ByteBuffer buffer = ByteBuffer.allocate(8);
-        for (long i = 0; i < 100000; ++i) {
-          buffer.putLong(i).rewind();
-          raft.commit(buffer.array());
-          Thread.sleep(10);
-        }
-      } catch (RaftException e) {
-        //e.printStackTrace();
-        //NOT LEADER, ignore
-      }
-
-    }
   }
 
 }
