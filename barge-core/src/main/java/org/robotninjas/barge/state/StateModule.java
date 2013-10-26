@@ -37,7 +37,6 @@ public class StateModule extends PrivateModule {
 
     install(new FactoryModuleBuilder()
       .build(StateFactory.class));
-    expose(StateFactory.class);
 
     install(new FactoryModuleBuilder()
       .build(ReplicaManagerFactory.class));

@@ -42,13 +42,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.*;
 import static com.google.common.base.Throwables.propagate;
 import static com.google.common.collect.Lists.newArrayList;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static journal.io.api.Journal.WriteType;
-import static org.robotninjas.barge.proto.ClientProto.CommitOperation;
 import static org.robotninjas.barge.proto.RaftEntry.Entry;
 import static org.robotninjas.barge.proto.RaftProto.AppendEntries;
 
@@ -82,9 +81,8 @@ class DefaultRaftLog implements RaftLog {
     this.stateMachine = checkNotNull(stateMachine);
     EntryCacheLoader loader = new EntryCacheLoader(entryIndex, journal);
     this.entryCache = CacheBuilder.newBuilder()
-      .expireAfterAccess(10, SECONDS)
+      .expireAfterAccess(1, TimeUnit.MINUTES)
       .recordStats()
-      .maximumSize(10000)
       .build(loader);
   }
 
@@ -109,6 +107,8 @@ class DefaultRaftLog implements RaftLog {
 
           EntryMeta meta = new EntryMeta(index, term, loc);
           this.entryIndex.put(index, meta);
+
+          this.entryCache.put(index, entry);
 
           this.lastLogIndex = Math.max(lastLogIndex, index);
 
@@ -170,23 +170,24 @@ class DefaultRaftLog implements RaftLog {
       Location loc = journal.write(journalEntry.toByteArray(), WriteType.SYNC);
       EntryMeta meta = new EntryMeta(index, entry.getTerm(), loc);
       this.entryIndex.put(index, meta);
+      this.entryCache.put(index, entry);
     } catch (Exception e) {
       throw propagate(e);
     }
   }
 
-  public long append(@Nonnull CommitOperation operation) {
+  public long append(@Nonnull byte[] operation) {
 
     checkState(entryIndex.containsKey(lastLogIndex));
     checkState(!entryIndex.containsKey(lastLogIndex + 1));
 
     long index = ++lastLogIndex;
 
-    LOGGER.debug("leader append: index {}, term {}", index, currentTerm);
+//    LOGGER.debug("leader append: index {}, term {}", index, currentTerm);
 
     Entry entry =
       Entry.newBuilder()
-        .setCommand(operation.getOp())
+        .setCommand(ByteString.copyFrom(operation))
         .setTerm(currentTerm)
         .build();
 
@@ -208,7 +209,15 @@ class DefaultRaftLog implements RaftLog {
       return false;
     }
 
-    this.entryIndex.tailMap(prevLogIndex + 1).clear();
+    SortedMap<Long, EntryMeta> old = this.entryIndex.tailMap(prevLogIndex + 1);
+    for (EntryMeta e : old.values()) {
+      try {
+        journal.delete(e.location);
+      } catch (IOException e1) {
+        e1.printStackTrace();
+      }
+    }
+    old.clear();
     lastLogIndex = prevLogIndex;
 
     for (Entry entry : entries) {
@@ -231,7 +240,7 @@ class DefaultRaftLog implements RaftLog {
 
   void fireComitted() {
     try {
-      for (long i = lastApplied + 1; i <= commitIndex; ++i, ++lastApplied) {
+      for (long i = lastApplied + 1; i <= Math.min(commitIndex, lastLogIndex); ++i, ++lastApplied) {
         byte[] rawCommand = entryCache.get(i).getCommand().toByteArray();
         final ByteBuffer operation = ByteBuffer.wrap(rawCommand).asReadOnlyBuffer();
         stateMachine.dispatchOperation(operation);
@@ -255,20 +264,25 @@ class DefaultRaftLog implements RaftLog {
 
   public void updateCommitIndex(long index) {
 
-    setCommitIndex(index);
+    if (index > commitIndex) {
 
-    try {
-      LogProto.JournalEntry entry =
-        LogProto.JournalEntry.newBuilder()
-          .setCommit(LogProto.Commit.newBuilder()
-            .setIndex(index))
-          .build();
+      setCommitIndex(index);
 
-      journal.write(entry.toByteArray(), WriteType.SYNC);
-    } catch (IOException e) {
-      Throwables.propagate(e);
+      try {
+        LogProto.JournalEntry entry =
+          LogProto.JournalEntry.newBuilder()
+            .setCommit(LogProto.Commit.newBuilder()
+              .setIndex(index))
+            .build();
+
+        journal.write(entry.toByteArray(), WriteType.SYNC);
+      } catch (IOException e) {
+        Throwables.propagate(e);
+      }
+
+      fireComitted();
     }
-    fireComitted();
+
   }
 
   @Nonnull
@@ -288,17 +302,19 @@ class DefaultRaftLog implements RaftLog {
     MDC.put("term", Long.toString(term));
     LOGGER.debug("New term {}", term);
 
-    setCurrentTerm(term);
+    if (term > currentTerm) {
+      setCurrentTerm(term);
 
-    try {
-      LogProto.JournalEntry entry =
-        LogProto.JournalEntry.newBuilder()
-          .setTerm(LogProto.Term.newBuilder()
-            .setTerm(term))
-          .build();
-      journal.write(entry.toByteArray(), WriteType.SYNC);
-    } catch (IOException e) {
-      Throwables.propagate(e);
+      try {
+        LogProto.JournalEntry entry =
+          LogProto.JournalEntry.newBuilder()
+            .setTerm(LogProto.Term.newBuilder()
+              .setTerm(term))
+            .build();
+        journal.write(entry.toByteArray(), WriteType.SYNC);
+      } catch (IOException e) {
+        Throwables.propagate(e);
+      }
     }
   }
 
@@ -327,24 +343,27 @@ class DefaultRaftLog implements RaftLog {
 
     LOGGER.debug("Voting for {}", vote.orNull());
 
-    setLastVotedFor(vote);
+    if (!votedFor.equals(vote)) {
 
-    try {
-      LogProto.Vote.Builder voteBuilder =
-        LogProto.Vote.newBuilder();
+      setLastVotedFor(vote);
 
-      if (vote.isPresent()) {
-        voteBuilder.setVotedFor(vote.get().toString());
+      try {
+        LogProto.Vote.Builder voteBuilder =
+          LogProto.Vote.newBuilder();
+
+        if (vote.isPresent()) {
+          voteBuilder.setVotedFor(vote.get().toString());
+        }
+
+        LogProto.JournalEntry entry =
+          LogProto.JournalEntry.newBuilder()
+            .setVote(voteBuilder)
+            .build();
+
+        journal.write(entry.toByteArray(), WriteType.SYNC);
+      } catch (IOException e) {
+        Throwables.propagate(e);
       }
-
-      LogProto.JournalEntry entry =
-        LogProto.JournalEntry.newBuilder()
-          .setVote(voteBuilder)
-          .build();
-
-      journal.write(entry.toByteArray(), WriteType.SYNC);
-    } catch (IOException e) {
-      Throwables.propagate(e);
     }
   }
 
@@ -395,7 +414,6 @@ class DefaultRaftLog implements RaftLog {
         }
         return journalEntry.getAppend().getEntry();
       } catch (Exception e) {
-        System.out.println("Trying to load " + key);
         throw e;
       }
     }

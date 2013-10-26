@@ -55,6 +55,7 @@ class ReplicaManager {
   private boolean running = false;
   private boolean requested = false;
   private boolean forwards = false;
+  private boolean shutdown = false;
   private SettableFuture<AppendEntriesResponse> nextResponse = SettableFuture.create();
 
   @Inject
@@ -89,6 +90,7 @@ class ReplicaManager {
         .addAllEntries(result.entries())
         .build();
 
+    LOGGER.debug("Sending update");
     final ListenableFuture<AppendEntriesResponse> response = client.appendEntries(remote, request);
 
     final SettableFuture<AppendEntriesResponse> previousResponse = nextResponse;
@@ -131,7 +133,7 @@ class ReplicaManager {
       nextIndex = Math.max(1, nextIndex - 1);
     }
 
-    if (running) {
+    if (running && !shutdown) {
       sendUpdate();
     }
 
@@ -162,7 +164,7 @@ class ReplicaManager {
   }
 
   public void shutdown() {
-
+    shutdown = true;
   }
 
   @Nonnull

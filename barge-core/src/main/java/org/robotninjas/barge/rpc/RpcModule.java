@@ -16,6 +16,7 @@
 
 package org.robotninjas.barge.rpc;
 
+import com.google.common.base.Optional;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -37,9 +38,15 @@ public class RpcModule extends PrivateModule {
 
   private static final int NUM_THREADS = 1;
   private final SocketAddress saddr;
+  private final Optional<NioEventLoopGroup> eventLoopGroup;
+
+  public RpcModule(@Nonnull SocketAddress saddr, NioEventLoopGroup eventLoopGroup) {
+    this.saddr = checkNotNull(saddr);
+    this.eventLoopGroup = Optional.fromNullable(eventLoopGroup);
+  }
 
   public RpcModule(@Nonnull SocketAddress saddr) {
-    this.saddr = checkNotNull(saddr);
+    this(saddr, null);
   }
 
   @Override
@@ -47,7 +54,7 @@ public class RpcModule extends PrivateModule {
 
     ThreadFactoryBuilder factoryBuilder =
       new ThreadFactoryBuilder()
-        .setNameFormat("Raft Thread")
+        .setNameFormat("Barge Thread")
         .setDaemon(true);
 
     final DefaultEventExecutorGroup eventExecutor = new DefaultEventExecutorGroup(1, factoryBuilder.build());
@@ -78,7 +85,19 @@ public class RpcModule extends PrivateModule {
     expose(ScheduledExecutorService.class)
       .annotatedWith(RaftScheduler.class);
 
-    NioEventLoopGroup eventLoop = new NioEventLoopGroup(NUM_THREADS);
+    final NioEventLoopGroup eventLoop;
+    if (!eventLoopGroup.isPresent()) {
+      eventLoop = new NioEventLoopGroup(1);
+      Runtime.getRuntime().addShutdownHook(new Thread() {
+        @Override
+        public void run() {
+          eventLoop.shutdownGracefully();
+        }
+      });
+    } else {
+      eventLoop = eventLoopGroup.get();
+    }
+
     bind(NioEventLoopGroup.class).toInstance(eventLoop);
 
     RpcServer rpcServer = new RpcServer(eventLoop, eventExecutor, saddr);

@@ -7,11 +7,11 @@
     <parent>
         <groupId>org.robotninjas.barge</groupId>
         <artifactId>barge</artifactId>
-        <version>0.1.0-SNAPSHOT</version>
+        <version>0.1.0-alpha1-SNAPSHOT</version>
     </parent>
 
     <artifactId>barge-core</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0-alpha1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <dependencies>
@@ -81,9 +81,10 @@
         <!-- Runtime Dependencies -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-core</artifactId>
+            <artifactId>logback-classic</artifactId>
             <version>1.0.11</version>
             <scope>runtime</scope>
+            <optional>true</optional>
         </dependency>
 
         <!-- Test Dependencies -->

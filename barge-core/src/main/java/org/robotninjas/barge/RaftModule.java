@@ -16,16 +16,16 @@
 
 package org.robotninjas.barge;
 
+import com.google.common.base.Optional;
 import com.google.inject.PrivateModule;
 import com.google.inject.TypeLiteral;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
+import io.netty.channel.nio.NioEventLoopGroup;
 import org.robotninjas.barge.annotations.ClusterMembers;
 import org.robotninjas.barge.annotations.LocalReplicaInfo;
 import org.robotninjas.barge.log.LogModule;
 import org.robotninjas.barge.rpc.RpcModule;
 import org.robotninjas.barge.state.StateModule;
 
-import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 import java.io.File;
@@ -40,27 +40,39 @@ class RaftModule extends PrivateModule {
   private static final long DEFAULT_TIMEOUT = 225;
 
   private final Replica local;
-  private final long timeout;
+  private long timeout = DEFAULT_TIMEOUT;
   private final File logDir;
   private final List<Replica> members;
   private final StateMachine stateMachine;
+  private Optional<NioEventLoopGroup> eventLoopGroup = Optional.absent();
 
-  public RaftModule(@Nonnull Replica local, @Nonnull List<Replica> members, @Nonnegative long timeout,
+  public RaftModule(@Nonnull Replica local, @Nonnull List<Replica> members,
                     @Nonnull File logDir, @Nonnull StateMachine stateMachine) {
 
     this.local = checkNotNull(local);
     checkArgument(timeout > 0);
-    this.timeout = timeout;
     this.logDir = checkNotNull(logDir);
     this.members = checkNotNull(members);
     this.stateMachine = checkNotNull(stateMachine);
+  }
+
+  public void setNioEventLoop(NioEventLoopGroup eventLoopGroup) {
+    this.eventLoopGroup = Optional.of(eventLoopGroup);
+  }
+
+  public void setTimeout(long timeout) {
+    this.timeout = timeout;
   }
 
   @Override
   protected void configure() {
 
     install(new StateModule(timeout));
-    install(new RpcModule(local.address()));
+    if (eventLoopGroup.isPresent()) {
+      install(new RpcModule(local.address(), eventLoopGroup.get()));
+    } else {
+      install(new RpcModule(local.address()));
+    }
     install(new LogModule(logDir, stateMachine));
 
     bind(Replica.class)
@@ -71,10 +83,8 @@ class RaftModule extends PrivateModule {
       .annotatedWith(ClusterMembers.class)
       .toInstance(members);
 
-    install(new FactoryModuleBuilder()
-      .implement(RaftService.class, DefaultRaftService.class)
-      .build(RaftServiceFactory.class));
-    expose(RaftServiceFactory.class);
+    bind(RaftService.class);
+    expose(RaftService.class);
 
   }
 }

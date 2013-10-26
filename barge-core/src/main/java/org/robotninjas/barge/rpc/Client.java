@@ -24,8 +24,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.robotninjas.barge.proto.ClientProto.CommitOperation;
-import static org.robotninjas.barge.proto.ClientProto.CommitOperationResponse;
 import static org.robotninjas.barge.proto.RaftProto.*;
 
 @Immutable
@@ -54,14 +52,6 @@ public class Client {
     checkNotNull(request);
     RaftClient client = clientProvider.get(replica);
     return client.appendEntries(request);
-  }
-
-  @Nonnull
-  public ListenableFuture<CommitOperationResponse> commitOperation(@Nonnull Replica replica, @Nonnull CommitOperation request) {
-    checkNotNull(replica);
-    checkNotNull(request);
-    RaftClient client = clientProvider.get(replica);
-    return client.commitOperation(request);
   }
 
 }

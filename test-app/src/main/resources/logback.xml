@@ -15,8 +15,9 @@
     <!--<logger name="org.robotninjas.barge" level="INFO"/>-->
     <!--<logger name="org.robotninjas.barge.rpc.RpcChannelFactory" level="DEBUG"/>-->
     <!--<logger name="org.robotninjas.barge.state.Leader$CommitResponseCollector" level="DEBUG"/>-->
-    <!--<logger name="org.robotninjas.barge.DefaultRaftService" level="DEBUG"/>-->
+    <!--<logger name="org.robotninjas.barge.RaftService" level="DEBUG"/>-->
     <!--<logger name="org.robotninjas.barge.log.DefaultRaftLog" level="DEBUG"/>-->
+    <!--<logger name="org.robotninjas.barge.state.Context" level="DEBUG"/>-->
 
     <root level="INFO">
         <appender-ref ref="STDOUT"/>

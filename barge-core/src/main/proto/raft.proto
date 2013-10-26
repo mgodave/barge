@@ -62,5 +62,4 @@ message InstallSnapshotResponse {
 service RaftService {
 	rpc requestVote (RequestVote) returns (RequestVoteResponse);
 	rpc appendEntries (AppendEntries) returns (AppendEntriesResponse);
-	rpc installSnapshot (InstallSnapshot) returns (InstallSnapshotResponse);
 }

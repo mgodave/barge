@@ -4221,14 +4221,6 @@ public final class RaftProto {
           org.robotninjas.barge.proto.RaftProto.AppendEntries request,
           com.google.protobuf.RpcCallback<org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse> done);
 
-      /**
-       * <code>rpc installSnapshot(.InstallSnapshot) returns (.InstallSnapshotResponse);</code>
-       */
-      public abstract void installSnapshot(
-          com.google.protobuf.RpcController controller,
-          org.robotninjas.barge.proto.RaftProto.InstallSnapshot request,
-          com.google.protobuf.RpcCallback<org.robotninjas.barge.proto.RaftProto.InstallSnapshotResponse> done);
-
     }
 
     public static com.google.protobuf.Service newReflectiveService(
@@ -4248,14 +4240,6 @@ public final class RaftProto {
             org.robotninjas.barge.proto.RaftProto.AppendEntries request,
             com.google.protobuf.RpcCallback<org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse> done) {
           impl.appendEntries(controller, request, done);
-        }
-
-        @java.lang.Override
-        public  void installSnapshot(
-            com.google.protobuf.RpcController controller,
-            org.robotninjas.barge.proto.RaftProto.InstallSnapshot request,
-            com.google.protobuf.RpcCallback<org.robotninjas.barge.proto.RaftProto.InstallSnapshotResponse> done) {
-          impl.installSnapshot(controller, request, done);
         }
 
       };
@@ -4284,8 +4268,6 @@ public final class RaftProto {
               return impl.requestVote(controller, (org.robotninjas.barge.proto.RaftProto.RequestVote)request);
             case 1:
               return impl.appendEntries(controller, (org.robotninjas.barge.proto.RaftProto.AppendEntries)request);
-            case 2:
-              return impl.installSnapshot(controller, (org.robotninjas.barge.proto.RaftProto.InstallSnapshot)request);
             default:
               throw new java.lang.AssertionError("Can't get here.");
           }
@@ -4304,8 +4286,6 @@ public final class RaftProto {
               return org.robotninjas.barge.proto.RaftProto.RequestVote.getDefaultInstance();
             case 1:
               return org.robotninjas.barge.proto.RaftProto.AppendEntries.getDefaultInstance();
-            case 2:
-              return org.robotninjas.barge.proto.RaftProto.InstallSnapshot.getDefaultInstance();
             default:
               throw new java.lang.AssertionError("Can't get here.");
           }
@@ -4324,8 +4304,6 @@ public final class RaftProto {
               return org.robotninjas.barge.proto.RaftProto.RequestVoteResponse.getDefaultInstance();
             case 1:
               return org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.getDefaultInstance();
-            case 2:
-              return org.robotninjas.barge.proto.RaftProto.InstallSnapshotResponse.getDefaultInstance();
             default:
               throw new java.lang.AssertionError("Can't get here.");
           }
@@ -4349,14 +4327,6 @@ public final class RaftProto {
         com.google.protobuf.RpcController controller,
         org.robotninjas.barge.proto.RaftProto.AppendEntries request,
         com.google.protobuf.RpcCallback<org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse> done);
-
-    /**
-     * <code>rpc installSnapshot(.InstallSnapshot) returns (.InstallSnapshotResponse);</code>
-     */
-    public abstract void installSnapshot(
-        com.google.protobuf.RpcController controller,
-        org.robotninjas.barge.proto.RaftProto.InstallSnapshot request,
-        com.google.protobuf.RpcCallback<org.robotninjas.barge.proto.RaftProto.InstallSnapshotResponse> done);
 
     public static final
         com.google.protobuf.Descriptors.ServiceDescriptor
@@ -4390,11 +4360,6 @@ public final class RaftProto {
             com.google.protobuf.RpcUtil.<org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse>specializeCallback(
               done));
           return;
-        case 2:
-          this.installSnapshot(controller, (org.robotninjas.barge.proto.RaftProto.InstallSnapshot)request,
-            com.google.protobuf.RpcUtil.<org.robotninjas.barge.proto.RaftProto.InstallSnapshotResponse>specializeCallback(
-              done));
-          return;
         default:
           throw new java.lang.AssertionError("Can't get here.");
       }
@@ -4413,8 +4378,6 @@ public final class RaftProto {
           return org.robotninjas.barge.proto.RaftProto.RequestVote.getDefaultInstance();
         case 1:
           return org.robotninjas.barge.proto.RaftProto.AppendEntries.getDefaultInstance();
-        case 2:
-          return org.robotninjas.barge.proto.RaftProto.InstallSnapshot.getDefaultInstance();
         default:
           throw new java.lang.AssertionError("Can't get here.");
       }
@@ -4433,8 +4396,6 @@ public final class RaftProto {
           return org.robotninjas.barge.proto.RaftProto.RequestVoteResponse.getDefaultInstance();
         case 1:
           return org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.getDefaultInstance();
-        case 2:
-          return org.robotninjas.barge.proto.RaftProto.InstallSnapshotResponse.getDefaultInstance();
         default:
           throw new java.lang.AssertionError("Can't get here.");
       }
@@ -4485,21 +4446,6 @@ public final class RaftProto {
             org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.class,
             org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.getDefaultInstance()));
       }
-
-      public  void installSnapshot(
-          com.google.protobuf.RpcController controller,
-          org.robotninjas.barge.proto.RaftProto.InstallSnapshot request,
-          com.google.protobuf.RpcCallback<org.robotninjas.barge.proto.RaftProto.InstallSnapshotResponse> done) {
-        channel.callMethod(
-          getDescriptor().getMethods().get(2),
-          controller,
-          request,
-          org.robotninjas.barge.proto.RaftProto.InstallSnapshotResponse.getDefaultInstance(),
-          com.google.protobuf.RpcUtil.generalizeCallback(
-            done,
-            org.robotninjas.barge.proto.RaftProto.InstallSnapshotResponse.class,
-            org.robotninjas.barge.proto.RaftProto.InstallSnapshotResponse.getDefaultInstance()));
-      }
     }
 
     public static BlockingInterface newBlockingStub(
@@ -4516,11 +4462,6 @@ public final class RaftProto {
       public org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse appendEntries(
           com.google.protobuf.RpcController controller,
           org.robotninjas.barge.proto.RaftProto.AppendEntries request)
-          throws com.google.protobuf.ServiceException;
-
-      public org.robotninjas.barge.proto.RaftProto.InstallSnapshotResponse installSnapshot(
-          com.google.protobuf.RpcController controller,
-          org.robotninjas.barge.proto.RaftProto.InstallSnapshot request)
           throws com.google.protobuf.ServiceException;
     }
 
@@ -4552,18 +4493,6 @@ public final class RaftProto {
           controller,
           request,
           org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.getDefaultInstance());
-      }
-
-
-      public org.robotninjas.barge.proto.RaftProto.InstallSnapshotResponse installSnapshot(
-          com.google.protobuf.RpcController controller,
-          org.robotninjas.barge.proto.RaftProto.InstallSnapshot request)
-          throws com.google.protobuf.ServiceException {
-        return (org.robotninjas.barge.proto.RaftProto.InstallSnapshotResponse) channel.callBlockingMethod(
-          getDescriptor().getMethods().get(2),
-          controller,
-          request,
-          org.robotninjas.barge.proto.RaftProto.InstallSnapshotResponse.getDefaultInstance());
       }
 
     }
@@ -4624,13 +4553,11 @@ public final class RaftProto {
       "\022\033\n\023last_included_index\030\002 \002(\003\022\032\n\022last_in" +
       "cluded_term\030\003 \002(\003\022\025\n\rsnapshot_data\030\004 \002(\014" +
       "\"8\n\027InstallSnapshotResponse\022\014\n\004term\030\001 \002(" +
-      "\003\022\017\n\007success\030\002 \002(\0102\270\001\n\013RaftService\0221\n\013re" +
-      "questVote\022\014.RequestVote\032\024.RequestVoteRes" +
-      "ponse\0227\n\rappendEntries\022\016.AppendEntries\032\026" +
-      ".AppendEntriesResponse\022=\n\017installSnapsho" +
-      "t\022\020.InstallSnapshot\032\030.InstallSnapshotRes" +
-      "ponseB+\n\033org.robotninjas.barge.protoB\tRa",
-      "ftProto\210\001\001"
+      "\003\022\017\n\007success\030\002 \002(\0102y\n\013RaftService\0221\n\013req" +
+      "uestVote\022\014.RequestVote\032\024.RequestVoteResp" +
+      "onse\0227\n\rappendEntries\022\016.AppendEntries\032\026." +
+      "AppendEntriesResponseB+\n\033org.robotninjas" +
+      ".barge.protoB\tRaftProto\210\001\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {

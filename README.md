@@ -1,6 +1,5 @@
 [![Build Status](https://travis-ci.org/mgodave/barge.png)](https://travis-ci.org/mgodave/barge)
 
-
 barge
 =====
 
@@ -10,7 +9,61 @@ An implementation of the [Raft Concensus Protocol][1]. This supercedes my [previ
 [2]: https://github.com/mgodave/raft
 [3]: https://github.com/mgodave/netty-protobuf-rpc
 
-Notes
-=====
+Run a server state machine
 
-* In order to catch a replica up, either because it crashed and restarted or it's just being slow, the leader will probe for the last entry in the follower with single entries then, once it has found the correct place, batch update the client to catch it up as soon as possible.
+```java
+
+public class Test implements StateMachine {
+
+  @Override
+  public void applyOperation(@Nonnull ByteBuffer entry) {
+    System.out.println(entry.getLong());
+  }
+
+  public static void main(String... args) throws Exception {
+
+    final int port = Integer.parseInt(args[0]);
+
+    Replica local = Replica.fromString("localhost:" + port);
+    List<Replica> members = Lists.newArrayList(
+      Replica.fromString("localhost:10000"),
+      Replica.fromString("localhost:10001"),
+      Replica.fromString("localhost:10002")
+    );
+    members.remove(local);
+
+    File logDir = new File(args[0]);
+    logDir.mkdir();
+
+    RaftService raft = RaftService.newBuilder()
+      .local(local)
+      .members(members)
+      .logDir(logDir)
+      .timeout(300)
+      .build(new Test());
+
+    raft.startAsync().awaitRunning();
+
+    while (true) {
+
+      Thread.sleep(10000);
+
+      try {
+        ByteBuffer buffer = ByteBuffer.allocate(8);
+        for (long i = 0; i < 100000; ++i) {
+          buffer.putLong(i).rewind();
+          raft.commit(buffer.array());
+          Thread.sleep(10);
+        }
+      } catch (RaftException e) {
+        //e.printStackTrace();
+        //NOT LEADER, ignore
+      }
+
+    }
+  }
+
+}
+
+
+```

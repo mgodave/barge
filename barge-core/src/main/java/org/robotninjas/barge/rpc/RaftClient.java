@@ -22,7 +22,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.RpcCallback;
 import org.apache.commons.pool.ObjectPool;
 import org.robotninjas.barge.RaftException;
-import org.robotninjas.barge.proto.ClientProto;
 import org.robotninjas.barge.proto.RaftProto;
 import org.robotninjas.protobuf.netty.client.ClientController;
 import org.robotninjas.protobuf.netty.client.NettyRpcChannel;
@@ -32,13 +31,10 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
-
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.util.concurrent.Futures.immediateFailedFuture;
-import static org.robotninjas.barge.proto.ClientProto.CommitOperation;
-import static org.robotninjas.barge.proto.ClientProto.CommitOperationResponse;
 import static org.robotninjas.barge.proto.RaftProto.*;
 
 //TODO write a protoc code generator for this bullshit
@@ -110,47 +106,6 @@ class RaftClient {
       RpcHandlerFuture<AppendEntriesResponse> responseHandler =
         new RpcHandlerFuture<AppendEntriesResponse>(controller);
       stub.appendEntries(controller, request, responseHandler);
-      channelPool.returnObject(channel);
-      return responseHandler;
-
-    } catch (Exception e) {
-
-      try {
-        channelPool.invalidateObject(channel);
-      } catch (Exception e1) {
-      }
-      channel = null;
-      return immediateFailedFuture(e);
-
-    } finally {
-
-      try {
-        if (null != channel) {
-          channelPool.returnObject(channel);
-        }
-      } catch (Exception e) {
-        // ignored
-      }
-
-    }
-
-  }
-
-  @Nonnull
-  public ListenableFuture<CommitOperationResponse> commitOperation(@Nonnull CommitOperation request) {
-
-    checkNotNull(request);
-
-    NettyRpcChannel channel = null;
-    try {
-
-      channel = channelPool.borrowObject();
-      ClientProto.ClientService.Stub stub = ClientProto.ClientService.newStub(channel);
-      ClientController controller = new ClientController(channel);
-      controller.setTimeout(DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
-      RpcHandlerFuture<CommitOperationResponse> responseHandler =
-        new RpcHandlerFuture<CommitOperationResponse>(controller);
-      stub.commitOperation(controller, request, responseHandler);
       channelPool.returnObject(channel);
       return responseHandler;
 
@@ -249,29 +204,6 @@ class RaftClient {
 
     public static AppendEntriesCommand appendEntries(NettyRpcChannel channel) {
       return new AppendEntriesCommand(channel);
-    }
-  }
-
-  static final class CommitOperationCommand implements AsyncFunction<CommitOperation, CommitOperationResponse> {
-
-    private final NettyRpcChannel channel;
-
-    CommitOperationCommand(NettyRpcChannel channel) {
-      this.channel = channel;
-    }
-
-    @Override
-    public ListenableFuture<CommitOperationResponse> apply(CommitOperation request) throws Exception {
-      ClientProto.ClientService.Stub stub = ClientProto.ClientService.newStub(channel);
-      ClientController controller = new ClientController(channel);
-      RpcHandlerFuture<CommitOperationResponse> handler =
-        new RpcHandlerFuture<CommitOperationResponse>(controller);
-      stub.commitOperation(controller, request, handler);
-      return handler;
-    }
-
-    public static CommitOperationCommand commitOperation(NettyRpcChannel channel) {
-      return new CommitOperationCommand(channel);
     }
   }
 
