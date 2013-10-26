@@ -20,7 +20,7 @@ import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.*;
 import static org.robotninjas.barge.proto.RaftProto.AppendEntries;
 import static org.robotninjas.barge.proto.RaftProto.RequestVote;
-import static org.robotninjas.barge.state.Context.StateType.FOLLOWER;
+import static org.robotninjas.barge.state.RaftStateContext.StateType.FOLLOWER;
 
 public class CandidateTest {
 
@@ -33,7 +33,8 @@ public class CandidateTest {
   private @Mock StateFactory mockStateFactory;
   private @Mock StateMachine mockStateMachine;
   private @Mock RaftLog mockRaftLog;
-  private @Mock Context mockContext;
+  private @Mock
+  RaftStateContext mockRaftStateContext;
 
   @Before
   public void initMocks() {
@@ -56,7 +57,7 @@ public class CandidateTest {
   public void testRequestVoteWithNewerTerm() throws Exception {
 
     Candidate candidate = new Candidate(mockRaftLog, mockScheduler, 150, mockRaftClient);
-    candidate.init(mockContext);
+    candidate.init(mockRaftStateContext);
 
     Replica mockCandidate = Replica.fromString("localhost:10001");
 
@@ -68,7 +69,7 @@ public class CandidateTest {
         .setTerm(4L)
         .build();
 
-    candidate.requestVote(mockContext, request);
+    candidate.requestVote(mockRaftStateContext, request);
 
     verify(mockRaftLog).updateCurrentTerm(3L);
     verify(mockRaftLog).updateCurrentTerm(4L);
@@ -80,8 +81,8 @@ public class CandidateTest {
 
     verify(mockRaftLog, never()).updateCommitIndex(anyLong());
 
-    verify(mockContext, times(1)).setState(FOLLOWER);
-    verifyNoMoreInteractions(mockContext);
+    verify(mockRaftStateContext, times(1)).setState(FOLLOWER);
+    verifyNoMoreInteractions(mockRaftStateContext);
 
     verifyZeroInteractions(mockRaftClient);
 
@@ -90,7 +91,7 @@ public class CandidateTest {
   @Test
   public void testRequestVoteWithOlderTerm() throws Exception {
     Candidate candidate = new Candidate(mockRaftLog, mockScheduler, 150, mockRaftClient);
-    candidate.init(mockContext);
+    candidate.init(mockRaftStateContext);
 
     Replica mockCandidate = Replica.fromString("localhost:10001");
 
@@ -102,7 +103,7 @@ public class CandidateTest {
         .setTerm(1L)
         .build();
 
-    candidate.requestVote(mockContext, request);
+    candidate.requestVote(mockRaftStateContext, request);
 
     verify(mockRaftLog).updateCurrentTerm(3L);
     verify(mockRaftLog, times(1)).updateCurrentTerm(anyLong());
@@ -113,7 +114,7 @@ public class CandidateTest {
 
     verify(mockRaftLog, never()).updateCommitIndex(anyLong());
 
-    verifyZeroInteractions(mockContext);
+    verifyZeroInteractions(mockRaftStateContext);
 
     verifyZeroInteractions(mockRaftClient);
   }
@@ -121,7 +122,7 @@ public class CandidateTest {
   @Test
   public void testRequestVoteWithSameTerm() throws Exception {
     Candidate candidate = new Candidate(mockRaftLog, mockScheduler, 150, mockRaftClient);
-    candidate.init(mockContext);
+    candidate.init(mockRaftStateContext);
 
     Replica mockCandidate = Replica.fromString("localhost:10001");
 
@@ -133,7 +134,7 @@ public class CandidateTest {
         .setTerm(2L)
         .build();
 
-    candidate.requestVote(mockContext, request);
+    candidate.requestVote(mockRaftStateContext, request);
 
     verify(mockRaftLog).updateCurrentTerm(3L);
     verify(mockRaftLog, times(1)).updateCurrentTerm(anyLong());
@@ -144,9 +145,9 @@ public class CandidateTest {
 
     verify(mockRaftLog, never()).updateCommitIndex(anyLong());
 
-    verify(mockContext, never()).setState(any(Context.StateType.class));
+    verify(mockRaftStateContext, never()).setState(any(RaftStateContext.StateType.class));
 
-    verifyZeroInteractions(mockContext);
+    verifyZeroInteractions(mockRaftStateContext);
 
     verifyZeroInteractions(mockRaftClient);
   }
@@ -155,7 +156,7 @@ public class CandidateTest {
   public void testAppendEntriesWithNewerTerm() throws Exception {
 
     Candidate candidate = new Candidate(mockRaftLog, mockScheduler, 1, mockRaftClient);
-    candidate.init(mockContext);
+    candidate.init(mockRaftStateContext);
 
     Replica mockLeader = Replica.fromString("localhost:10001");
 
@@ -168,7 +169,7 @@ public class CandidateTest {
         .setCommitIndex(1L)
         .build();
 
-    candidate.appendEntries(mockContext, request);
+    candidate.appendEntries(mockRaftStateContext, request);
 
     verify(mockRaftLog).updateCurrentTerm(3L);
     verify(mockRaftLog).updateCurrentTerm(4L);
@@ -179,8 +180,8 @@ public class CandidateTest {
 
     verify(mockRaftLog, never()).updateCommitIndex(anyLong());
 
-    verify(mockContext).setState(FOLLOWER);
-    verifyNoMoreInteractions(mockContext);
+    verify(mockRaftStateContext).setState(FOLLOWER);
+    verifyNoMoreInteractions(mockRaftStateContext);
 
     verifyZeroInteractions(mockRaftClient);
 
@@ -190,7 +191,7 @@ public class CandidateTest {
   public void testAppendEntriesWithOlderTerm() throws Exception {
 
     Candidate candidate = new Candidate(mockRaftLog, mockScheduler, 1, mockRaftClient);
-    candidate.init(mockContext);
+    candidate.init(mockRaftStateContext);
 
     Replica mockLeader = Replica.fromString("localhost:10001");
 
@@ -203,7 +204,7 @@ public class CandidateTest {
         .setCommitIndex(1L)
         .build();
 
-    candidate.appendEntries(mockContext, request);
+    candidate.appendEntries(mockRaftStateContext, request);
 
     verify(mockRaftLog).updateCurrentTerm(3L);
     verify(mockRaftLog, times(1)).updateCurrentTerm(anyLong());
@@ -213,7 +214,7 @@ public class CandidateTest {
 
     verify(mockRaftLog, never()).updateCommitIndex(anyLong());
 
-    verifyZeroInteractions(mockContext);
+    verifyZeroInteractions(mockRaftStateContext);
 
     verifyZeroInteractions(mockRaftClient);
 
@@ -223,7 +224,7 @@ public class CandidateTest {
   public void testAppendEntriesWithSameTerm() throws Exception {
 
     Candidate candidate = new Candidate(mockRaftLog, mockScheduler, 1, mockRaftClient);
-    candidate.init(mockContext);
+    candidate.init(mockRaftStateContext);
 
     AppendEntries request =
       AppendEntries.newBuilder()
@@ -234,7 +235,7 @@ public class CandidateTest {
         .setCommitIndex(1L)
         .build();
 
-    candidate.appendEntries(mockContext, request);
+    candidate.appendEntries(mockRaftStateContext, request);
 
     verify(mockRaftLog).updateCurrentTerm(3L);
     verify(mockRaftLog, times(1)).updateCurrentTerm(anyLong());
@@ -244,8 +245,8 @@ public class CandidateTest {
 
     verify(mockRaftLog, never()).updateCommitIndex(anyLong());
 
-    verify(mockContext).setState(FOLLOWER);
-    verifyNoMoreInteractions(mockContext);
+    verify(mockRaftStateContext).setState(FOLLOWER);
+    verifyNoMoreInteractions(mockRaftStateContext);
 
     verifyZeroInteractions(mockRaftClient);
 

@@ -31,16 +31,18 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.robotninjas.barge.proto.RaftProto.*;
 
 @NotThreadSafe
-class DefaultContext implements Context {
+public class RaftStateContext {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(Context.class);
+  public enum StateType {START, FOLLOWER, CANDIDATE, LEADER}
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(RaftStateContext.class);
 
   private final StateFactory stateFactory;
   private volatile StateType state;
   private volatile State delegate;
 
   @Inject
-  DefaultContext(StateFactory stateFactory) {
+  RaftStateContext(StateFactory stateFactory) {
     this.stateFactory = stateFactory;
     this.state = StateType.START;
   }
@@ -61,7 +63,6 @@ class DefaultContext implements Context {
     return delegate.appendEntries(this, request);
   }
 
-  @Override
   @Nonnull
   public ListenableFuture<Boolean> commitOperation(@Nonnull byte[] op) throws RaftException {
     checkNotNull(op);

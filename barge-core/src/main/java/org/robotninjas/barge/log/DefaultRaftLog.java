@@ -264,24 +264,22 @@ class DefaultRaftLog implements RaftLog {
 
   public void updateCommitIndex(long index) {
 
-    if (index > commitIndex) {
 
-      setCommitIndex(index);
+    setCommitIndex(index);
 
-      try {
-        LogProto.JournalEntry entry =
-          LogProto.JournalEntry.newBuilder()
-            .setCommit(LogProto.Commit.newBuilder()
-              .setIndex(index))
-            .build();
+    try {
+      LogProto.JournalEntry entry =
+        LogProto.JournalEntry.newBuilder()
+          .setCommit(LogProto.Commit.newBuilder()
+            .setIndex(index))
+          .build();
 
-        journal.write(entry.toByteArray(), WriteType.SYNC);
-      } catch (IOException e) {
-        Throwables.propagate(e);
-      }
-
-      fireComitted();
+      journal.write(entry.toByteArray(), WriteType.SYNC);
+    } catch (IOException e) {
+      Throwables.propagate(e);
     }
+
+    fireComitted();
 
   }
 
@@ -302,19 +300,17 @@ class DefaultRaftLog implements RaftLog {
     MDC.put("term", Long.toString(term));
     LOGGER.debug("New term {}", term);
 
-    if (term > currentTerm) {
-      setCurrentTerm(term);
+    setCurrentTerm(term);
 
-      try {
-        LogProto.JournalEntry entry =
-          LogProto.JournalEntry.newBuilder()
-            .setTerm(LogProto.Term.newBuilder()
-              .setTerm(term))
-            .build();
-        journal.write(entry.toByteArray(), WriteType.SYNC);
-      } catch (IOException e) {
-        Throwables.propagate(e);
-      }
+    try {
+      LogProto.JournalEntry entry =
+        LogProto.JournalEntry.newBuilder()
+          .setTerm(LogProto.Term.newBuilder()
+            .setTerm(term))
+          .build();
+      journal.write(entry.toByteArray(), WriteType.SYNC);
+    } catch (IOException e) {
+      Throwables.propagate(e);
     }
   }
 
@@ -343,27 +339,25 @@ class DefaultRaftLog implements RaftLog {
 
     LOGGER.debug("Voting for {}", vote.orNull());
 
-    if (!votedFor.equals(vote)) {
 
-      setLastVotedFor(vote);
+    setLastVotedFor(vote);
 
-      try {
-        LogProto.Vote.Builder voteBuilder =
-          LogProto.Vote.newBuilder();
+    try {
+      LogProto.Vote.Builder voteBuilder =
+        LogProto.Vote.newBuilder();
 
-        if (vote.isPresent()) {
-          voteBuilder.setVotedFor(vote.get().toString());
-        }
-
-        LogProto.JournalEntry entry =
-          LogProto.JournalEntry.newBuilder()
-            .setVote(voteBuilder)
-            .build();
-
-        journal.write(entry.toByteArray(), WriteType.SYNC);
-      } catch (IOException e) {
-        Throwables.propagate(e);
+      if (vote.isPresent()) {
+        voteBuilder.setVotedFor(vote.get().toString());
       }
+
+      LogProto.JournalEntry entry =
+        LogProto.JournalEntry.newBuilder()
+          .setVote(voteBuilder)
+          .build();
+
+      journal.write(entry.toByteArray(), WriteType.SYNC);
+    } catch (IOException e) {
+      Throwables.propagate(e);
     }
   }
 

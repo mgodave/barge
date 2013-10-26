@@ -24,7 +24,6 @@ import org.robotninjas.barge.NotLeaderException;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.log.RaftLog;
-import org.robotninjas.barge.rpc.Client;
 import org.robotninjas.barge.rpc.RaftScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +38,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.robotninjas.barge.proto.RaftProto.*;
-import static org.robotninjas.barge.state.Context.StateType.CANDIDATE;
+import static org.robotninjas.barge.state.RaftStateContext.StateType.CANDIDATE;
 
 @NotThreadSafe
 class Follower extends BaseState {
@@ -49,30 +48,27 @@ class Follower extends BaseState {
   private final RaftLog log;
   private final ScheduledExecutorService scheduler;
   private final long timeout;
-  private final Client client;
   private Optional<Replica> leader = Optional.absent();
   private ScheduledFuture<?> timeoutTask;
 
   @Inject
-  Follower(RaftLog log, @RaftScheduler ScheduledExecutorService scheduler,
-           @ElectionTimeout @Nonnegative long timeout, Client client) {
+  Follower(RaftLog log, @RaftScheduler ScheduledExecutorService scheduler, @ElectionTimeout @Nonnegative long timeout) {
 
     this.log = checkNotNull(log);
     this.scheduler = checkNotNull(scheduler);
     checkArgument(timeout >= 0);
     this.timeout = timeout;
-    this.client = checkNotNull(client);
 
   }
 
   @Override
-  public void init(@Nonnull Context ctx) {
+  public void init(@Nonnull RaftStateContext ctx) {
     resetTimeout(ctx, timeout * 10);
   }
 
   @Nonnull
   @Override
-  public RequestVoteResponse requestVote(@Nonnull Context ctx, @Nonnull RequestVote request) {
+  public RequestVoteResponse requestVote(@Nonnull RaftStateContext ctx, @Nonnull RequestVote request) {
 
     LOGGER.debug("RequestVote received for term {}", request.getTerm());
 
@@ -102,10 +98,10 @@ class Follower extends BaseState {
 
   @Nonnull
   @Override
-  public AppendEntriesResponse appendEntries(@Nonnull Context ctx, @Nonnull AppendEntries request) {
+  public AppendEntriesResponse appendEntries(@Nonnull RaftStateContext ctx, @Nonnull AppendEntries request) {
 
-    LOGGER.debug("AppendEntries start index {}, size {}, received for term {}",
-      request.getPrevLogIndex(), request.getEntriesCount(), request.getTerm());
+    LOGGER.debug("AppendEntries prev index {}, prev term {}, num entries {}, term {}",
+      request.getPrevLogIndex(), request.getPrevLogTerm(), request.getEntriesCount(), request.getTerm());
 
     boolean success = false;
 
@@ -135,7 +131,7 @@ class Follower extends BaseState {
 
   @Nonnull
   @Override
-  public ListenableFuture<Boolean> commitOperation(@Nonnull Context ctx, @Nonnull byte[] operation) throws RaftException {
+  public ListenableFuture<Boolean> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
     if (leader.isPresent()) {
       throw new NotLeaderException(leader.get());
     } else {
@@ -143,14 +139,12 @@ class Follower extends BaseState {
     }
   }
 
-  void resetTimeout(@Nonnull final Context ctx, long delay) {
+  void resetTimeout(@Nonnull final RaftStateContext ctx, long delay) {
 
     if (null != timeoutTask) {
-      LOGGER.debug("Canceling timeout");
       timeoutTask.cancel(false);
     }
 
-    LOGGER.debug("Resetting timeout");
     timeoutTask = scheduler.schedule(new Runnable() {
       @Override
       public void run() {

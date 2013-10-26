@@ -43,7 +43,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.util.concurrent.Futures.addCallback;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.robotninjas.barge.proto.RaftProto.*;
-import static org.robotninjas.barge.state.Context.StateType.*;
+import static org.robotninjas.barge.state.RaftStateContext.StateType.*;
 import static org.robotninjas.barge.state.MajorityCollector.majorityResponse;
 import static org.robotninjas.barge.state.RaftPredicates.voteGranted;
 
@@ -70,7 +70,7 @@ class Candidate extends BaseState {
   }
 
   @Override
-  public void init(@Nonnull final Context ctx) {
+  public void init(@Nonnull final RaftStateContext ctx) {
 
     log.updateCurrentTerm(log.currentTerm() + 1);
     log.updateVotedFor(Optional.of(log.self()));
@@ -110,19 +110,19 @@ class Candidate extends BaseState {
 
   }
 
-  private void transition(@Nonnull Context ctx, @Nonnull Context.StateType state) {
+  private void transition(@Nonnull RaftStateContext ctx, @Nonnull RaftStateContext.StateType state) {
     ctx.setState(state);
     electionResult.cancel(false);
     electionTimer.cancel(false);
   }
 
-  private void stepDown(@Nonnull Context ctx) {
+  private void stepDown(@Nonnull RaftStateContext ctx) {
     transition(ctx, FOLLOWER);
   }
 
   @Nonnull
   @Override
-  public RequestVoteResponse requestVote(@Nonnull Context ctx, @Nonnull RequestVote request) {
+  public RequestVoteResponse requestVote(@Nonnull RaftStateContext ctx, @Nonnull RequestVote request) {
 
     LOGGER.debug("RequestVote received for term {}", request.getTerm());
 
@@ -148,7 +148,7 @@ class Candidate extends BaseState {
 
   @Nonnull
   @Override
-  public AppendEntriesResponse appendEntries(@Nonnull Context ctx, @Nonnull AppendEntries request) {
+  public AppendEntriesResponse appendEntries(@Nonnull RaftStateContext ctx, @Nonnull AppendEntries request) {
 
     LOGGER.debug("AppendEntries received for term {}", request.getTerm());
 
@@ -175,7 +175,7 @@ class Candidate extends BaseState {
 
   @Nonnull
   @Override
-  public ListenableFuture<Boolean> commitOperation(@Nonnull Context ctx, @Nonnull byte[] operation) throws RaftException {
+  public ListenableFuture<Boolean> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
     throw new NoLeaderException();
   }
 

@@ -43,7 +43,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.util.concurrent.MoreExecutors.sameThreadExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.robotninjas.barge.proto.RaftProto.*;
-import static org.robotninjas.barge.state.Context.StateType.FOLLOWER;
+import static org.robotninjas.barge.state.RaftStateContext.StateType.FOLLOWER;
 import static org.robotninjas.barge.state.MajorityCollector.majorityResponse;
 import static org.robotninjas.barge.state.RaftPredicates.appendSuccessul;
 
@@ -72,7 +72,7 @@ class Leader extends BaseState {
   }
 
   @Override
-  public void init(@Nonnull Context ctx) {
+  public void init(@Nonnull RaftStateContext ctx) {
 
     for (Replica replica : log.members()) {
       managers.put(replica, replicaManagerFactory.create(replica));
@@ -83,7 +83,7 @@ class Leader extends BaseState {
 
   }
 
-  private void stepDown(Context ctx) {
+  private void stepDown(RaftStateContext ctx) {
     ctx.setState(FOLLOWER);
     heartbeatTask.cancel(false);
     for (ReplicaManager mgr : managers.values()) {
@@ -93,7 +93,7 @@ class Leader extends BaseState {
 
   @Nonnull
   @Override
-  public RequestVoteResponse requestVote(@Nonnull Context ctx, @Nonnull RequestVote request) {
+  public RequestVoteResponse requestVote(@Nonnull RaftStateContext ctx, @Nonnull RequestVote request) {
 
     LOGGER.debug("RequestVote received for term {}", request.getTerm());
 
@@ -122,7 +122,7 @@ class Leader extends BaseState {
 
   @Nonnull
   @Override
-  public AppendEntriesResponse appendEntries(@Nonnull Context ctx, @Nonnull AppendEntries request) {
+  public AppendEntriesResponse appendEntries(@Nonnull RaftStateContext ctx, @Nonnull AppendEntries request) {
 
     boolean success = false;
 
@@ -139,7 +139,7 @@ class Leader extends BaseState {
 
   }
 
-  void resetTimeout(@Nonnull final Context ctx) {
+  void resetTimeout(@Nonnull final RaftStateContext ctx) {
 
     if (null != heartbeatTask) {
       heartbeatTask.cancel(false);
@@ -157,7 +157,7 @@ class Leader extends BaseState {
 
   @Nonnull
   @Override
-  public ListenableFuture<Boolean> commitOperation(@Nonnull Context ctx, @Nonnull byte[] operation) throws RaftException {
+  public ListenableFuture<Boolean> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
 
     resetTimeout(ctx);
     long index = log.append(operation);
@@ -199,7 +199,7 @@ class Leader extends BaseState {
 
   }
 
-  private void checkTermOnResponse(Context ctx, AppendEntriesResponse response) {
+  private void checkTermOnResponse(RaftStateContext ctx, AppendEntriesResponse response) {
 
     if (response.getTerm() > log.currentTerm()) {
       log.updateCurrentTerm(response.getTerm());

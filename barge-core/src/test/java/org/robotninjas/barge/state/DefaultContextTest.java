@@ -10,7 +10,7 @@ import static junit.framework.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.robotninjas.barge.proto.RaftProto.AppendEntries;
 import static org.robotninjas.barge.proto.RaftProto.RequestVote;
-import static org.robotninjas.barge.state.Context.StateType;
+import static org.robotninjas.barge.state.RaftStateContext.StateType;
 
 public class DefaultContextTest {
 
@@ -35,7 +35,7 @@ public class DefaultContextTest {
   @Test
   public void testDefaultContext() throws RaftException {
 
-    DefaultContext ctx = new DefaultContext(mockStateFactory);
+    RaftStateContext ctx = new RaftStateContext(mockStateFactory);
 
     ctx.init();
     verify(mockFollower).init(ctx);

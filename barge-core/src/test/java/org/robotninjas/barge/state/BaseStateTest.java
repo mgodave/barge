@@ -154,25 +154,25 @@ public class BaseStateTest {
 
   static class EmptyState extends BaseState {
     @Override
-    public void init(@Nonnull Context ctx) {
+    public void init(@Nonnull RaftStateContext ctx) {
 
     }
 
     @Nonnull
     @Override
-    public RaftProto.RequestVoteResponse requestVote(@Nonnull Context ctx, @Nonnull RequestVote request) {
+    public RaftProto.RequestVoteResponse requestVote(@Nonnull RaftStateContext ctx, @Nonnull RequestVote request) {
       return null;
     }
 
     @Nonnull
     @Override
-    public RaftProto.AppendEntriesResponse appendEntries(@Nonnull Context ctx, @Nonnull RaftProto.AppendEntries request) {
+    public RaftProto.AppendEntriesResponse appendEntries(@Nonnull RaftStateContext ctx, @Nonnull RaftProto.AppendEntries request) {
       return null;
     }
 
     @Nonnull
     @Override
-    public ListenableFuture<Boolean> commitOperation(@Nonnull Context ctx, @Nonnull byte[] operation) throws RaftException {
+    public ListenableFuture<Boolean> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
       return null;
     }
 

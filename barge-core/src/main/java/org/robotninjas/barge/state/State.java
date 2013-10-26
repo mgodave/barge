@@ -25,15 +25,15 @@ import static org.robotninjas.barge.proto.RaftProto.*;
 
 interface State {
 
-  void init(@Nonnull Context ctx);
+  void init(@Nonnull RaftStateContext ctx);
 
   @Nonnull
-  RequestVoteResponse requestVote(@Nonnull Context ctx, @Nonnull RequestVote request);
+  RequestVoteResponse requestVote(@Nonnull RaftStateContext ctx, @Nonnull RequestVote request);
 
   @Nonnull
-  AppendEntriesResponse appendEntries(@Nonnull Context ctx, @Nonnull AppendEntries request);
+  AppendEntriesResponse appendEntries(@Nonnull RaftStateContext ctx, @Nonnull AppendEntries request);
 
   @Nonnull
-  ListenableFuture<Boolean> commitOperation(@Nonnull Context ctx, @Nonnull byte[] operation) throws RaftException;
+  ListenableFuture<Boolean> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException;
 
 }

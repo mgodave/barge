@@ -51,7 +51,8 @@ public class StateModule extends PrivateModule {
   @Provides
   @Singleton
   @Exposed
-  Context getContext(@Nonnull DefaultContext ctx) {
+  RaftStateContext getContext(StateFactory stateFactory) {
+    RaftStateContext ctx = new RaftStateContext(stateFactory);
     ctx.init();
     return ctx;
   }

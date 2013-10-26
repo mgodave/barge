@@ -28,7 +28,7 @@ import com.google.protobuf.Service;
 import io.netty.channel.nio.NioEventLoopGroup;
 import org.robotninjas.barge.proto.RaftProto;
 import org.robotninjas.barge.rpc.RaftExecutor;
-import org.robotninjas.barge.state.Context;
+import org.robotninjas.barge.state.RaftStateContext;
 import org.robotninjas.protobuf.netty.server.RpcServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,10 +53,10 @@ public class RaftService extends AbstractService {
 
   private final ListeningExecutorService executor;
   private final RpcServer rpcServer;
-  private final Context ctx;
+  private final RaftStateContext ctx;
 
   @Inject
-  RaftService(@Nonnull RpcServer rpcServer, @RaftExecutor ListeningExecutorService executor, @Nonnull Context ctx) {
+  RaftService(@Nonnull RpcServer rpcServer, @RaftExecutor ListeningExecutorService executor, @Nonnull RaftStateContext ctx) {
 
     this.executor = checkNotNull(executor);
     this.rpcServer = checkNotNull(rpcServer);
@@ -87,7 +87,7 @@ public class RaftService extends AbstractService {
 
     try {
       rpcServer.stopAsync().awaitTerminated();
-      notifyStarted();
+      notifyStopped();
     } catch (Exception e) {
       notifyFailed(e);
     }

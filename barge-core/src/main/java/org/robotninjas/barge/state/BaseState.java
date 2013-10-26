@@ -25,7 +25,9 @@ public abstract class BaseState implements State {
     boolean alreadyVotedForCandidate = lastVotedFor.equals(Optional.of(candidate));
     boolean notYetVoted = !lastVotedFor.isPresent();
 
-    return (alreadyVotedForCandidate && logAsComplete) || (notYetVoted && logAsComplete);
+    return (alreadyVotedForCandidate && logAsComplete) || (notYetVoted && logAsComplete) ||
+      (request.getLastLogTerm() > log.lastLogTerm()) || (hasAtLeastTerm && (request.getLastLogIndex() > log.lastLogIndex()))
+      || logAsComplete;
 
   }
 
