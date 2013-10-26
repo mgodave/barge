@@ -1,4 +1,4 @@
-script: mvn clean install test
+script: mvn clean install
 jdk:
   - openjdk6
   - openjdk7
