@@ -10,6 +10,7 @@
 
     <modules>
         <module>barge-core</module>
+        <module>barge-tools</module>
     </modules>
 
     <build>
