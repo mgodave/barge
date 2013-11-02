@@ -49,7 +49,7 @@
         <dependency>
             <groupId>com.github.sbtourist</groupId>
             <artifactId>journalio</artifactId>
-            <version>1.4</version>
+            <version>1.4.1</version>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
