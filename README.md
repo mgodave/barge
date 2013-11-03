@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/mgodave/barge.png)](https://travis-ci.org/mgodave/barge)
 
-barge
+barge (0.1.0-alpha1)
 =====
 
 An implementation of the [Raft Concensus Protocol][1]. This supercedes my [previous attempt][2].
