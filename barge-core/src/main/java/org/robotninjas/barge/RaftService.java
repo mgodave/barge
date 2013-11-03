@@ -26,6 +26,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.protobuf.Service;
 import io.netty.channel.nio.NioEventLoopGroup;
+import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.proto.RaftProto;
 import org.robotninjas.barge.rpc.RaftExecutor;
 import org.robotninjas.barge.state.RaftStateContext;
@@ -54,13 +55,15 @@ public class RaftService extends AbstractService {
   private final ListeningExecutorService executor;
   private final RpcServer rpcServer;
   private final RaftStateContext ctx;
+  private final RaftLog log;
 
   @Inject
-  RaftService(@Nonnull RpcServer rpcServer, @RaftExecutor ListeningExecutorService executor, @Nonnull RaftStateContext ctx) {
+  RaftService(@Nonnull RpcServer rpcServer, @RaftExecutor ListeningExecutorService executor, @Nonnull RaftStateContext ctx, RaftLog log) {
 
     this.executor = checkNotNull(executor);
     this.rpcServer = checkNotNull(rpcServer);
     this.ctx = checkNotNull(ctx);
+    this.log = checkNotNull(log);
 
   }
 
@@ -68,6 +71,8 @@ public class RaftService extends AbstractService {
   protected void doStart() {
 
     try {
+
+      log.load();
 
       RaftServiceEndpoint endpoint = new RaftServiceEndpoint(ctx);
       final Service replicaService = RaftProto.RaftService.newReflectiveService(endpoint);

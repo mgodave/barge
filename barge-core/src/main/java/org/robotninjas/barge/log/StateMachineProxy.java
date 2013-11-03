@@ -4,7 +4,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.inject.Inject;
 import org.robotninjas.barge.StateMachine;
 
@@ -13,9 +12,10 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.util.concurrent.Executors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
 @ThreadSafe
 class StateMachineProxy {
@@ -31,7 +31,7 @@ class StateMachineProxy {
 
   @Inject
   StateMachineProxy(@Nonnull StateMachine stateMachine) {
-    this(MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor()), stateMachine);
+    this(listeningDecorator(newSingleThreadExecutor()), stateMachine);
   }
 
   @Nonnull

@@ -79,6 +79,7 @@ class DefaultRaftLog implements RaftLog {
     this.journal = checkNotNull(journal);
     this.members = checkNotNull(members);
     this.stateMachine = checkNotNull(stateMachine);
+
     EntryCacheLoader loader = new EntryCacheLoader(entryIndex, journal);
     this.entryCache = CacheBuilder.newBuilder()
       .expireAfterAccess(1, TimeUnit.MINUTES)
@@ -86,7 +87,8 @@ class DefaultRaftLog implements RaftLog {
       .build(loader);
   }
 
-  public void init() {
+  @Override
+  public void load() {
     this.entryIndex.put(0L, new EntryMeta(0, 0, null));
 
     LOGGER.info("Replaying log");

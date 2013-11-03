@@ -53,4 +53,6 @@ public interface RaftLog {
 
   void updateVotedFor(@Nonnull Optional<Replica> candidate);
 
+  void load();
+
 }

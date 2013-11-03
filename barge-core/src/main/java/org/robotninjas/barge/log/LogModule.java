@@ -16,10 +16,9 @@
 
 package org.robotninjas.barge.log;
 
-import com.google.common.base.Supplier;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.google.inject.*;
+import com.google.inject.PrivateModule;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
 import journal.io.api.Journal;
 import journal.io.api.JournalBuilder;
 import org.robotninjas.barge.StateMachine;
@@ -27,11 +26,9 @@ import org.robotninjas.barge.StateMachine;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Throwables.propagate;
-import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator;
 
 public class LogModule extends PrivateModule {
 
@@ -46,44 +43,11 @@ public class LogModule extends PrivateModule {
   @Override
   protected void configure() {
 
-    ThreadFactory threadFactory = new ThreadFactoryBuilder()
-      .setDaemon(true)
-      .setNameFormat("State Machine Thread")
-      .build();
-
-    final ListeningExecutorService stateMachineExecutor =
-      listeningDecorator(Executors.newSingleThreadExecutor());
-
-    bind(ListeningExecutorService.class)
-      .annotatedWith(StateMachineExecutor.class)
-      .toInstance(stateMachineExecutor);
-
-    Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-      @Override
-      public void run() {
-        stateMachineExecutor.shutdownNow();
-      }
-    }));
-
     bind(StateMachine.class).toInstance(stateMachine);
     bind(StateMachineProxy.class);
+    bind(RaftLog.class).to(DefaultRaftLog.class).asEagerSingleton();
+    expose(RaftLog.class);
 
-    bind(new TypeLiteral<Supplier<File>>() {}).toInstance(new Supplier<File>() {
-      @Override
-      public File get() {
-        return new File("");
-      }
-    });
-
-  }
-
-  @Nonnull
-  @Provides
-  @Singleton
-  @Exposed
-  RaftLog getLog(@Nonnull DefaultRaftLog log) {
-    log.init();
-    return log;
   }
 
   @Nonnull

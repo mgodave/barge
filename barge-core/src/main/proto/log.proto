@@ -46,7 +46,7 @@ message Commit {
 message Snapshot {
 	required int64 last_included_index = 1;
 	required int64 last_included_term = 2;
-	required bytes state_machine_state = 3;
+	required string snapshot_file = 3;
 }
 
 message JournalEntry {
