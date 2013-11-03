@@ -7,9 +7,23 @@ An implementation of the [Raft Concensus Protocol][1]. This supercedes my [previ
 
 [1]: https://ramcloud.stanford.edu/wiki/download/attachments/11370504/raft.pdf
 [2]: https://github.com/mgodave/raft
-[3]: https://github.com/mgodave/netty-protobuf-rpc
 
-Run a server state machine
+TODO
+====
+Barge is still a work in progress, there is a lot left to do to make this something that can be used in an actual project. Some of the major missing features are:
+
+* Log Compaction (alpha2)
+* Dynamic Membership (alpha2)
+* Expanded Unit Test Coverage
+* Integration Testing
+
+Roadmap
+=======
+Barge is currently at 0.1.0-alpha1. I intend to release an alpha2 when the library is feature complete from the standpoint of the paper. Interest and involvement will
+determine how the library progresses past the alpha stage.
+
+Use
+===
 
 ```java
 
