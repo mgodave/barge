@@ -16,38 +16,42 @@
 
 package org.robotninjas.barge.log;
 
+import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import journal.io.api.Journal;
 import journal.io.api.Location;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.annotations.ClusterMembers;
 import org.robotninjas.barge.annotations.LocalReplicaInfo;
 import org.robotninjas.barge.proto.LogProto;
+import org.robotninjas.barge.proto.RaftEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.Collections;
+import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import static com.google.common.base.Preconditions.*;
 import static com.google.common.base.Throwables.propagate;
 import static com.google.common.collect.Lists.newArrayList;
 import static journal.io.api.Journal.WriteType;
+import static org.robotninjas.barge.log.DefaultRaftLog.ToEntryFunction.ToEntry;
 import static org.robotninjas.barge.proto.RaftEntry.Entry;
 import static org.robotninjas.barge.proto.RaftProto.AppendEntries;
 
@@ -58,7 +62,6 @@ class DefaultRaftLog implements RaftLog {
   private static final Entry SENTINEL_ENTRY = Entry.newBuilder().setCommand(ByteString.EMPTY).setTerm(0).build();
 
   private final Journal journal;
-  private final LoadingCache<Long, Entry> entryCache;
   private final SortedMap<Long, EntryMeta> entryIndex = new TreeMap<Long, EntryMeta>();
   private final Replica local;
   private final List<Replica> members;
@@ -80,11 +83,6 @@ class DefaultRaftLog implements RaftLog {
     this.members = checkNotNull(members);
     this.stateMachine = checkNotNull(stateMachine);
 
-    EntryCacheLoader loader = new EntryCacheLoader(entryIndex, journal);
-    this.entryCache = CacheBuilder.newBuilder()
-      .expireAfterAccess(1, TimeUnit.MINUTES)
-      .recordStats()
-      .build(loader);
   }
 
   @Override
@@ -109,8 +107,6 @@ class DefaultRaftLog implements RaftLog {
 
           EntryMeta meta = new EntryMeta(index, term, loc);
           this.entryIndex.put(index, meta);
-
-          this.entryCache.put(index, entry);
 
           this.lastLogIndex = Math.max(lastLogIndex, index);
 
@@ -172,7 +168,6 @@ class DefaultRaftLog implements RaftLog {
       Location loc = journal.write(journalEntry.toByteArray(), WriteType.SYNC);
       EntryMeta meta = new EntryMeta(index, entry.getTerm(), loc);
       this.entryIndex.put(index, meta);
-      this.entryCache.put(index, entry);
     } catch (Exception e) {
       throw propagate(e);
     }
@@ -233,9 +228,9 @@ class DefaultRaftLog implements RaftLog {
   @Nonnull
   public GetEntriesResult getEntriesFrom(@Nonnegative long beginningIndex, @Nonnegative int max) {
     checkArgument(beginningIndex >= 0);
-    Set<Long> indices = entryIndex.tailMap(beginningIndex).keySet();
-    Iterable<Entry> values = Iterables.transform(Iterables.limit(indices, max), entryCache);
-    Entry previousEntry = entryCache.getIfPresent(beginningIndex - 1);
+    Iterable<EntryMeta> indices = Iterables.limit(entryIndex.tailMap(beginningIndex).values(), max);
+    Iterable<Entry> values = Iterables.transform(indices, ToEntry);
+    Entry previousEntry = ToEntry.apply(entryIndex.get(beginningIndex - 1));
     previousEntry = Objects.firstNonNull(previousEntry, SENTINEL_ENTRY);
     return new GetEntriesResult(previousEntry.getTerm(), beginningIndex - 1, newArrayList(values));
   }
@@ -243,7 +238,7 @@ class DefaultRaftLog implements RaftLog {
   void fireComitted() {
     try {
       for (long i = lastApplied + 1; i <= Math.min(commitIndex, lastLogIndex); ++i, ++lastApplied) {
-        byte[] rawCommand = entryCache.get(i).getCommand().toByteArray();
+        byte[] rawCommand = entryIndex.get(i).location.getData();
         final ByteBuffer operation = ByteBuffer.wrap(rawCommand).asReadOnlyBuffer();
         stateMachine.dispatchOperation(operation);
       }
@@ -383,36 +378,24 @@ class DefaultRaftLog implements RaftLog {
 
   }
 
-  @Immutable
-  static final class EntryCacheLoader extends CacheLoader<Long, Entry> {
+  enum ToEntryFunction implements Function<EntryMeta, RaftEntry.Entry> {
 
-    private static final Logger logger = LoggerFactory.getLogger(EntryCacheLoader.class);
+    ToEntry;
 
-    private final Map<Long, EntryMeta> index;
-    private final Journal journal;
-
-    EntryCacheLoader(@Nonnull Map<Long, EntryMeta> index, @Nonnull Journal journal) {
-      this.index = checkNotNull(index);
-      this.journal = checkNotNull(journal);
-    }
-
+    @Nullable
     @Override
-    public Entry load(@Nonnull Long key) throws Exception {
-      checkNotNull(key);
+    public Entry apply(@Nullable EntryMeta input) {
       try {
-        logger.debug("Loading {}", key);
-        EntryMeta meta = index.get(key);
-        Location loc = meta.location;
-        byte[] data = journal.read(loc, Journal.ReadType.ASYNC);
-        LogProto.JournalEntry journalEntry = LogProto.JournalEntry.parseFrom(data);
-        if (!journalEntry.hasAppend()) {
-          throw new IllegalStateException("Journal entry does not contain Append");
+        if (input == null || input.location == null || input.location.getData() == null) {
+          return null;
         }
-        return journalEntry.getAppend().getEntry();
-      } catch (Exception e) {
-        throw e;
+        return Entry.parseFrom(input.location.getData());
+      } catch (InvalidProtocolBufferException e) {
+        throw Throwables.propagate(e);
       }
     }
+
+
   }
 
 }
