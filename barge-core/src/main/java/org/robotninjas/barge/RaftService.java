@@ -18,10 +18,7 @@ package org.robotninjas.barge;
 
 import com.google.common.base.Optional;
 import com.google.common.io.Files;
-import com.google.common.util.concurrent.AbstractService;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.*;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.protobuf.Service;
@@ -72,15 +69,18 @@ public class RaftService extends AbstractService {
 
     try {
 
-      rpcServer.startAsync().awaitRunning();
-
       log.load();
 
-      ctx.setState(RaftStateContext.StateType.FOLLOWER);
-
       RaftServiceEndpoint endpoint = new RaftServiceEndpoint(ctx);
-      final Service replicaService = RaftProto.RaftService.newReflectiveService(endpoint);
+      Service replicaService = RaftProto.RaftService.newReflectiveService(endpoint);
       rpcServer.registerService(replicaService);
+      rpcServer.startAsync().addListener(new Listener() {
+        @Override
+        public void running() {
+          ctx.setState(RaftStateContext.StateType.FOLLOWER);
+        }
+      }, MoreExecutors.sameThreadExecutor());
+      rpcServer.awaitRunning();
 
       notifyStarted();
 

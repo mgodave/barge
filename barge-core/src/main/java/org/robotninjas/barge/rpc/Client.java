@@ -16,42 +16,94 @@
 
 package org.robotninjas.barge.rpc;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.inject.Inject;
 import org.robotninjas.barge.Replica;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
+import java.util.concurrent.Callable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.util.concurrent.Futures.transform;
+import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.robotninjas.barge.proto.RaftProto.*;
 
 @Immutable
 public class Client {
 
-  @Nonnull
-  private final RpcClientProvider clientProvider;
+  @Nonnull private final ListeningExecutorService raftExecutor;
+  @Nonnull private final ListeningExecutorService networkCallExecutor;
+  @Nonnull private final RpcClientProvider clientProvider;
+
+  @VisibleForTesting
+  Client(RpcClientProvider clientProvider, ListeningExecutorService raftExecutor, ListeningExecutorService networkCallExecutor) {
+    this.clientProvider = checkNotNull(clientProvider);
+    this.raftExecutor = checkNotNull(raftExecutor);
+    this.networkCallExecutor = checkNotNull(networkCallExecutor);
+  }
 
   @Inject
-  public Client(@Nonnull RpcClientProvider clientProvider) {
-    checkNotNull(clientProvider);
-    this.clientProvider = clientProvider;
+  public Client(@Nonnull RpcClientProvider clientProvider, @RaftExecutor ListeningExecutorService raftExecutor) {
+    this(clientProvider, raftExecutor, listeningDecorator(newSingleThreadExecutor()));
   }
 
   @Nonnull
-  public ListenableFuture<RequestVoteResponse> requestVote(@Nonnull Replica replica, @Nonnull RequestVote request) {
+  public ListenableFuture<RequestVoteResponse> requestVote(@Nonnull final Replica replica, @Nonnull final RequestVote request) {
     checkNotNull(replica);
     checkNotNull(request);
-    RaftClient client = clientProvider.get(replica);
-    return client.requestVote(request);
+
+    // Put a (possibly) blocking connect onto a different thread
+    ListenableFuture<ListenableFuture<RequestVoteResponse>> response =
+      networkCallExecutor.submit(new Callable<ListenableFuture<RequestVoteResponse>>() {
+        @Override
+        public ListenableFuture<RequestVoteResponse> call() throws Exception {
+          RaftClient client = clientProvider.get(replica);
+          return client.requestVote(request);
+        }
+      });
+
+    // Transfer the response back onto the raft thread
+    return transform(response, Identity.<RequestVoteResponse>identity(), raftExecutor);
+
   }
 
   @Nonnull
-  public ListenableFuture<AppendEntriesResponse> appendEntries(@Nonnull Replica replica, @Nonnull AppendEntries request) {
+  public ListenableFuture<AppendEntriesResponse> appendEntries(@Nonnull final Replica replica, @Nonnull final AppendEntries request) {
     checkNotNull(replica);
     checkNotNull(request);
-    RaftClient client = clientProvider.get(replica);
-    return client.appendEntries(request);
+
+    // Put a (possibly) blocking connect onto a different thread
+    ListenableFuture<ListenableFuture<AppendEntriesResponse>> response =
+      networkCallExecutor.submit(new Callable<ListenableFuture<AppendEntriesResponse>>() {
+        @Override
+        public ListenableFuture<AppendEntriesResponse> call() throws Exception {
+          RaftClient client = clientProvider.get(replica);
+          return client.appendEntries(request);
+        }
+      });
+
+    // Transfer the response back onto the raft thread
+    return transform(response, Identity.<AppendEntriesResponse>identity(), raftExecutor);
+
+  }
+
+  private static final class Identity<E> implements AsyncFunction<ListenableFuture<E>, E> {
+
+    Identity() {}
+
+    @Override
+    public ListenableFuture<E> apply(ListenableFuture<E> input) throws Exception {
+      return input;
+    }
+
+    public static <T> Identity<T> identity() {
+      return new Identity<T>();
+    }
   }
 
 }

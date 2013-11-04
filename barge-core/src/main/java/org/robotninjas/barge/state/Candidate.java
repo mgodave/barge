@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.robotninjas.barge.NoLeaderException;
 import org.robotninjas.barge.RaftException;
@@ -43,9 +44,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.util.concurrent.Futures.addCallback;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.robotninjas.barge.proto.RaftProto.*;
-import static org.robotninjas.barge.state.RaftStateContext.StateType.*;
 import static org.robotninjas.barge.state.MajorityCollector.majorityResponse;
 import static org.robotninjas.barge.state.RaftPredicates.voteGranted;
+import static org.robotninjas.barge.state.RaftStateContext.StateType.*;
 
 @NotThreadSafe
 class Candidate extends BaseState {
@@ -77,7 +78,7 @@ class Candidate extends BaseState {
 
     LOGGER.debug("Election starting for term {}", log.currentTerm());
 
-    List<ListenableFuture<RequestVoteResponse>> responses = sendRequests();
+    List<ListenableFuture<RequestVoteResponse>> responses = sendRequests(ctx);
     electionResult = majorityResponse(responses, voteGranted());
 
     addCallback(electionResult, new FutureCallback<Boolean>() {
@@ -106,7 +107,7 @@ class Candidate extends BaseState {
         LOGGER.debug("Election timeout");
         transition(ctx, CANDIDATE);
       }
-    }, timeout * 2, MILLISECONDS);
+    }, timeout, MILLISECONDS);
 
   }
 
@@ -179,8 +180,17 @@ class Candidate extends BaseState {
     throw new NoLeaderException();
   }
 
+  private void checkTermOnResponse(RaftStateContext ctx, RequestVoteResponse response) {
+
+    if (response.getTerm() > log.currentTerm()) {
+      log.updateCurrentTerm(response.getTerm());
+      stepDown(ctx);
+    }
+
+  }
+
   @VisibleForTesting
-  List<ListenableFuture<RequestVoteResponse>> sendRequests() {
+  List<ListenableFuture<RequestVoteResponse>> sendRequests(final RaftStateContext ctx) {
 
     RequestVote request =
       RequestVote.newBuilder()
@@ -192,7 +202,17 @@ class Candidate extends BaseState {
 
     List<ListenableFuture<RequestVoteResponse>> responses = Lists.newArrayList();
     for (Replica replica : log.members()) {
-      responses.add(client.requestVote(replica, request));
+      ListenableFuture<RequestVoteResponse> response = client.requestVote(replica, request);
+      Futures.addCallback(response, new FutureCallback<RequestVoteResponse>() {
+        @Override
+        public void onSuccess(@Nullable RequestVoteResponse result) {
+          checkTermOnResponse(ctx, result);
+        }
+
+        @Override
+        public void onFailure(Throwable t) {}
+      });
+      responses.add(response);
     }
 
     return responses;

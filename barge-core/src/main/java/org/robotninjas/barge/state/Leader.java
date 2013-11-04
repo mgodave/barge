@@ -20,6 +20,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Longs;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import org.robotninjas.barge.RaftException;
@@ -31,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
 import java.util.*;
@@ -40,12 +43,11 @@ import java.util.concurrent.ScheduledFuture;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.util.concurrent.MoreExecutors.sameThreadExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.robotninjas.barge.proto.RaftProto.*;
-import static org.robotninjas.barge.state.RaftStateContext.StateType.FOLLOWER;
 import static org.robotninjas.barge.state.MajorityCollector.majorityResponse;
 import static org.robotninjas.barge.state.RaftPredicates.appendSuccessul;
+import static org.robotninjas.barge.state.RaftStateContext.StateType.FOLLOWER;
 
 @NotThreadSafe
 class Leader extends BaseState {
@@ -78,17 +80,17 @@ class Leader extends BaseState {
       managers.put(replica, replicaManagerFactory.create(replica));
     }
 
-    sendRequests();
+    sendRequests(ctx);
     resetTimeout(ctx);
 
   }
 
   private void stepDown(RaftStateContext ctx) {
-    ctx.setState(FOLLOWER);
     heartbeatTask.cancel(false);
     for (ReplicaManager mgr : managers.values()) {
       mgr.shutdown();
     }
+    ctx.setState(FOLLOWER);
   }
 
   @Nonnull
@@ -149,7 +151,7 @@ class Leader extends BaseState {
       @Override
       public void run() {
         LOGGER.debug("Sending heartbeat");
-        sendRequests();
+        sendRequests(ctx);
       }
     }, timeout, timeout, MILLISECONDS);
 
@@ -161,13 +163,9 @@ class Leader extends BaseState {
 
     resetTimeout(ctx);
     long index = log.append(operation);
-//    System.out.println(index);
     SettableFuture<Boolean> f = SettableFuture.create();
     requests.put(index, f);
-//    System.out.println("puttted");
-    commit();
-    return f;
-    //return commit();
+    return commit(ctx);
 
   }
 
@@ -215,8 +213,8 @@ class Leader extends BaseState {
    */
   @Nonnull
   @VisibleForTesting
-  ListenableFuture<Boolean> commit() {
-    List<ListenableFuture<AppendEntriesResponse>> responses = sendRequests();
+  ListenableFuture<Boolean> commit(RaftStateContext ctx) {
+    List<ListenableFuture<AppendEntriesResponse>> responses = sendRequests(ctx);
     return majorityResponse(responses, appendSuccessul());
   }
 
@@ -227,17 +225,22 @@ class Leader extends BaseState {
    */
   @Nonnull
   @VisibleForTesting
-  List<ListenableFuture<AppendEntriesResponse>> sendRequests() {
+  List<ListenableFuture<AppendEntriesResponse>> sendRequests(final RaftStateContext ctx) {
     List<ListenableFuture<AppendEntriesResponse>> responses = newArrayList();
     for (ReplicaManager replicaManager : managers.values()) {
       ListenableFuture<AppendEntriesResponse> response = replicaManager.requestUpdate();
       responses.add(response);
-      response.addListener(new Runnable() {
+      Futures.addCallback(response, new FutureCallback<AppendEntriesResponse>() {
         @Override
-        public void run() {
+        public void onSuccess(@Nullable AppendEntriesResponse result) {
           updateCommitted();
+          checkTermOnResponse(ctx, result);
         }
-      }, sameThreadExecutor());
+
+        @Override
+        public void onFailure(Throwable t) {}
+
+      });
 
     }
     return responses;

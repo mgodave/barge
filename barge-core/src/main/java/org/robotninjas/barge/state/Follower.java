@@ -63,7 +63,7 @@ class Follower extends BaseState {
 
   @Override
   public void init(@Nonnull RaftStateContext ctx) {
-    resetTimeout(ctx, timeout * 10);
+    resetTimeout(ctx);
   }
 
   @Nonnull
@@ -112,7 +112,7 @@ class Follower extends BaseState {
       }
 
       leader = Optional.of(Replica.fromString(request.getLeaderId()));
-      resetTimeout(ctx, timeout * 2);
+      resetTimeout(ctx);
       success = log.append(request);
 
       if (request.getCommitIndex() > log.commitIndex()) {
@@ -139,7 +139,9 @@ class Follower extends BaseState {
     }
   }
 
-  void resetTimeout(@Nonnull final RaftStateContext ctx, long delay) {
+  void resetTimeout(@Nonnull final RaftStateContext ctx) {
+
+    LOGGER.debug("Resetting timeout");
 
     if (null != timeoutTask) {
       timeoutTask.cancel(false);
@@ -151,7 +153,7 @@ class Follower extends BaseState {
         LOGGER.debug("Timeout expired, starting election");
         ctx.setState(CANDIDATE);
       }
-    }, delay, MILLISECONDS);
+    }, timeout * 2, MILLISECONDS);
 
   }
 
