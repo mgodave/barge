@@ -7,6 +7,36 @@
     <artifactId>barge</artifactId>
     <version>0.1.0-alpha1-SNAPSHOT</version>
     <packaging>pom</packaging>
+    <name>Maven core</name>
+    <description>JVM Raft Concensus Implementation</description>
+    <url>http://www.github.com/mgodave/barge</url>
+
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:git://github.com/mgodave/barge.git</connection>
+        <developerConnection>scm:git:git@github.com:mgodave/barge.git</developerConnection>
+        <url>https://github.com/mgodave/barge</url>
+    </scm>
+
+    <developers>
+        <developer>
+            <name>Dave Rusek</name>
+            <email>dave.rusek@gmail.com</email>
+        </developer>
+    </developers>
 
     <modules>
         <module>barge-core</module>
