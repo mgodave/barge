@@ -32,7 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.pool.PoolUtils.adapt;
 
 @Immutable
-class RpcClientProvider {
+class  RpcClientProvider {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RpcClientProvider.class);
   private static final GenericKeyedObjectPool.Config config;

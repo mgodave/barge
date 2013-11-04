@@ -108,7 +108,7 @@ public class RpcModule extends PrivateModule {
       .asEagerSingleton();
     bind(RpcClient.class);
 
-    bind(Client.class);
+    bind(Client.class).asEagerSingleton();
     expose(Client.class);
   }
 

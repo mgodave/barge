@@ -16,6 +16,7 @@
 
 package org.robotninjas.barge.log;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
 import javax.annotation.Nonnull;
@@ -53,4 +54,12 @@ public class GetEntriesResult {
     return Collections.unmodifiableList(entries);
   }
 
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(getClass())
+      .add("prevEntryIndex", prevEntryIndex)
+      .add("prevEntryTerm", prevEntryTerm)
+      .add("numEntries", entries.size())
+      .toString();
+  }
 }

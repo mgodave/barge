@@ -141,8 +141,6 @@ class Follower extends BaseState {
 
   void resetTimeout(@Nonnull final RaftStateContext ctx) {
 
-    LOGGER.debug("Resetting timeout");
-
     if (null != timeoutTask) {
       timeoutTask.cancel(false);
     }

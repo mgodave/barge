@@ -82,7 +82,7 @@ class DefaultRaftLog implements RaftLog {
 
     EntryCacheLoader loader = new EntryCacheLoader(entryIndex, journal);
     this.entryCache = CacheBuilder.newBuilder()
-      .expireAfterAccess(1, TimeUnit.MINUTES)
+      .expireAfterAccess(1, TimeUnit.SECONDS)
       .recordStats()
       .build(loader);
   }
@@ -95,7 +95,7 @@ class DefaultRaftLog implements RaftLog {
     try {
       for (Location loc : journal.redo()) {
 
-        byte[] data = journal.read(loc, Journal.ReadType.ASYNC);
+        byte[] data = journal.read(loc, Journal.ReadType.SYNC);
         LogProto.JournalEntry journalEntry = LogProto.JournalEntry.parseFrom(data);
 
         if (journalEntry.hasAppend()) {
@@ -103,7 +103,7 @@ class DefaultRaftLog implements RaftLog {
           LogProto.Append append = journalEntry.getAppend();
 
           long index = append.getIndex();
-          LOGGER.debug("Append {}", index);
+          LOGGER.debug("Append {}", append.getEntry());
           Entry entry = append.getEntry();
           long term = entry.getTerm();
 
@@ -162,6 +162,8 @@ class DefaultRaftLog implements RaftLog {
   private void storeEntry(long index, @Nonnull Entry entry) {
     try {
 
+      LOGGER.debug("{}", entry);
+
       LogProto.JournalEntry journalEntry =
         LogProto.JournalEntry.newBuilder()
           .setAppend(LogProto.Append.newBuilder()
@@ -208,12 +210,14 @@ class DefaultRaftLog implements RaftLog {
 
     EntryMeta previousEntry = entryIndex.get(prevLogIndex);
     if ((previousEntry == null) || (previousEntry.term != prevLogTerm)) {
+      LOGGER.debug("Append prevLogIndex {} prevLogTerm {} previousEntry {}", prevLogIndex, prevLogTerm, previousEntry);
       return false;
     }
 
     SortedMap<Long, EntryMeta> old = this.entryIndex.tailMap(prevLogIndex + 1);
     for (EntryMeta e : old.values()) {
       try {
+        LOGGER.debug("Deleting {}", e.index);
         journal.delete(e.location);
       } catch (IOException e1) {
         e1.printStackTrace();
@@ -235,9 +239,15 @@ class DefaultRaftLog implements RaftLog {
     checkArgument(beginningIndex >= 0);
     Set<Long> indices = entryIndex.tailMap(beginningIndex).keySet();
     Iterable<Entry> values = Iterables.transform(Iterables.limit(indices, max), entryCache);
-    Entry previousEntry = entryCache.getIfPresent(beginningIndex - 1);
-    previousEntry = Objects.firstNonNull(previousEntry, SENTINEL_ENTRY);
-    return new GetEntriesResult(previousEntry.getTerm(), beginningIndex - 1, newArrayList(values));
+    Entry previousEntry;
+    if (beginningIndex - 1 <= 0) {
+      previousEntry = SENTINEL_ENTRY;
+    } else {
+      previousEntry = entryCache.getUnchecked(beginningIndex - 1);
+    }
+    GetEntriesResult result = new GetEntriesResult(previousEntry.getTerm(), beginningIndex - 1, newArrayList(values));
+    LOGGER.debug("{}", result);
+    return result;
   }
 
   void fireComitted() {
@@ -381,6 +391,13 @@ class DefaultRaftLog implements RaftLog {
       this.location = location;
     }
 
+    @Override
+    public String toString() {
+      return Objects.toStringHelper(getClass())
+        .add("index", index)
+        .add("term", term)
+        .toString();
+    }
   }
 
   @Immutable
@@ -403,7 +420,7 @@ class DefaultRaftLog implements RaftLog {
         logger.debug("Loading {}", key);
         EntryMeta meta = index.get(key);
         Location loc = meta.location;
-        byte[] data = journal.read(loc, Journal.ReadType.ASYNC);
+        byte[] data = journal.read(loc, Journal.ReadType.SYNC);
         LogProto.JournalEntry journalEntry = LogProto.JournalEntry.parseFrom(data);
         if (!journalEntry.hasAppend()) {
           throw new IllegalStateException("Journal entry does not contain Append");

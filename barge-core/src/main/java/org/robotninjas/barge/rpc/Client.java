@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import org.robotninjas.barge.Replica;
 
@@ -49,7 +50,10 @@ public class Client {
 
   @Inject
   public Client(@Nonnull RpcClientProvider clientProvider, @RaftExecutor ListeningExecutorService raftExecutor) {
-    this(clientProvider, raftExecutor, listeningDecorator(newSingleThreadExecutor()));
+    this(clientProvider, raftExecutor, listeningDecorator(newSingleThreadExecutor(new ThreadFactoryBuilder()
+      .setDaemon(true)
+      .setNameFormat("Barge-Connect-Thread")
+      .build())));
   }
 
   @Nonnull

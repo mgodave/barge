@@ -90,7 +90,7 @@ class ReplicaManager {
         .addAllEntries(result.entries())
         .build();
 
-    LOGGER.debug("Sending update to " + remote);
+    LOGGER.debug("Sending update to {} prevLogIndex {} prevLogTerm {}", remote, result.lastLogIndex(), result.lastLogTerm());
     final ListenableFuture<AppendEntriesResponse> response = client.appendEntries(remote, request);
 
     final SettableFuture<AppendEntriesResponse> previousResponse = nextResponse;
@@ -126,6 +126,8 @@ class ReplicaManager {
     forwards = response.getSuccess();
     requested = false;
 
+    LOGGER.debug("Status {} nextIndex {}, matchIndex {}", response.getSuccess(), nextIndex, matchIndex);
+
     if (response.getSuccess()) {
       nextIndex += request.getEntriesCount();
       matchIndex = request.getPrevLogIndex() + request.getEntriesCount();
@@ -136,6 +138,8 @@ class ReplicaManager {
     if (running && !shutdown) {
       sendUpdate();
     }
+
+    LOGGER.debug("Status {} nextIndex {}, matchIndex {}", response.getSuccess(), nextIndex, matchIndex);
 
   }
 
