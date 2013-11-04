@@ -106,7 +106,7 @@ class Candidate extends BaseState {
         LOGGER.debug("Election timeout");
         transition(ctx, CANDIDATE);
       }
-    }, timeout, MILLISECONDS);
+    }, timeout * 2, MILLISECONDS);
 
   }
 

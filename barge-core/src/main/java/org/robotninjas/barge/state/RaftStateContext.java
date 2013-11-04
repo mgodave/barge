@@ -16,7 +16,6 @@
 
 package org.robotninjas.barge.state;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.robotninjas.barge.RaftException;
 import org.slf4j.Logger;
@@ -70,7 +69,7 @@ public class RaftStateContext {
   }
 
   public void setState(@Nonnull StateType state) {
-    LOGGER.debug("old state: {}, new state: {}", this.state, state);
+    LOGGER.info("old state: {}, new state: {}", this.state, state);
     this.state = checkNotNull(state);
     switch (state) {
       case FOLLOWER:
@@ -87,7 +86,6 @@ public class RaftStateContext {
     delegate.init(this);
   }
 
-  @VisibleForTesting
   @Nonnull
   public StateType getState() {
     return state;

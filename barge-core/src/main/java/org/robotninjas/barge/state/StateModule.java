@@ -16,13 +16,8 @@
 
 package org.robotninjas.barge.state;
 
-import com.google.inject.Exposed;
 import com.google.inject.PrivateModule;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
-
-import javax.annotation.Nonnull;
 
 public class StateModule extends PrivateModule {
 
@@ -45,16 +40,10 @@ public class StateModule extends PrivateModule {
       .annotatedWith(ElectionTimeout.class)
       .toInstance(electionTimeout);
 
-  }
+    bind(RaftStateContext.class)
+      .asEagerSingleton();
+    expose(RaftStateContext.class);
 
-  @Nonnull
-  @Provides
-  @Singleton
-  @Exposed
-  RaftStateContext getContext(StateFactory stateFactory) {
-    RaftStateContext ctx = new RaftStateContext(stateFactory);
-    ctx.init();
-    return ctx;
   }
 
 }
