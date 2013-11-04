@@ -3,7 +3,7 @@
     <parent>
         <artifactId>barge</artifactId>
         <groupId>org.robotninjas.barge</groupId>
-        <version>0.1.0-alpha1</version>
+        <version>0.1.0-alpha2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -13,7 +13,7 @@
         <dependency>
             <groupId>org.robotninjas.barge</groupId>
             <artifactId>barge-core</artifactId>
-            <version>0.1.0-alpha1</version>
+            <version>0.1.0-alpha2-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

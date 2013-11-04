@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.robotninjas.barge</groupId>
     <artifactId>barge</artifactId>
-    <version>0.1.0-alpha1</version>
+    <version>0.1.0-alpha2-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>barge</name>
     <description>JVM Raft Concensus Implementation</description>
