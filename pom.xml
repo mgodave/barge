@@ -7,7 +7,7 @@
     <artifactId>barge</artifactId>
     <version>0.1.0-alpha1-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Maven core</name>
+    <name>barge</name>
     <description>JVM Raft Concensus Implementation</description>
     <url>http://www.github.com/mgodave/barge</url>
 
