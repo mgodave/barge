@@ -57,15 +57,7 @@ public class LogModule extends PrivateModule {
 
     try {
 
-      /**
-       * TODO Think more about what is really needed here.
-       * This is really just the most basic configuration
-       * possible. Specifically need to think through whether
-       * we need a full sync to disk on every write. My suspicion
-       * is yes. This configuration should probably be done by the
-       * log.
-       */
-      final Journal journal = JournalBuilder.of(logDirectory).open();
+      final Journal journal = JournalBuilder.of(logDirectory).setPhysicalSync(true).open();
 
       Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
         @Override
