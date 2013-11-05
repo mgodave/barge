@@ -378,6 +378,16 @@ class DefaultRaftLog implements RaftLog {
     return local;
   }
 
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(getClass())
+      .add("lastLogIndex", lastLogIndex)
+      .add("lastApplied", lastApplied)
+      .add("commitIndex", commitIndex)
+      .add("votedFor", votedFor)
+      .toString();
+  }
+
   @Immutable
   static final class EntryMeta {
 
