@@ -1,4 +1,4 @@
-script: mvn clean install
+script: mvn deploy
 jdk:
   - openjdk6
   - openjdk7
