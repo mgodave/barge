@@ -30,27 +30,27 @@ import javax.inject.Inject;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.pool.PoolUtils.adapt;
+import static org.apache.commons.pool.impl.GenericKeyedObjectPool.WHEN_EXHAUSTED_FAIL;
 
 @Immutable
-class  RpcClientProvider {
+class RaftClientProvider {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(RpcClientProvider.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(RaftClientProvider.class);
   private static final GenericKeyedObjectPool.Config config;
 
   static {
     config = new GenericKeyedObjectPool.Config();
     config.maxActive = 1;
-    config.maxIdle = -1;
+    config.maxIdle = 1;
     config.testOnBorrow = true;
     config.testOnReturn = true;
-    config.testWhileIdle = true;
-    config.whenExhaustedAction = GenericKeyedObjectPool.WHEN_EXHAUSTED_FAIL;
+    config.whenExhaustedAction = WHEN_EXHAUSTED_FAIL;
   }
 
   private final KeyedObjectPool<Object, NettyRpcChannel> connectionPools;
 
   @Inject
-  public RpcClientProvider(@Nonnull RpcClient client) {
+  public RaftClientProvider(@Nonnull RpcClient client) {
     RpcChannelFactory channelFactory = new RpcChannelFactory(client);
     this.connectionPools = new GenericKeyedObjectPool(channelFactory, config);
   }

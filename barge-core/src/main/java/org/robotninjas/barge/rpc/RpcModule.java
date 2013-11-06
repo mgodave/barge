@@ -104,7 +104,7 @@ public class RpcModule extends PrivateModule {
     bind(RpcServer.class).toInstance(rpcServer);
     expose(RpcServer.class);
 
-    bind(RpcClientProvider.class)
+    bind(RaftClientProvider.class)
       .asEagerSingleton();
     bind(RpcClient.class);
 

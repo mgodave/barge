@@ -16,9 +16,7 @@
 
 package org.robotninjas.barge.rpc;
 
-import com.google.common.util.concurrent.AbstractFuture;
-import com.google.common.util.concurrent.AsyncFunction;
-import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.*;
 import com.google.protobuf.RpcCallback;
 import org.apache.commons.pool.ObjectPool;
 import org.robotninjas.barge.RaftException;
@@ -35,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.util.concurrent.Futures.immediateFailedFuture;
+import static com.google.common.util.concurrent.MoreExecutors.sameThreadExecutor;
 import static org.robotninjas.barge.proto.RaftProto.*;
 
 //TODO write a protoc code generator for this bullshit
@@ -65,7 +64,16 @@ class RaftClient {
       RpcHandlerFuture<RequestVoteResponse> responseHandler =
         new RpcHandlerFuture<RequestVoteResponse>(controller);
       stub.requestVote(controller, request, responseHandler);
-      channelPool.returnObject(channel);
+      final NettyRpcChannel inner = channel;
+      responseHandler.addListener(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            channelPool.returnObject(inner);
+          } catch (Exception e) {
+          }
+        }
+      }, sameThreadExecutor());
       return responseHandler;
 
     } catch (Exception e) {
@@ -106,7 +114,16 @@ class RaftClient {
       RpcHandlerFuture<AppendEntriesResponse> responseHandler =
         new RpcHandlerFuture<AppendEntriesResponse>(controller);
       stub.appendEntries(controller, request, responseHandler);
-      channelPool.returnObject(channel);
+      final NettyRpcChannel inner = channel;
+      responseHandler.addListener(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            channelPool.returnObject(inner);
+          } catch (Exception e) {
+          }
+        }
+      }, sameThreadExecutor());
       return responseHandler;
 
     } catch (Exception e) {
@@ -158,53 +175,6 @@ class RaftClient {
 
     }
 
-  }
-
-  static final class RequestVoteCommand implements AsyncFunction<RequestVote, RequestVoteResponse> {
-
-    private final NettyRpcChannel channel;
-
-    RequestVoteCommand(NettyRpcChannel channel) {
-      this.channel = channel;
-    }
-
-    @Override
-    public ListenableFuture<RequestVoteResponse> apply(RequestVote request) throws Exception {
-      RaftProto.RaftService.Stub stub = RaftProto.RaftService.newStub(channel);
-      ClientController controller = new ClientController(channel);
-      RpcHandlerFuture<RequestVoteResponse> handler =
-        new RpcHandlerFuture<RequestVoteResponse>(controller);
-      stub.requestVote(controller, request, handler);
-      return handler;
-    }
-
-    public static RequestVoteCommand requestVote(NettyRpcChannel channel) {
-      return new RequestVoteCommand(channel);
-    }
-
-  }
-
-  static final class AppendEntriesCommand implements AsyncFunction<AppendEntries, AppendEntriesResponse> {
-
-    private final NettyRpcChannel channel;
-
-    AppendEntriesCommand(NettyRpcChannel channel) {
-      this.channel = channel;
-    }
-
-    @Override
-    public ListenableFuture<AppendEntriesResponse> apply(AppendEntries request) throws Exception {
-      RaftProto.RaftService.Stub stub = RaftProto.RaftService.newStub(channel);
-      ClientController controller = new ClientController(channel);
-      RpcHandlerFuture<AppendEntriesResponse> handler =
-        new RpcHandlerFuture<AppendEntriesResponse>(controller);
-      stub.appendEntries(controller, request, handler);
-      return handler;
-    }
-
-    public static AppendEntriesCommand appendEntries(NettyRpcChannel channel) {
-      return new AppendEntriesCommand(channel);
-    }
   }
 
 }

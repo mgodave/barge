@@ -39,17 +39,17 @@ public class Client {
 
   @Nonnull private final ListeningExecutorService raftExecutor;
   @Nonnull private final ListeningExecutorService networkCallExecutor;
-  @Nonnull private final RpcClientProvider clientProvider;
+  @Nonnull private final RaftClientProvider clientProvider;
 
   @VisibleForTesting
-  Client(RpcClientProvider clientProvider, ListeningExecutorService raftExecutor, ListeningExecutorService networkCallExecutor) {
+  Client(RaftClientProvider clientProvider, ListeningExecutorService raftExecutor, ListeningExecutorService networkCallExecutor) {
     this.clientProvider = checkNotNull(clientProvider);
     this.raftExecutor = checkNotNull(raftExecutor);
     this.networkCallExecutor = checkNotNull(networkCallExecutor);
   }
 
   @Inject
-  public Client(@Nonnull RpcClientProvider clientProvider, @RaftExecutor ListeningExecutorService raftExecutor) {
+  public Client(@Nonnull RaftClientProvider clientProvider, @RaftExecutor ListeningExecutorService raftExecutor) {
     this(clientProvider, raftExecutor, listeningDecorator(newSingleThreadExecutor(new ThreadFactoryBuilder()
       .setDaemon(true)
       .setNameFormat("Barge-Connect-Thread")
