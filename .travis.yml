@@ -1,6 +1,16 @@
-script: mvn deploy
+language: java
+script: "mvn deploy --settings travis-settings.xml"
 jdk:
-  - openjdk6
-  - openjdk7
-  - oraclejdk6
-  - oraclejdk7
+    - openjdk6
+    - openjdk7
+    - sunjdk6
+    - sunjdk7
+
+branches:
+    only:
+        - master
+
+env:
+    global:
+        - secure: "FgMwSRz94bofID4qCS4lHszXVP98bymZ7sPexzPqOGugFvLDAnmHYtp70TiW\nCkvbUw6Y8BRfMzDLciI+O+6TCZz9luXpKTg9bt5y7bM7COimDLqvVkmL3qxk\n9XEJoI5yUua5aWi0VXEEQ+xbVILVRKWXLtZVzKPKCf4z/vHwXEA="
+        - secure: "XDeAS31a70hLNKxhiQUcR2RlN/fVPg8dg4FxbQTJ8ZjVw7x5kMNqFJ0J+rho\nr4gFPxo7urz0BZL3qTQvyF6KisLF1bLdYOjTA+jQ43lFgrpp1fgc5/OSpa/4\nQ6UoEM4gdADUABPMh1bdG8WGQiHrdP5ItyLXvgrJ144KQUX1hf0="
