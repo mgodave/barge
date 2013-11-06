@@ -17,6 +17,8 @@ Barge is still a work in progress, there is a lot left to do to make this someth
 * Expanded Unit Test Coverage
 * Integration Testing
 
+In general there are missing unit tests, messy *get it working* pieces of code, and very little integration test coverage. Some pieces of code are just ugly or have too many (unneeded) layers. I will address this but please don't judge...
+
 Roadmap
 =======
 Barge is currently at 0.1.0-alpha1. I intend to release an alpha2 when the library is feature complete from the standpoint of the paper. Interest and involvement will
@@ -75,3 +77,10 @@ public class Test implements StateMachine {
 
 
 ```
+FAQ
+====
+
+*Why Java?*
+The last 6 or so years of my career have been spent mostly working on the JVM and so I wanted to build a library for use on that platform. Java was the easiest language for me to be able to make meaningful progress as well as the lowest common denominator for every JVM language (or at least every one I'm aware of).
+
+
