@@ -17,6 +17,8 @@
 package org.robotninjas.barge.rpc;
 
 import com.google.common.base.Preconditions;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import org.apache.commons.pool.BaseKeyedPoolableObjectFactory;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.protobuf.netty.client.NettyRpcChannel;
@@ -30,7 +32,7 @@ import javax.annotation.concurrent.Immutable;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 @Immutable
-class RpcChannelFactory extends BaseKeyedPoolableObjectFactory<Object, NettyRpcChannel> {
+class RpcChannelFactory extends BaseKeyedPoolableObjectFactory<Object, ListenableFuture<NettyRpcChannel>> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RpcChannelFactory.class);
 
@@ -41,20 +43,24 @@ class RpcChannelFactory extends BaseKeyedPoolableObjectFactory<Object, NettyRpcC
   }
 
   @Override
-  public NettyRpcChannel makeObject(Object key) throws Exception {
+  public ListenableFuture<NettyRpcChannel> makeObject(Object key) throws Exception {
     Preconditions.checkArgument(key instanceof Replica);
     Replica replica = (Replica) key;
-    return client.connect(replica.address());
+    return client.connectAsync(replica.address());
   }
 
   @Override
-  public void destroyObject(Object key, NettyRpcChannel obj) throws Exception {
-    obj.close();
+  public void destroyObject(Object key, ListenableFuture<NettyRpcChannel> obj) throws Exception {
+    if (obj.isDone() && !obj.isCancelled()) {
+      obj.get().close();
+    } else {
+      obj.cancel(false);
+    }
   }
 
   @Override
-  public boolean validateObject(Object key, NettyRpcChannel obj) {
-    return obj.isOpen();
+  public boolean validateObject(Object key, ListenableFuture<NettyRpcChannel> obj) {
+    return !obj.isDone() || (obj.isDone() && Futures.getUnchecked(obj).isOpen());
   }
 
 }

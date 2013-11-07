@@ -16,6 +16,7 @@
 
 package org.robotninjas.barge.rpc;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.apache.commons.pool.KeyedObjectPool;
 import org.apache.commons.pool.impl.GenericKeyedObjectPool;
 import org.robotninjas.barge.Replica;
@@ -41,13 +42,13 @@ class RaftClientProvider {
   static {
     config = new GenericKeyedObjectPool.Config();
     config.maxActive = 1;
-    config.maxIdle = 1;
+    config.maxIdle = -1;
     config.testOnBorrow = true;
     config.testOnReturn = true;
     config.whenExhaustedAction = WHEN_EXHAUSTED_FAIL;
   }
 
-  private final KeyedObjectPool<Object, NettyRpcChannel> connectionPools;
+  private final KeyedObjectPool<Object, ListenableFuture<NettyRpcChannel>> connectionPools;
 
   @Inject
   public RaftClientProvider(@Nonnull RpcClient client) {
