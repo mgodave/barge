@@ -16,7 +16,6 @@
 
 package org.robotninjas.barge.rpc;
 
-import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Inject;
 import org.robotninjas.barge.Replica;
@@ -57,20 +56,6 @@ public class Client {
     RaftClient client = clientProvider.get(replica);
     return client.appendEntries(request);
 
-  }
-
-  private static final class Identity<E> implements AsyncFunction<ListenableFuture<E>, E> {
-
-    Identity() {}
-
-    @Override
-    public ListenableFuture<E> apply(ListenableFuture<E> input) throws Exception {
-      return input;
-    }
-
-    public static <T> Identity<T> identity() {
-      return new Identity<T>();
-    }
   }
 
 }
