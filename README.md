@@ -9,11 +9,10 @@ An implementation of the [Raft Concensus Protocol][1].
 
 Todo
 ====
-Barge is still a work in progress, there is a lot left to do. Some of the major missing features are:
+Barge is still a work in progress, two major missing features are:
 
 * Log Compaction (alpha2)
 * Dynamic Membership (alpha2)
-* Test Coverage
 
 Roadmap
 =======
