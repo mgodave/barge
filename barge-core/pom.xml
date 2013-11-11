@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -19,36 +20,43 @@
             <artifactId>protorpc</artifactId>
             <version>0.1.0-alpha2-SNAPSHOT</version>
         </dependency>
+
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>15.0</version>
         </dependency>
+
         <dependency>
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
             <version>3.0</version>
         </dependency>
+
         <dependency>
             <groupId>com.google.inject.extensions</groupId>
             <artifactId>guice-assistedinject</artifactId>
             <version>3.0</version>
         </dependency>
+
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.7.5</version>
         </dependency>
+
         <dependency>
             <groupId>commons-pool</groupId>
             <artifactId>commons-pool</artifactId>
             <version>1.6</version>
         </dependency>
+
         <dependency>
             <groupId>com.github.sbtourist</groupId>
             <artifactId>journalio</artifactId>
             <version>1.4.1</version>
         </dependency>
+
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
@@ -73,6 +81,14 @@
             <optional>true</optional>
         </dependency>
 
+        <dependency>
+            <groupId>org.javassist</groupId>
+            <artifactId>javassist</artifactId>
+            <version>3.18.1-GA</version>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+
         <!-- Test Dependencies -->
         <dependency>
             <groupId>junit</groupId>
@@ -80,6 +96,7 @@
             <version>4.9</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
@@ -146,60 +163,6 @@
                 <version>0.1.11</version>
             </plugin>
 
-            <!--<plugin>-->
-                <!--<groupId>org.apache.maven.plugins</groupId>-->
-                <!--<artifactId>maven-shade-plugin</artifactId>-->
-                <!--<version>2.1</version>-->
-                <!--<executions>-->
-                    <!--<execution>-->
-                        <!--<phase>package</phase>-->
-                        <!--<goals>-->
-                            <!--<goal>shade</goal>-->
-                        <!--</goals>-->
-                        <!--<configuration>-->
-                            <!--<shadedArtifactAttached>true</shadedArtifactAttached>-->
-                            <!--<shadedClassifierName>shaded</shadedClassifierName>-->
-                            <!--<minimizeJar>true</minimizeJar>-->
-                            <!--<artifactSet>-->
-                                <!--<excludes>-->
-                                    <!--<exclude>junit:junit</exclude>-->
-                                    <!--<exclude>org.mockito:mockito</exclude>-->
-                                    <!--<exclude>org.slf4j:slf4j-api</exclude>-->
-                                    <!--<exclude>com.google.guava:guava</exclude>-->
-                                    <!--<exclude>com.google.code.findbugs:jsr305</exclude>-->
-                                    <!--<exclude>ch.qos.logback:*</exclude>-->
-                                <!--</excludes>-->
-                            <!--</artifactSet>-->
-                            <!--<relocations>-->
-                                <!--<relocation>-->
-                                    <!--<pattern>com</pattern>-->
-                                    <!--<shadedPattern>shade.com</shadedPattern>-->
-                                <!--</relocation>-->
-                                <!--<relocation>-->
-                                    <!--<pattern>journal</pattern>-->
-                                    <!--<shadedPattern>shade</shadedPattern>-->
-                                <!--</relocation>-->
-                                <!--<relocation>-->
-                                    <!--<pattern>org.apache</pattern>-->
-                                    <!--<shadedPattern>shade.org.apache</shadedPattern>-->
-                                <!--</relocation>-->
-                                <!--<relocation>-->
-                                    <!--<pattern>io.netty</pattern>-->
-                                    <!--<shadedPattern>shade.io.netty</shadedPattern>-->
-                                <!--</relocation>-->
-                                <!--<relocation>-->
-                                    <!--<pattern>javax</pattern>-->
-                                    <!--<shadedPattern>shade.javax</shadedPattern>-->
-                                <!--</relocation>-->
-                                <!--<relocation>-->
-                                    <!--<pattern>org.aopalliance</pattern>-->
-                                    <!--<shadedPattern>shade.org.aopalliance</shadedPattern>-->
-                                <!--</relocation>-->
-                            <!--</relocations>-->
-                        <!--</configuration>-->
-                    <!--</execution>-->
-                <!--</executions>-->
-            <!--</plugin>-->
         </plugins>
     </build>
 

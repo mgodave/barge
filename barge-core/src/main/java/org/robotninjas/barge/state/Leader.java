@@ -163,9 +163,9 @@ class Leader extends BaseState {
 
     resetTimeout(ctx);
     long index = log.append(operation);
-    SettableFuture<Boolean> f = SettableFuture.create();
-    requests.put(index, f);
-    return commit(ctx);
+    requests.put(index, SettableFuture.<Boolean>create());
+    List<ListenableFuture<AppendEntriesResponse>> responses = sendRequests(ctx);
+    return majorityResponse(responses, appendSuccessul());
 
   }
 
@@ -199,23 +199,11 @@ class Leader extends BaseState {
 
   private void checkTermOnResponse(RaftStateContext ctx, AppendEntriesResponse response) {
 
-    if (response.getTerm() > log.currentTerm()) {
-      log.updateCurrentTerm(response.getTerm());
-      stepDown(ctx);
-    }
+      if (response.getTerm() > log.currentTerm()) {
+        log.updateCurrentTerm(response.getTerm());
+        stepDown(ctx);
+      }
 
-  }
-
-  /**
-   * Commit a new entry to the cluster
-   *
-   * @return a future with the result of the commit operation
-   */
-  @Nonnull
-  @VisibleForTesting
-  ListenableFuture<Boolean> commit(RaftStateContext ctx) {
-    List<ListenableFuture<AppendEntriesResponse>> responses = sendRequests(ctx);
-    return majorityResponse(responses, appendSuccessul());
   }
 
   /**

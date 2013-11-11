@@ -117,10 +117,6 @@ class Candidate extends BaseState {
     electionTimer.cancel(false);
   }
 
-  private void stepDown(@Nonnull RaftStateContext ctx) {
-    transition(ctx, FOLLOWER);
-  }
-
   @Nonnull
   @Override
   public RequestVoteResponse requestVote(@Nonnull RaftStateContext ctx, @Nonnull RequestVote request) {
@@ -133,7 +129,7 @@ class Candidate extends BaseState {
 
     if (request.getTerm() > log.currentTerm()) {
       log.updateCurrentTerm(request.getTerm());
-      stepDown(ctx);
+      transition(ctx, FOLLOWER);
       voteGranted = shouldVoteFor(log, request);
       if (voteGranted) {
         log.updateVotedFor(Optional.of(candidate));
@@ -161,7 +157,7 @@ class Candidate extends BaseState {
         log.updateCurrentTerm(request.getTerm());
       }
 
-      stepDown(ctx);
+      transition(ctx, FOLLOWER);
 
       success = log.append(request);
 
@@ -180,17 +176,9 @@ class Candidate extends BaseState {
     throw new NoLeaderException();
   }
 
-  private void checkTermOnResponse(RaftStateContext ctx, RequestVoteResponse response) {
-
-    if (response.getTerm() > log.currentTerm()) {
-      log.updateCurrentTerm(response.getTerm());
-      stepDown(ctx);
-    }
-
-  }
 
   @VisibleForTesting
-  List<ListenableFuture<RequestVoteResponse>> sendRequests(final RaftStateContext ctx) {
+  List<ListenableFuture<RequestVoteResponse>> sendRequests(RaftStateContext ctx) {
 
     RequestVote request =
       RequestVote.newBuilder()
@@ -203,19 +191,26 @@ class Candidate extends BaseState {
     List<ListenableFuture<RequestVoteResponse>> responses = Lists.newArrayList();
     for (Replica replica : log.members()) {
       ListenableFuture<RequestVoteResponse> response = client.requestVote(replica, request);
-      Futures.addCallback(response, new FutureCallback<RequestVoteResponse>() {
-        @Override
-        public void onSuccess(@Nullable RequestVoteResponse result) {
-          checkTermOnResponse(ctx, result);
-        }
-
-        @Override
-        public void onFailure(Throwable t) {}
-      });
+      Futures.addCallback(response, checkTerm(ctx));
       responses.add(response);
     }
 
     return responses;
+  }
+
+  private FutureCallback<RequestVoteResponse> checkTerm(final RaftStateContext ctx) {
+    return new FutureCallback<RequestVoteResponse>() {
+      @Override
+      public void onSuccess(@Nullable RequestVoteResponse response) {
+        if (response.getTerm() > log.currentTerm()) {
+          log.updateCurrentTerm(response.getTerm());
+          transition(ctx, FOLLOWER);
+        }
+      }
+
+      @Override
+      public void onFailure(Throwable t) {}
+    };
   }
 
 }
