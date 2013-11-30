@@ -46,7 +46,7 @@ import static com.google.common.base.Preconditions.*;
 import static com.google.common.base.Throwables.propagate;
 import static com.google.common.collect.Iterables.limit;
 import static com.google.common.collect.Lists.newArrayList;
-import static journal.io.api.Journal.ReadType.ASYNC;
+import static journal.io.api.Journal.ReadType;
 import static journal.io.api.Journal.WriteType;
 import static org.robotninjas.barge.proto.LogProto.JournalEntry;
 import static org.robotninjas.barge.proto.RaftEntry.Entry;
@@ -90,7 +90,7 @@ class DefaultRaftLog implements RaftLog {
     try {
       for (Location loc : journal.redo()) {
 
-        byte[] data = journal.read(loc, Journal.ReadType.SYNC);
+        byte[] data = journal.read(loc, ReadType.SYNC);
         JournalEntry journalEntry = JournalEntry.parseFrom(data);
 
         if (journalEntry.hasAppend()) {
@@ -175,8 +175,9 @@ class DefaultRaftLog implements RaftLog {
   private Entry loadEntry(long index) {
 
     try {
+      LOGGER.debug("Reading index {} from journal", index);
       EntryMeta meta = entryIndex.get(index);
-      byte[] data = journal.read(meta.location, ASYNC);
+      byte[] data = journal.read(meta.location, ReadType.ASYNC);
       JournalEntry entry = JournalEntry.parseFrom(data);
       return entry.getAppend().getEntry();
     } catch (Exception e) {

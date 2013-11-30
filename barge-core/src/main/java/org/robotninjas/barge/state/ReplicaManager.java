@@ -47,14 +47,15 @@ class ReplicaManager {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ReplicaManager.class);
   private static final int BATCH_SIZE = 1000;
+  private static final int MAX_RUNNING = 1;
 
   private final Client client;
   private final RaftLog log;
   private final Replica remote;
   private long nextIndex;
   private long matchIndex = 0;
-  private boolean running = false;
   private boolean requested = false;
+  private int running = 0;
   private boolean forwards = false;
   private boolean shutdown = false;
   private SettableFuture<AppendEntriesResponse> nextResponse = SettableFuture.create();
@@ -71,7 +72,7 @@ class ReplicaManager {
 
   private ListenableFuture<AppendEntriesResponse> sendUpdate() {
 
-    running = true;
+    running++;
     requested = false;
 
     // if the last rpc call was successful then try to send
@@ -100,6 +101,7 @@ class ReplicaManager {
 
       @Override
       public void onSuccess(@Nullable AppendEntriesResponse result) {
+        running--;
         updateNextIndex(request, result);
         if (result.getSuccess()) {
           previousResponse.set(result);
@@ -108,7 +110,7 @@ class ReplicaManager {
 
       @Override
       public void onFailure(Throwable t) {
-        running = requested;
+        running--;
         requested = false;
         previousResponse.setException(t);
       }
@@ -123,34 +125,30 @@ class ReplicaManager {
 
   private void updateNextIndex(@Nonnull AppendEntries request, @Nonnull AppendEntriesResponse response) {
 
-    running = requested || !response.getSuccess();
+    boolean runAgain = requested || !response.getSuccess();
     forwards = response.getSuccess();
     requested = false;
 
-    LOGGER.debug("Status {} nextIndex {}, matchIndex {}", response.getSuccess(), nextIndex, matchIndex);
+    LOGGER.debug("Response from {} Status {} nextIndex {}, matchIndex {}", remote, response.getSuccess(), nextIndex, matchIndex);
 
     if (response.getSuccess()) {
-      nextIndex += request.getEntriesCount();
-      matchIndex = request.getPrevLogIndex() + request.getEntriesCount();
+      nextIndex = Math.max(nextIndex, request.getPrevLogIndex() + request.getEntriesCount());
+      matchIndex = Math.max(matchIndex, request.getPrevLogIndex() + request.getEntriesCount());
     } else {
       nextIndex = Math.max(1, nextIndex - 1);
     }
 
-    if (running && !shutdown) {
+    if (runAgain && !shutdown) {
       sendUpdate();
     }
 
-    LOGGER.debug("Status {} nextIndex {}, matchIndex {}", response.getSuccess(), nextIndex, matchIndex);
+    LOGGER.debug("Response from {} Status {} nextIndex {}, matchIndex {}", remote, response.getSuccess(), nextIndex, matchIndex);
 
-  }
-
-  public Replica getRemote() {
-    return remote;
   }
 
   @VisibleForTesting
   boolean isRunning() {
-    return running;
+    return running > 0;
   }
 
   @VisibleForTesting
@@ -175,7 +173,7 @@ class ReplicaManager {
   @Nonnull
   public ListenableFuture<AppendEntriesResponse> requestUpdate() {
     requested = true;
-    if (!running) {
+    if (running < MAX_RUNNING) {
       return sendUpdate();
     }
     return nextResponse;
