@@ -42,9 +42,18 @@ message AppendEntries {
 }
 
 message AppendEntriesResponse {
+
+	message TermInfo {
+		required int64 term = 1;
+		required int64 begin_index = 2;
+		required int64 end_index = 3;
+	}
+
 	required int64 term = 1;
 	required bool success = 2;
 	optional int64 last_log_index = 3;
+	optional TermInfo term_info = 4;
+
 }
 
 message InstallSnapshot {

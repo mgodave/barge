@@ -2600,15 +2600,20 @@ public final class LogProto {
      */
     long getLastIncludedTerm();
 
-    // required bytes state_machine_state = 3;
+    // required string snapshot_file = 3;
     /**
-     * <code>required bytes state_machine_state = 3;</code>
+     * <code>required string snapshot_file = 3;</code>
      */
-    boolean hasStateMachineState();
+    boolean hasSnapshotFile();
     /**
-     * <code>required bytes state_machine_state = 3;</code>
+     * <code>required string snapshot_file = 3;</code>
      */
-    com.google.protobuf.ByteString getStateMachineState();
+    java.lang.String getSnapshotFile();
+    /**
+     * <code>required string snapshot_file = 3;</code>
+     */
+    com.google.protobuf.ByteString
+        getSnapshotFileBytes();
   }
   /**
    * Protobuf type {@code Snapshot}
@@ -2673,7 +2678,7 @@ public final class LogProto {
             }
             case 26: {
               bitField0_ |= 0x00000004;
-              stateMachineState_ = input.readBytes();
+              snapshotFile_ = input.readBytes();
               break;
             }
           }
@@ -2748,26 +2753,53 @@ public final class LogProto {
       return lastIncludedTerm_;
     }
 
-    // required bytes state_machine_state = 3;
-    public static final int STATE_MACHINE_STATE_FIELD_NUMBER = 3;
-    private com.google.protobuf.ByteString stateMachineState_;
+    // required string snapshot_file = 3;
+    public static final int SNAPSHOT_FILE_FIELD_NUMBER = 3;
+    private java.lang.Object snapshotFile_;
     /**
-     * <code>required bytes state_machine_state = 3;</code>
+     * <code>required string snapshot_file = 3;</code>
      */
-    public boolean hasStateMachineState() {
+    public boolean hasSnapshotFile() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>required bytes state_machine_state = 3;</code>
+     * <code>required string snapshot_file = 3;</code>
      */
-    public com.google.protobuf.ByteString getStateMachineState() {
-      return stateMachineState_;
+    public java.lang.String getSnapshotFile() {
+      java.lang.Object ref = snapshotFile_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          snapshotFile_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>required string snapshot_file = 3;</code>
+     */
+    public com.google.protobuf.ByteString
+        getSnapshotFileBytes() {
+      java.lang.Object ref = snapshotFile_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        snapshotFile_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
     }
 
     private void initFields() {
       lastIncludedIndex_ = 0L;
       lastIncludedTerm_ = 0L;
-      stateMachineState_ = com.google.protobuf.ByteString.EMPTY;
+      snapshotFile_ = "";
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -2782,7 +2814,7 @@ public final class LogProto {
         memoizedIsInitialized = 0;
         return false;
       }
-      if (!hasStateMachineState()) {
+      if (!hasSnapshotFile()) {
         memoizedIsInitialized = 0;
         return false;
       }
@@ -2800,7 +2832,7 @@ public final class LogProto {
         output.writeInt64(2, lastIncludedTerm_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeBytes(3, stateMachineState_);
+        output.writeBytes(3, getSnapshotFileBytes());
       }
       getUnknownFields().writeTo(output);
     }
@@ -2821,7 +2853,7 @@ public final class LogProto {
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(3, stateMachineState_);
+          .computeBytesSize(3, getSnapshotFileBytes());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -2943,7 +2975,7 @@ public final class LogProto {
         bitField0_ = (bitField0_ & ~0x00000001);
         lastIncludedTerm_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000002);
-        stateMachineState_ = com.google.protobuf.ByteString.EMPTY;
+        snapshotFile_ = "";
         bitField0_ = (bitField0_ & ~0x00000004);
         return this;
       }
@@ -2984,7 +3016,7 @@ public final class LogProto {
         if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
           to_bitField0_ |= 0x00000004;
         }
-        result.stateMachineState_ = stateMachineState_;
+        result.snapshotFile_ = snapshotFile_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -3007,8 +3039,10 @@ public final class LogProto {
         if (other.hasLastIncludedTerm()) {
           setLastIncludedTerm(other.getLastIncludedTerm());
         }
-        if (other.hasStateMachineState()) {
-          setStateMachineState(other.getStateMachineState());
+        if (other.hasSnapshotFile()) {
+          bitField0_ |= 0x00000004;
+          snapshotFile_ = other.snapshotFile_;
+          onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -3023,7 +3057,7 @@ public final class LogProto {
           
           return false;
         }
-        if (!hasStateMachineState()) {
+        if (!hasSnapshotFile()) {
           
           return false;
         }
@@ -3115,38 +3149,76 @@ public final class LogProto {
         return this;
       }
 
-      // required bytes state_machine_state = 3;
-      private com.google.protobuf.ByteString stateMachineState_ = com.google.protobuf.ByteString.EMPTY;
+      // required string snapshot_file = 3;
+      private java.lang.Object snapshotFile_ = "";
       /**
-       * <code>required bytes state_machine_state = 3;</code>
+       * <code>required string snapshot_file = 3;</code>
        */
-      public boolean hasStateMachineState() {
+      public boolean hasSnapshotFile() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
       /**
-       * <code>required bytes state_machine_state = 3;</code>
+       * <code>required string snapshot_file = 3;</code>
        */
-      public com.google.protobuf.ByteString getStateMachineState() {
-        return stateMachineState_;
+      public java.lang.String getSnapshotFile() {
+        java.lang.Object ref = snapshotFile_;
+        if (!(ref instanceof java.lang.String)) {
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          snapshotFile_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
       }
       /**
-       * <code>required bytes state_machine_state = 3;</code>
+       * <code>required string snapshot_file = 3;</code>
        */
-      public Builder setStateMachineState(com.google.protobuf.ByteString value) {
+      public com.google.protobuf.ByteString
+          getSnapshotFileBytes() {
+        java.lang.Object ref = snapshotFile_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          snapshotFile_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>required string snapshot_file = 3;</code>
+       */
+      public Builder setSnapshotFile(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000004;
-        stateMachineState_ = value;
+        snapshotFile_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>required bytes state_machine_state = 3;</code>
+       * <code>required string snapshot_file = 3;</code>
        */
-      public Builder clearStateMachineState() {
+      public Builder clearSnapshotFile() {
         bitField0_ = (bitField0_ & ~0x00000004);
-        stateMachineState_ = getDefaultInstance().getStateMachineState();
+        snapshotFile_ = getDefaultInstance().getSnapshotFile();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>required string snapshot_file = 3;</code>
+       */
+      public Builder setSnapshotFileBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+        snapshotFile_ = value;
         onChanged();
         return this;
       }
@@ -4738,14 +4810,14 @@ public final class LogProto {
       "ership\022\r\n\005index\030\001 \002(\003\022\014\n\004term\030\002 \002(\003\022\017\n\007m" +
       "embers\030\003 \003(\t\"\031\n\004Vote\022\021\n\tvoted_for\030\002 \001(\t\"" +
       "\024\n\004Term\022\014\n\004term\030\001 \002(\003\"\027\n\006Commit\022\r\n\005index" +
-      "\030\001 \002(\003\"`\n\010Snapshot\022\033\n\023last_included_inde" +
-      "x\030\001 \002(\003\022\032\n\022last_included_term\030\002 \002(\003\022\033\n\023s" +
-      "tate_machine_state\030\003 \002(\014\"\250\001\n\014JournalEntr" +
-      "y\022\027\n\006append\030\002 \001(\0132\007.Append\022\037\n\nmembership" +
-      "\030\003 \001(\0132\013.Membership\022\023\n\004vote\030\004 \001(\0132\005.Vote",
-      "\022\023\n\004term\030\005 \001(\0132\005.Term\022\027\n\006commit\030\006 \001(\0132\007." +
-      "Commit\022\033\n\010snapshot\030\007 \001(\0132\t.SnapshotB\'\n\033o" +
-      "rg.robotninjas.barge.protoB\010LogProto"
+      "\030\001 \002(\003\"Z\n\010Snapshot\022\033\n\023last_included_inde" +
+      "x\030\001 \002(\003\022\032\n\022last_included_term\030\002 \002(\003\022\025\n\rs" +
+      "napshot_file\030\003 \002(\t\"\250\001\n\014JournalEntry\022\027\n\006a" +
+      "ppend\030\002 \001(\0132\007.Append\022\037\n\nmembership\030\003 \001(\013" +
+      "2\013.Membership\022\023\n\004vote\030\004 \001(\0132\005.Vote\022\023\n\004te",
+      "rm\030\005 \001(\0132\005.Term\022\027\n\006commit\030\006 \001(\0132\007.Commit" +
+      "\022\033\n\010snapshot\030\007 \001(\0132\t.SnapshotB\'\n\033org.rob" +
+      "otninjas.barge.protoB\010LogProto"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -4787,7 +4859,7 @@ public final class LogProto {
           internal_static_Snapshot_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_Snapshot_descriptor,
-              new java.lang.String[] { "LastIncludedIndex", "LastIncludedTerm", "StateMachineState", });
+              new java.lang.String[] { "LastIncludedIndex", "LastIncludedTerm", "SnapshotFile", });
           internal_static_JournalEntry_descriptor =
             getDescriptor().getMessageTypes().get(6);
           internal_static_JournalEntry_fieldAccessorTable = new
