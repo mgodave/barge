@@ -5,6 +5,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.inject.Inject;
+import org.robotninjas.barge.LogAware;
 import org.robotninjas.barge.StateMachine;
 
 import javax.annotation.Nonnull;
@@ -18,7 +19,7 @@ import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
 @ThreadSafe
-class StateMachineProxy {
+class StateMachineProxy implements LogAware {
 
   private final ListeningExecutorService executor;
   private final StateMachine stateMachine;
@@ -62,6 +63,13 @@ class StateMachineProxy {
   @Nonnull
   public ListenableFuture installSnapshot() {
     return Futures.immediateFailedFuture(new IllegalStateException());
+  }
+
+  @Override
+  public void setLog(RaftLog log) {
+    if (stateMachine instanceof LogAware) {
+      ((LogAware) stateMachine).setLog(log);
+    }
   }
 
 }

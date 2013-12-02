@@ -27,6 +27,8 @@ import com.google.inject.Inject;
 import com.google.protobuf.ByteString;
 import journal.io.api.Journal;
 import journal.io.api.Location;
+
+import org.robotninjas.barge.LogAware;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.annotations.ClusterMembers;
 import org.robotninjas.barge.annotations.LocalReplicaInfo;
@@ -85,6 +87,10 @@ class DefaultRaftLog implements RaftLog {
       .expireAfterAccess(1, TimeUnit.SECONDS)
       .recordStats()
       .build(loader);
+    
+    if (this.stateMachine instanceof LogAware) {
+      ((LogAware) this.stateMachine).setLog(this);
+    }
   }
 
   @Override
