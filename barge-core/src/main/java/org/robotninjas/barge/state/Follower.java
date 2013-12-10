@@ -77,14 +77,14 @@ class Follower extends BaseState {
     if (request.getTerm() >= log.currentTerm()) {
 
       if (request.getTerm() > log.currentTerm()) {
-        log.updateCurrentTerm(request.getTerm());
+        log.currentTerm(request.getTerm());
       }
 
       Replica candidate = Replica.fromString(request.getCandidateId());
       voteGranted = shouldVoteFor(log, request);
 
       if (voteGranted) {
-        log.updateVotedFor(Optional.of(candidate));
+        log.lastVotedFor(Optional.of(candidate));
       }
 
     }
@@ -108,7 +108,7 @@ class Follower extends BaseState {
     if (request.getTerm() >= log.currentTerm()) {
 
       if (request.getTerm() > log.currentTerm()) {
-        log.updateCurrentTerm(request.getTerm());
+        log.currentTerm(request.getTerm());
       }
 
       leader = Optional.of(Replica.fromString(request.getLeaderId()));
@@ -116,7 +116,7 @@ class Follower extends BaseState {
       success = log.append(request);
 
       if (request.getCommitIndex() > log.commitIndex()) {
-        log.updateCommitIndex(Math.min(request.getCommitIndex(), log.lastLogIndex()));
+        log.commitIndex(Math.min(request.getCommitIndex(), log.lastLogIndex()));
       }
 
     }

@@ -103,14 +103,14 @@ class Leader extends BaseState {
 
     if (request.getTerm() > log.currentTerm()) {
 
-      log.updateCurrentTerm(request.getTerm());
+      log.currentTerm(request.getTerm());
       stepDown(ctx);
 
       Replica candidate = Replica.fromString(request.getCandidateId());
       voteGranted = shouldVoteFor(log, request);
 
       if (voteGranted) {
-        log.updateVotedFor(Optional.of(candidate));
+        log.lastVotedFor(Optional.of(candidate));
       }
 
     }
@@ -129,7 +129,7 @@ class Leader extends BaseState {
     boolean success = false;
 
     if (request.getTerm() > log.currentTerm()) {
-      log.updateCurrentTerm(request.getTerm());
+      log.currentTerm(request.getTerm());
       stepDown(ctx);
       success = log.append(request);
     }
@@ -186,7 +186,7 @@ class Leader extends BaseState {
 
     final int middle = (int) Math.ceil(sorted.size() / 2.0);
     final long committed = sorted.get(middle).getMatchIndex();
-    log.updateCommitIndex(committed);
+    log.commitIndex(committed);
 
     SortedMap<Long, SettableFuture<Boolean>> entries = requests.headMap(committed + 1);
     for (SettableFuture<Boolean> f : entries.values()) {
@@ -200,7 +200,7 @@ class Leader extends BaseState {
   private void checkTermOnResponse(RaftStateContext ctx, AppendEntriesResponse response) {
 
       if (response.getTerm() > log.currentTerm()) {
-        log.updateCurrentTerm(response.getTerm());
+        log.currentTerm(response.getTerm());
         stepDown(ctx);
       }
 

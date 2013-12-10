@@ -73,8 +73,8 @@ class Candidate extends BaseState {
   @Override
   public void init(@Nonnull final RaftStateContext ctx) {
 
-    log.updateCurrentTerm(log.currentTerm() + 1);
-    log.updateVotedFor(Optional.of(log.self()));
+    log.currentTerm(log.currentTerm() + 1);
+    log.lastVotedFor(Optional.of(log.self()));
 
     LOGGER.debug("Election starting for term {}", log.currentTerm());
 
@@ -128,11 +128,11 @@ class Candidate extends BaseState {
     boolean voteGranted = false;
 
     if (request.getTerm() > log.currentTerm()) {
-      log.updateCurrentTerm(request.getTerm());
+      log.currentTerm(request.getTerm());
       transition(ctx, FOLLOWER);
       voteGranted = shouldVoteFor(log, request);
       if (voteGranted) {
-        log.updateVotedFor(Optional.of(candidate));
+        log.lastVotedFor(Optional.of(candidate));
       }
     }
 
@@ -154,7 +154,7 @@ class Candidate extends BaseState {
     if (request.getTerm() >= log.currentTerm()) {
 
       if (request.getTerm() > log.currentTerm()) {
-        log.updateCurrentTerm(request.getTerm());
+        log.currentTerm(request.getTerm());
       }
 
       transition(ctx, FOLLOWER);
@@ -203,7 +203,7 @@ class Candidate extends BaseState {
       @Override
       public void onSuccess(@Nullable RequestVoteResponse response) {
         if (response.getTerm() > log.currentTerm()) {
-          log.updateCurrentTerm(response.getTerm());
+          log.currentTerm(response.getTerm());
           transition(ctx, FOLLOWER);
         }
       }

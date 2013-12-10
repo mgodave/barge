@@ -35,7 +35,7 @@ public class GetEntriesResult {
   private final long prevEntryIndex;
   private final List<Entry> entries;
 
-  public GetEntriesResult(long prevEntryTerm, long prevEntryIndex, List<Entry> entries) {
+  public GetEntriesResult(long prevEntryTerm, long prevEntryIndex, Iterable<Entry> entries) {
     this.prevEntryTerm = prevEntryTerm;
     this.prevEntryIndex = prevEntryIndex;
     this.entries = Lists.newArrayList(entries);

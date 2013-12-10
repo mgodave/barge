@@ -71,15 +71,15 @@ public class CandidateTest {
 
     candidate.requestVote(mockRaftStateContext, request);
 
-    verify(mockRaftLog).updateCurrentTerm(3L);
-    verify(mockRaftLog).updateCurrentTerm(4L);
-    verify(mockRaftLog, times(2)).updateCurrentTerm(anyLong());
+    verify(mockRaftLog).currentTerm(3L);
+    verify(mockRaftLog).currentTerm(4L);
+    verify(mockRaftLog, times(2)).currentTerm(anyLong());
 
-    verify(mockRaftLog).updateVotedFor(Optional.of(self));
-    verify(mockRaftLog).updateVotedFor(Optional.of(mockCandidate));
-    verify(mockRaftLog, times(2)).updateVotedFor(any(Optional.class));
+    verify(mockRaftLog).lastVotedFor(Optional.of(self));
+    verify(mockRaftLog).lastVotedFor(Optional.of(mockCandidate));
+    verify(mockRaftLog, times(2)).lastVotedFor(any(Optional.class));
 
-    verify(mockRaftLog, never()).updateCommitIndex(anyLong());
+    verify(mockRaftLog, never()).commitIndex(anyLong());
 
     verify(mockRaftStateContext, times(1)).setState(FOLLOWER);
     verifyNoMoreInteractions(mockRaftStateContext);
@@ -105,14 +105,14 @@ public class CandidateTest {
 
     candidate.requestVote(mockRaftStateContext, request);
 
-    verify(mockRaftLog).updateCurrentTerm(3L);
-    verify(mockRaftLog, times(1)).updateCurrentTerm(anyLong());
+    verify(mockRaftLog).currentTerm(3L);
+    verify(mockRaftLog, times(1)).currentTerm(anyLong());
 
-    verify(mockRaftLog).updateVotedFor(Optional.of(self));
-    verify(mockRaftLog, never()).updateVotedFor(Optional.of(mockCandidate));
-    verify(mockRaftLog, times(1)).updateVotedFor(any(Optional.class));
+    verify(mockRaftLog).lastVotedFor(Optional.of(self));
+    verify(mockRaftLog, never()).lastVotedFor(Optional.of(mockCandidate));
+    verify(mockRaftLog, times(1)).lastVotedFor(any(Optional.class));
 
-    verify(mockRaftLog, never()).updateCommitIndex(anyLong());
+    verify(mockRaftLog, never()).commitIndex(anyLong());
 
     verifyZeroInteractions(mockRaftStateContext);
 
@@ -136,14 +136,14 @@ public class CandidateTest {
 
     candidate.requestVote(mockRaftStateContext, request);
 
-    verify(mockRaftLog).updateCurrentTerm(3L);
-    verify(mockRaftLog, times(1)).updateCurrentTerm(anyLong());
+    verify(mockRaftLog).currentTerm(3L);
+    verify(mockRaftLog, times(1)).currentTerm(anyLong());
 
-    verify(mockRaftLog).updateVotedFor(Optional.of(self));
-    verify(mockRaftLog, never()).updateVotedFor(Optional.of(mockCandidate));
-    verify(mockRaftLog, times(1)).updateVotedFor(any(Optional.class));
+    verify(mockRaftLog).lastVotedFor(Optional.of(self));
+    verify(mockRaftLog, never()).lastVotedFor(Optional.of(mockCandidate));
+    verify(mockRaftLog, times(1)).lastVotedFor(any(Optional.class));
 
-    verify(mockRaftLog, never()).updateCommitIndex(anyLong());
+    verify(mockRaftLog, never()).commitIndex(anyLong());
 
     verify(mockRaftStateContext, never()).setState(any(RaftStateContext.StateType.class));
 
@@ -171,14 +171,14 @@ public class CandidateTest {
 
     candidate.appendEntries(mockRaftStateContext, request);
 
-    verify(mockRaftLog).updateCurrentTerm(3L);
-    verify(mockRaftLog).updateCurrentTerm(4L);
-    verify(mockRaftLog, times(2)).updateCurrentTerm(anyLong());
+    verify(mockRaftLog).currentTerm(3L);
+    verify(mockRaftLog).currentTerm(4L);
+    verify(mockRaftLog, times(2)).currentTerm(anyLong());
 
-    verify(mockRaftLog).updateVotedFor(Optional.of(self));
-    verify(mockRaftLog, times(1)).updateVotedFor(any(Optional.class));
+    verify(mockRaftLog).lastVotedFor(Optional.of(self));
+    verify(mockRaftLog, times(1)).lastVotedFor(any(Optional.class));
 
-    verify(mockRaftLog, never()).updateCommitIndex(anyLong());
+    verify(mockRaftLog, never()).commitIndex(anyLong());
 
     verify(mockRaftStateContext).setState(FOLLOWER);
     verifyNoMoreInteractions(mockRaftStateContext);
@@ -206,13 +206,13 @@ public class CandidateTest {
 
     candidate.appendEntries(mockRaftStateContext, request);
 
-    verify(mockRaftLog).updateCurrentTerm(3L);
-    verify(mockRaftLog, times(1)).updateCurrentTerm(anyLong());
+    verify(mockRaftLog).currentTerm(3L);
+    verify(mockRaftLog, times(1)).currentTerm(anyLong());
 
-    verify(mockRaftLog).updateVotedFor(Optional.of(self));
-    verify(mockRaftLog, times(1)).updateVotedFor(any(Optional.class));
+    verify(mockRaftLog).lastVotedFor(Optional.of(self));
+    verify(mockRaftLog, times(1)).lastVotedFor(any(Optional.class));
 
-    verify(mockRaftLog, never()).updateCommitIndex(anyLong());
+    verify(mockRaftLog, never()).commitIndex(anyLong());
 
     verifyZeroInteractions(mockRaftStateContext);
 
@@ -237,13 +237,13 @@ public class CandidateTest {
 
     candidate.appendEntries(mockRaftStateContext, request);
 
-    verify(mockRaftLog).updateCurrentTerm(3L);
-    verify(mockRaftLog, times(1)).updateCurrentTerm(anyLong());
+    verify(mockRaftLog).currentTerm(3L);
+    verify(mockRaftLog, times(1)).currentTerm(anyLong());
 
-    verify(mockRaftLog).updateVotedFor(Optional.of(self));
-    verify(mockRaftLog, times(1)).updateVotedFor(any(Optional.class));
+    verify(mockRaftLog).lastVotedFor(Optional.of(self));
+    verify(mockRaftLog, times(1)).lastVotedFor(any(Optional.class));
 
-    verify(mockRaftLog, never()).updateCommitIndex(anyLong());
+    verify(mockRaftLog, never()).commitIndex(anyLong());
 
     verify(mockRaftStateContext).setState(FOLLOWER);
     verifyNoMoreInteractions(mockRaftStateContext);
