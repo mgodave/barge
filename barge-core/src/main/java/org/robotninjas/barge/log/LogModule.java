@@ -45,7 +45,7 @@ public class LogModule extends PrivateModule {
 
     bind(StateMachine.class).toInstance(stateMachine);
     bind(StateMachineProxy.class);
-    bind(RaftLog.class).to(DefaultRaftLog.class).asEagerSingleton();
+    bind(RaftLog.class).asEagerSingleton();
     expose(RaftLog.class);
 
   }
