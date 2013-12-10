@@ -36,8 +36,6 @@ import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
@@ -133,21 +131,22 @@ public class RaftService extends AbstractService {
     }
   }
 
-  public static Builder newBuilder() {
-    return new Builder();
+  public static Builder newBuilder(ClusterConfig config) {
+    return new Builder(config);
   }
 
   public static class Builder {
 
     private static long TIMEOUT = 150;
 
+    private final ClusterConfig config;
     private File logDir = Files.createTempDir();
-    private Replica local = Replica.fromString("localhost:10000");
     private long timeout = TIMEOUT;
-    private List<Replica> members = Collections.emptyList();
     private Optional<NioEventLoopGroup> eventLoop = Optional.absent();
 
-    protected Builder() {}
+    protected Builder(ClusterConfig config) {
+      this.config = config;
+    }
 
     public Builder timeout(long timeout) {
       this.timeout = timeout;
@@ -159,16 +158,6 @@ public class RaftService extends AbstractService {
       return this;
     }
 
-    public Builder local(Replica local) {
-      this.local = local;
-      return this;
-    }
-
-    public Builder members(List<Replica> members) {
-      this.members = members;
-      return this;
-    }
-
     public Builder eventLoop(NioEventLoopGroup eventLoop) {
       this.eventLoop = Optional.of(eventLoop);
       return this;
@@ -176,7 +165,7 @@ public class RaftService extends AbstractService {
 
     public RaftService build(StateMachine stateMachine) {
 
-      RaftModule raftModule = new RaftModule(local, members, logDir, stateMachine);
+      RaftModule raftModule = new RaftModule(config, logDir, stateMachine);
       raftModule.setTimeout(timeout);
       if (eventLoop.isPresent()) {
         raftModule.setNioEventLoop(eventLoop.get());

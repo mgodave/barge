@@ -25,8 +25,7 @@ import com.google.inject.Inject;
 import com.google.protobuf.ByteString;
 import journal.io.api.Journal;
 import journal.io.api.Location;
-import org.robotninjas.barge.ClusterMembers;
-import org.robotninjas.barge.LocalReplicaInfo;
+import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.proto.LogProto;
 import org.slf4j.Logger;
@@ -71,13 +70,13 @@ class DefaultRaftLog implements RaftLog {
 
   @Inject
   DefaultRaftLog(@Nonnull Journal journal,
-                 @LocalReplicaInfo @Nonnull Replica local,
-                 @ClusterMembers @Nonnull List<Replica> members,
+                 @Nonnull ClusterConfig config,
                  @Nonnull StateMachineProxy stateMachine) {
 
-    this.local = checkNotNull(local);
+    checkNotNull(config);
+    this.local = config.local();
     this.journal = checkNotNull(journal);
-    this.members = checkNotNull(members);
+    this.members = newArrayList(config.remote());
     this.stateMachine = checkNotNull(stateMachine);
 
   }
