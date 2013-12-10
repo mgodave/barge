@@ -18,6 +18,7 @@ package org.robotninjas.barge.state;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -33,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
 import java.util.List;
@@ -45,7 +47,6 @@ import static com.google.common.util.concurrent.Futures.addCallback;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.robotninjas.barge.proto.RaftProto.*;
 import static org.robotninjas.barge.state.MajorityCollector.majorityResponse;
-import static org.robotninjas.barge.state.RaftPredicates.voteGranted;
 import static org.robotninjas.barge.state.RaftStateContext.StateType.*;
 
 @NotThreadSafe
@@ -79,7 +80,7 @@ class Candidate extends BaseState {
     LOGGER.debug("Election starting for term {}", log.currentTerm());
 
     List<ListenableFuture<RequestVoteResponse>> responses = sendRequests(ctx);
-    electionResult = majorityResponse(responses, voteGranted());
+    electionResult = majorityResponse(responses, VoteGrantedPredicate.VoteGranted);
 
     addCallback(electionResult, new FutureCallback<Boolean>() {
       @Override
@@ -172,6 +173,12 @@ class Candidate extends BaseState {
 
   @Nonnull
   @Override
+  public SnapshotSegmentResponse installSnapshot(@Nonnull RaftStateContext ctx, @Nonnull SnapshotSegment request) {
+    return null;
+  }
+
+  @Nonnull
+  @Override
   public ListenableFuture<Boolean> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
     throw new NoLeaderException();
   }
@@ -211,6 +218,23 @@ class Candidate extends BaseState {
       @Override
       public void onFailure(Throwable t) {}
     };
+  }
+
+  /**
+   * Predicate returning true if the {@link RequestVoteResponse} returns voteGranted.
+   */
+  @Immutable
+  @VisibleForTesting
+  static enum VoteGrantedPredicate implements Predicate<RequestVoteResponse> {
+
+    VoteGranted;
+
+    @Override
+    public boolean apply(@Nullable RequestVoteResponse input) {
+      checkNotNull(input);
+      return input.getVoteGranted();
+    }
+
   }
 
 }

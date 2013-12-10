@@ -34,6 +34,9 @@ interface State {
   AppendEntriesResponse appendEntries(@Nonnull RaftStateContext ctx, @Nonnull AppendEntries request);
 
   @Nonnull
+  SnapshotSegmentResponse installSnapshot(@Nonnull RaftStateContext ctx, @Nonnull SnapshotSegment request);
+
+  @Nonnull
   ListenableFuture<Boolean> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException;
 
 }

@@ -131,6 +131,12 @@ class Follower extends BaseState {
 
   @Nonnull
   @Override
+  public SnapshotSegmentResponse installSnapshot(@Nonnull RaftStateContext ctx, @Nonnull SnapshotSegment request) {
+    return null;
+  }
+
+  @Nonnull
+  @Override
   public ListenableFuture<Boolean> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
     if (leader.isPresent()) {
       throw new NotLeaderException(leader.get());

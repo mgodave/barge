@@ -22,20 +22,21 @@ import com.google.common.collect.Lists;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
+import static java.util.Collections.unmodifiableList;
 import static org.robotninjas.barge.proto.RaftEntry.Entry;
 
 @Immutable
 @ThreadSafe
-public class GetEntriesResult {
+public class EntrySet implements Iterable<Entry> {
 
   private final long prevEntryTerm;
   private final long prevEntryIndex;
   private final List<Entry> entries;
 
-  public GetEntriesResult(long prevEntryTerm, long prevEntryIndex, List<Entry> entries) {
+  public EntrySet(long prevEntryTerm, long prevEntryIndex, Iterable<Entry> entries) {
     this.prevEntryTerm = prevEntryTerm;
     this.prevEntryIndex = prevEntryIndex;
     this.entries = Lists.newArrayList(entries);
@@ -51,7 +52,12 @@ public class GetEntriesResult {
 
   @Nonnull
   public List<Entry> entries() {
-    return Collections.unmodifiableList(entries);
+    return unmodifiableList(entries);
+  }
+
+  @Override
+  public Iterator<Entry> iterator() {
+    return unmodifiableList(entries).iterator();
   }
 
   @Override

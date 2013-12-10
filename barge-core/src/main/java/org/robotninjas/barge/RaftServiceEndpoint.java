@@ -43,4 +43,15 @@ class RaftServiceEndpoint implements RaftProto.RaftService.Interface {
       done.run(null);
     }
   }
+
+  @Override
+  public void installSnapshot(RpcController controller, SnapshotSegment request, RpcCallback<SnapshotSegmentResponse> done) {
+    try {
+      done.run(ctx.installSnapshot(request));
+    } catch (Exception e) {
+      LOGGER.debug("Exception caught servicing InstallSnapshot", e);
+      controller.setFailed(nullToEmpty(e.getMessage()));
+      done.run(null);
+    }
+  }
 }

@@ -160,6 +160,12 @@ public class BaseStateTest {
 
     @Nonnull
     @Override
+    public RaftProto.SnapshotSegmentResponse installSnapshot(@Nonnull RaftStateContext ctx, @Nonnull RaftProto.SnapshotSegment request) {
+      return null;
+    }
+
+    @Nonnull
+    @Override
     public RaftProto.RequestVoteResponse requestVote(@Nonnull RaftStateContext ctx, @Nonnull RequestVote request) {
       return null;
     }

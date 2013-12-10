@@ -9,7 +9,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.robotninjas.barge.Replica;
-import org.robotninjas.barge.log.GetEntriesResult;
+import org.robotninjas.barge.log.EntrySet;
 import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.rpc.Client;
 
@@ -53,7 +53,7 @@ public class ReplicaManagerTest {
     ListenableFuture<AppendEntriesResponse> mockResponse = mock(ListenableFuture.class);
     when(mockClient.appendEntries(eq(FOLLOWER), any(AppendEntries.class))).thenReturn(mockResponse);
 
-    GetEntriesResult entriesResult = new GetEntriesResult(0l, 0l, Collections.<Entry>emptyList());
+    EntrySet entriesResult = new EntrySet(0l, 0l, Collections.<Entry>emptyList());
     when(mockRaftLog.getEntriesFrom(anyLong(), anyInt())).thenReturn(entriesResult);
 
     ReplicaManager replicaManager = new ReplicaManager(mockClient, mockRaftLog, FOLLOWER);
@@ -95,7 +95,7 @@ public class ReplicaManagerTest {
       .thenReturn(mock(ListenableFuture.class));
 
 
-    GetEntriesResult entriesResult = new GetEntriesResult(0l, 0l, Collections.<Entry>emptyList());
+    EntrySet entriesResult = new EntrySet(0l, 0l, Collections.<Entry>emptyList());
     when(mockRaftLog.getEntriesFrom(anyLong(), anyInt())).thenReturn(entriesResult);
 
     ReplicaManager replicaManager = new ReplicaManager(mockClient, mockRaftLog, FOLLOWER);
@@ -148,7 +148,7 @@ public class ReplicaManagerTest {
       .setCommand(ByteString.EMPTY)
       .build();
 
-    GetEntriesResult entriesResult = new GetEntriesResult(0l, 0l, Lists.newArrayList(entry));
+    EntrySet entriesResult = new EntrySet(0l, 0l, Lists.newArrayList(entry));
     when(mockRaftLog.getEntriesFrom(anyLong(), anyInt())).thenReturn(entriesResult);
 
     ReplicaManager replicaManager = new ReplicaManager(mockClient, mockRaftLog, FOLLOWER);

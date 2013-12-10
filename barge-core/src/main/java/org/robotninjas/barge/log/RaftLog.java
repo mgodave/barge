@@ -31,7 +31,8 @@ public interface RaftLog {
 
   boolean append(@Nonnull AppendEntries appendEntries);
 
-  @Nonnull GetEntriesResult getEntriesFrom(@Nonnegative long begin, @Nonnegative int max);
+  @Nonnull
+  EntrySet getEntriesFrom(@Nonnegative long begin, @Nonnegative int max);
 
   @Nonnull List<Replica> members();
 
@@ -53,6 +54,6 @@ public interface RaftLog {
 
   void updateVotedFor(@Nonnull Optional<Replica> candidate);
 
-  void load();
+  void init();
 
 }

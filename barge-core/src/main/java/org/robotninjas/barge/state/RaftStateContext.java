@@ -63,6 +63,12 @@ public class RaftStateContext {
   }
 
   @Nonnull
+  public SnapshotSegmentResponse installSnapshot(@Nonnull SnapshotSegment request) {
+    checkNotNull(request);
+    return delegate.installSnapshot(this, request);
+  }
+
+  @Nonnull
   public ListenableFuture<Boolean> commitOperation(@Nonnull byte[] op) throws RaftException {
     checkNotNull(op);
     return delegate.commitOperation(this, op);

@@ -18,6 +18,7 @@ package org.robotninjas.barge.state;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.FutureCallback;
@@ -34,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
 import java.util.*;
@@ -46,7 +48,6 @@ import static com.google.common.collect.Lists.newArrayList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.robotninjas.barge.proto.RaftProto.*;
 import static org.robotninjas.barge.state.MajorityCollector.majorityResponse;
-import static org.robotninjas.barge.state.RaftPredicates.appendSuccessul;
 import static org.robotninjas.barge.state.RaftStateContext.StateType.FOLLOWER;
 
 @NotThreadSafe
@@ -141,6 +142,12 @@ class Leader extends BaseState {
 
   }
 
+  @Nonnull
+  @Override
+  public SnapshotSegmentResponse installSnapshot(@Nonnull RaftStateContext ctx, @Nonnull SnapshotSegment request) {
+    return null;
+  }
+
   void resetTimeout(@Nonnull final RaftStateContext ctx) {
 
     if (null != heartbeatTask) {
@@ -165,7 +172,7 @@ class Leader extends BaseState {
     long index = log.append(operation);
     requests.put(index, SettableFuture.<Boolean>create());
     List<ListenableFuture<AppendEntriesResponse>> responses = sendRequests(ctx);
-    return majorityResponse(responses, appendSuccessul());
+    return majorityResponse(responses, AppendSuccessPredicate.Success);
 
   }
 
@@ -232,6 +239,23 @@ class Leader extends BaseState {
 
     }
     return responses;
+  }
+
+  /**
+   * Predicate returning true if the {@link AppendEntriesResponse} returns success.
+   */
+  @Immutable
+  @VisibleForTesting
+  static enum AppendSuccessPredicate implements Predicate<AppendEntriesResponse> {
+
+    Success;
+
+    @Override
+    public boolean apply(@Nullable AppendEntriesResponse input) {
+      checkNotNull(input);
+      return input.getSuccess();
+    }
+
   }
 
 }

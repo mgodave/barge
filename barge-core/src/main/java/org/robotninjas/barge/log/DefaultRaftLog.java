@@ -16,39 +16,29 @@
 
 package org.robotninjas.barge.log;
 
-import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
-import com.google.common.base.Throwables;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.protobuf.ByteString;
 import journal.io.api.Journal;
-import journal.io.api.Location;
-import org.robotninjas.barge.ClusterMembers;
-import org.robotninjas.barge.LocalReplicaInfo;
+import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.Replica;
-import org.robotninjas.barge.proto.LogProto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.List;
+import java.util.TreeMap;
 
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Throwables.propagate;
-import static com.google.common.collect.Iterables.limit;
-import static com.google.common.collect.Lists.newArrayList;
-import static journal.io.api.Journal.ReadType;
-import static journal.io.api.Journal.WriteType;
-import static org.robotninjas.barge.proto.LogProto.JournalEntry;
 import static org.robotninjas.barge.proto.RaftEntry.Entry;
 import static org.robotninjas.barge.proto.RaftProto.AppendEntries;
 
@@ -56,12 +46,8 @@ import static org.robotninjas.barge.proto.RaftProto.AppendEntries;
 class DefaultRaftLog implements RaftLog {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRaftLog.class);
-  private static final Entry SENTINEL_ENTRY = Entry.newBuilder().setCommand(ByteString.EMPTY).setTerm(0).build();
 
-  private final Journal journal;
-  private final SortedMap<Long, EntryMeta> entryIndex = new TreeMap<Long, EntryMeta>();
-  private final Replica local;
-  private final List<Replica> members;
+  private final ClusterConfig config;
   private final StateMachineProxy stateMachine;
   private volatile long lastLogIndex = 0;
   private volatile long currentTerm = 0;
@@ -69,142 +55,59 @@ class DefaultRaftLog implements RaftLog {
   private volatile long commitIndex = 0;
   private volatile long lastApplied = 0;
 
-  @Inject
-  DefaultRaftLog(@Nonnull Journal journal,
-                 @LocalReplicaInfo @Nonnull Replica local,
-                 @ClusterMembers @Nonnull List<Replica> members,
-                 @Nonnull StateMachineProxy stateMachine) {
+  private final RaftJournal journal;
+  private final TreeMap<Long, Entry> logEntries = Maps.newTreeMap();
 
-    this.local = checkNotNull(local);
-    this.journal = checkNotNull(journal);
-    this.members = checkNotNull(members);
+  @Inject
+  DefaultRaftLog(@Nonnull Journal journal, @Nonnull ClusterConfig config, @Nonnull StateMachineProxy stateMachine) {
+
+    this.config = checkNotNull(config);
+    this.journal = new RaftJournal(journal);
     this.stateMachine = checkNotNull(stateMachine);
 
   }
 
   @Override
-  public void load() {
-    this.entryIndex.put(0L, new EntryMeta(0, 0, null));
+  public void init() {
 
     LOGGER.info("Replaying log");
-    try {
-      for (Location loc : journal.redo()) {
 
-        byte[] data = journal.read(loc, ReadType.SYNC);
-        JournalEntry journalEntry = JournalEntry.parseFrom(data);
+    journal.init();
 
-        if (journalEntry.hasAppend()) {
-
-          LogProto.Append append = journalEntry.getAppend();
-
-          long index = append.getIndex();
-          LOGGER.debug("Append {}", append.getEntry());
-          Entry entry = append.getEntry();
-          long term = entry.getTerm();
-
-          EntryMeta meta = new EntryMeta(index, term, loc);
-          this.entryIndex.put(index, meta);
-
-          this.lastLogIndex = Math.max(lastLogIndex, index);
-
-        }
-
-        if (journalEntry.hasTerm()) {
-
-          LogProto.Term term = journalEntry.getTerm();
-          LOGGER.debug("Term {}", term);
-          this.currentTerm = Math.max(currentTerm, term.getTerm());
-
-        }
-
-        if (journalEntry.hasVote()) {
-
-          LogProto.Vote vote = journalEntry.getVote();
-          if (vote.hasVotedFor()) {
-            Replica candidate = Replica.fromString(vote.getVotedFor());
-            votedFor = Optional.of(candidate);
-          } else {
-            votedFor = Optional.absent();
-          }
-          LOGGER.debug("Vote {}", votedFor.orNull());
-
-        }
-
-        if (journalEntry.hasCommit()) {
-
-          LogProto.Commit commit = journalEntry.getCommit();
-          this.commitIndex = Math.max(commit.getIndex(), commitIndex);
-          LOGGER.debug("Commit {}", commit.getIndex());
-
-        }
-
-        LOGGER.debug("lastLogIndex {}, currentTerm {}, commitIndex {}",
-          lastLogIndex, currentTerm, commitIndex);
-
-
-        fireComitted();
-
+    journal.replay(new RaftJournal.Visitor() {
+      @Override
+      public void term(long term) {
+        currentTerm = Math.max(currentTerm, term);
       }
-    } catch (IOException e) {
-      Throwables.propagate(e);
-    }
+
+      @Override
+      public void vote(Optional<Replica> vote) {
+        votedFor = vote;
+      }
+
+      @Override
+      public void commit(long commit) {
+        commitIndex = Math.max(commitIndex, commit);
+      }
+
+      @Override
+      public void append(Entry entry, long index) {
+        lastLogIndex = Math.max(lastLogIndex, index);
+        logEntries.put(index, entry);
+      }
+    });
+
+    fireComitted();
+
     LOGGER.info("Finished replaying log lastIndex {}, currentTerm {}, commitIndex {}, votedFor {}",
       lastLogIndex, currentTerm, commitIndex, votedFor.orNull());
   }
 
-  private void storeEntry(long index, @Nonnull Entry entry) {
-    try {
 
-      LOGGER.debug("{}", entry);
-
-      JournalEntry journalEntry =
-        JournalEntry.newBuilder()
-          .setAppend(LogProto.Append.newBuilder()
-            .setIndex(index)
-            .setEntry(entry))
-          .build();
-
-      Location loc = journal.write(journalEntry.toByteArray(), WriteType.SYNC);
-      EntryMeta meta = new EntryMeta(index, entry.getTerm(), loc);
-      this.entryIndex.put(index, meta);
-    } catch (Exception e) {
-      throw propagate(e);
-    }
-  }
-
-  private Entry loadEntry(long index) {
-
-    try {
-      LOGGER.debug("Reading index {} from journal", index);
-      EntryMeta meta = entryIndex.get(index);
-      byte[] data = journal.read(meta.location, ReadType.ASYNC);
-      JournalEntry entry = JournalEntry.parseFrom(data);
-      return entry.getAppend().getEntry();
-    } catch (Exception e) {
-      e.printStackTrace();
-      throw propagate(e);
-    }
-
-  }
-
-  private Function<Long, Entry> loadEntryFunc() {
-    return new Function<Long, Entry>() {
-      @Nullable
-      @Override
-      public Entry apply(@Nullable Long input) {
-        return loadEntry(input);
-      }
-    };
-  }
 
   public long append(@Nonnull byte[] operation) {
 
-    checkState(entryIndex.containsKey(lastLogIndex));
-    checkState(!entryIndex.containsKey(lastLogIndex + 1));
-
     long index = ++lastLogIndex;
-
-//    LOGGER.debug("leader append: index {}, term {}", index, currentTerm);
 
     Entry entry =
       Entry.newBuilder()
@@ -212,7 +115,7 @@ class DefaultRaftLog implements RaftLog {
         .setTerm(currentTerm)
         .build();
 
-    storeEntry(index, entry);
+    journal.appendEntry(entry, index);
 
     return index;
 
@@ -225,26 +128,19 @@ class DefaultRaftLog implements RaftLog {
     final long prevLogTerm = appendEntries.getPrevLogTerm();
     final List<Entry> entries = appendEntries.getEntriesList();
 
-    EntryMeta previousEntry = entryIndex.get(prevLogIndex);
-    if ((previousEntry == null) || (previousEntry.term != prevLogTerm)) {
-      LOGGER.debug("Append prevLogIndex {} prevLogTerm {} previousEntry {}", prevLogIndex, prevLogTerm, previousEntry);
+    if (!logEntries.containsKey(prevLogIndex) ||
+      (logEntries.get(prevLogIndex).getTerm() != prevLogTerm)) {
+      LOGGER.debug("Append prevLogIndex {} prevLogTerm {}", prevLogIndex, prevLogTerm);
       return false;
     }
 
-    SortedMap<Long, EntryMeta> old = this.entryIndex.tailMap(prevLogIndex + 1);
-    for (EntryMeta e : old.values()) {
-      try {
-        LOGGER.debug("Deleting {}", e.index);
-        journal.delete(e.location);
-      } catch (IOException e1) {
-        e1.printStackTrace();
-      }
-    }
-    old.clear();
+    journal.removeAfter(prevLogIndex + 1);
+    logEntries.tailMap(prevLogIndex + 1).clear();
+
     lastLogIndex = prevLogIndex;
 
     for (Entry entry : entries) {
-      storeEntry(++lastLogIndex, entry);
+      journal.appendEntry(entry, ++lastLogIndex);
     }
 
     return true;
@@ -252,26 +148,21 @@ class DefaultRaftLog implements RaftLog {
   }
 
   @Nonnull
-  public GetEntriesResult getEntriesFrom(@Nonnegative long beginningIndex, @Nonnegative int max) {
+  public EntrySet getEntriesFrom(@Nonnegative long beginningIndex, @Nonnegative int max) {
 
     checkArgument(beginningIndex >= 0);
 
-    Set<Long> indices = entryIndex.tailMap(beginningIndex).keySet();
-    Iterable<Entry> values = Iterables.transform(limit(indices, max), loadEntryFunc());
+    Entry previousEntry = journal.get(beginningIndex - 1);
+    Iterable<Entry> entries = logEntries.tailMap(beginningIndex).values();
 
-    long previousIndex = beginningIndex - 1;
-    Entry previousEntry = (previousIndex <= 0) ? SENTINEL_ENTRY : loadEntry(previousIndex);
-
-    GetEntriesResult result = new GetEntriesResult(previousEntry.getTerm(), previousIndex, newArrayList(values));
-
-    return result;
+    return new EntrySet(previousEntry.getTerm(), beginningIndex - 1, entries);
 
   }
 
   void fireComitted() {
     try {
       for (long i = lastApplied + 1; i <= Math.min(commitIndex, lastLogIndex); ++i, ++lastApplied) {
-        byte[] rawCommand = loadEntry(i).getCommand().toByteArray();
+        byte[] rawCommand = journal.get(i).getCommand().toByteArray();
         final ByteBuffer operation = ByteBuffer.wrap(rawCommand).asReadOnlyBuffer();
         stateMachine.dispatchOperation(operation);
       }
@@ -285,7 +176,7 @@ class DefaultRaftLog implements RaftLog {
   }
 
   public long lastLogTerm() {
-    return entryIndex.get(lastLogIndex()).term;
+    return journal.get(lastLogIndex()).getTerm();
   }
 
   public long commitIndex() {
@@ -293,29 +184,14 @@ class DefaultRaftLog implements RaftLog {
   }
 
   public void updateCommitIndex(long index) {
-
-    commitIndex = index;
-
-    try {
-      JournalEntry entry =
-        JournalEntry.newBuilder()
-          .setCommit(LogProto.Commit.newBuilder()
-            .setIndex(index))
-          .build();
-
-      journal.write(entry.toByteArray(), WriteType.SYNC);
-    } catch (IOException e) {
-      Throwables.propagate(e);
-    }
-
+    journal.appendCommit((commitIndex = index));
     fireComitted();
-
   }
 
   @Nonnull
   @Override
   public List<Replica> members() {
-    return Collections.unmodifiableList(members);
+    return Lists.newArrayList(config.remote());
   }
 
   public long currentTerm() {
@@ -329,18 +205,8 @@ class DefaultRaftLog implements RaftLog {
     MDC.put("term", Long.toString(term));
     LOGGER.debug("New term {}", term);
 
-    currentTerm = term;
+    journal.appendTerm((currentTerm = term));
 
-    try {
-      JournalEntry entry =
-        JournalEntry.newBuilder()
-          .setTerm(LogProto.Term.newBuilder()
-            .setTerm(term))
-          .build();
-      journal.write(entry.toByteArray(), WriteType.SYNC);
-    } catch (IOException e) {
-      Throwables.propagate(e);
-    }
   }
 
   @Nonnull
@@ -349,33 +215,13 @@ class DefaultRaftLog implements RaftLog {
   }
 
   public void updateVotedFor(@Nonnull Optional<Replica> vote) {
-
     LOGGER.debug("Voting for {}", vote.orNull());
-
-    votedFor = vote;
-
-    try {
-      LogProto.Vote.Builder voteBuilder =
-        LogProto.Vote.newBuilder();
-
-      if (vote.isPresent()) {
-        voteBuilder.setVotedFor(vote.get().toString());
-      }
-
-      JournalEntry entry =
-        JournalEntry.newBuilder()
-          .setVote(voteBuilder)
-          .build();
-
-      journal.write(entry.toByteArray(), WriteType.SYNC);
-    } catch (IOException e) {
-      Throwables.propagate(e);
-    }
+    journal.appendVote((votedFor = vote));
   }
 
   @Nonnull
   public Replica self() {
-    return local;
+    return config.local();
   }
 
   @Override
@@ -388,26 +234,6 @@ class DefaultRaftLog implements RaftLog {
       .toString();
   }
 
-  @Immutable
-  static final class EntryMeta {
 
-    private final long index;
-    private final long term;
-    private final Location location;
-
-    EntryMeta(long index, long term, @Nonnull Location location) {
-      this.index = index;
-      this.term = term;
-      this.location = location;
-    }
-
-    @Override
-    public String toString() {
-      return Objects.toStringHelper(getClass())
-        .add("index", index)
-        .add("term", term)
-        .toString();
-    }
-  }
 
 }

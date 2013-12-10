@@ -24,7 +24,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.inject.assistedinject.Assisted;
 import org.robotninjas.barge.Replica;
-import org.robotninjas.barge.log.GetEntriesResult;
+import org.robotninjas.barge.log.EntrySet;
 import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.rpc.Client;
 import org.slf4j.Logger;
@@ -80,19 +80,19 @@ class ReplicaManager {
     // probing backwards, only send one entry as a probe, as
     // soon as we have a successful call forwards will become
     // true and we can catch up quickly
-    GetEntriesResult result = log.getEntriesFrom(nextIndex, forwards ? BATCH_SIZE : 1);
+    EntrySet entries = log.getEntriesFrom(nextIndex, forwards ? BATCH_SIZE : 1);
 
     final AppendEntries request =
       AppendEntries.newBuilder()
         .setTerm(log.currentTerm())
         .setLeaderId(log.self().toString())
-        .setPrevLogIndex(result.lastLogIndex())
-        .setPrevLogTerm(result.lastLogTerm())
+        .setPrevLogIndex(entries.lastLogIndex())
+        .setPrevLogTerm(entries.lastLogTerm())
         .setCommitIndex(log.commitIndex())
-        .addAllEntries(result.entries())
+        .addAllEntries(entries)
         .build();
 
-    LOGGER.debug("Sending update to {} prevLogIndex {} prevLogTerm {}", remote, result.lastLogIndex(), result.lastLogTerm());
+    LOGGER.debug("Sending update to {} prevLogIndex {} prevLogTerm {}", remote, entries.lastLogIndex(), entries.lastLogTerm());
     final ListenableFuture<AppendEntriesResponse> response = client.appendEntries(remote, request);
 
     final SettableFuture<AppendEntriesResponse> previousResponse = nextResponse;
@@ -186,5 +186,6 @@ class ReplicaManager {
       .add("matchIndex", matchIndex)
       .toString();
   }
+
 }
 
