@@ -63,7 +63,7 @@ public class RaftStateContext {
   }
 
   @Nonnull
-  public ListenableFuture<Boolean> commitOperation(@Nonnull byte[] op) throws RaftException {
+  public ListenableFuture<Object> commitOperation(@Nonnull byte[] op) throws RaftException {
     checkNotNull(op);
     return delegate.commitOperation(this, op);
   }

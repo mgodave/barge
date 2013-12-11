@@ -23,6 +23,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Iterables;
+import com.google.common.util.concurrent.SettableFuture;
 import com.google.inject.Inject;
 import com.google.protobuf.ByteString;
 import journal.io.api.Journal;
@@ -149,7 +150,7 @@ class DefaultRaftLog implements RaftLog {
           lastLogIndex, currentTerm, commitIndex);
 
 
-        fireComitted();
+        fireComitted(null);
 
       }
     } catch (IOException e) {
@@ -250,12 +251,12 @@ class DefaultRaftLog implements RaftLog {
     return result;
   }
 
-  void fireComitted() {
+  void fireComitted(Map<Long, SettableFuture<Object>> listeners) {
     try {
       for (long i = lastApplied + 1; i <= Math.min(commitIndex, lastLogIndex); ++i, ++lastApplied) {
         byte[] rawCommand = entryCache.get(i).getCommand().toByteArray();
         final ByteBuffer operation = ByteBuffer.wrap(rawCommand).asReadOnlyBuffer();
-        stateMachine.dispatchOperation(operation);
+        stateMachine.dispatchOperation(i, operation, listeners);
       }
     } catch (Exception e) {
       throw propagate(e);
@@ -274,7 +275,7 @@ class DefaultRaftLog implements RaftLog {
     return commitIndex;
   }
 
-  public void updateCommitIndex(long index) {
+  public void updateCommitIndex(long index, Map<Long, SettableFuture<Object>> listeners) {
 
 
     setCommitIndex(index);
@@ -291,7 +292,7 @@ class DefaultRaftLog implements RaftLog {
       Throwables.propagate(e);
     }
 
-    fireComitted();
+    fireComitted(listeners);
 
   }
 

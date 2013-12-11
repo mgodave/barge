@@ -23,10 +23,12 @@ import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.SettableFuture;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.log.RaftLog;
+import org.robotninjas.barge.rpc.RaftExecutor;
 import org.robotninjas.barge.rpc.RaftScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +38,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -56,17 +59,19 @@ class Leader extends BaseState {
 
   private final RaftLog log;
   private final ScheduledExecutorService scheduler;
+  private final ListeningExecutorService executor;
   private final long timeout;
   private final Map<Replica, ReplicaManager> managers = Maps.newHashMap();
   private final ReplicaManagerFactory replicaManagerFactory;
   private ScheduledFuture<?> heartbeatTask;
-  private final SortedMap<Long, SettableFuture<Boolean>> requests = Maps.newTreeMap();
+  private final SortedMap<Long, SettableFuture<Object>> requests = Maps.newTreeMap();
 
   @Inject
-  Leader(RaftLog log, @RaftScheduler ScheduledExecutorService scheduler,
+  Leader(RaftLog log, @RaftExecutor ListeningExecutorService executor, @RaftScheduler ScheduledExecutorService scheduler,
          @ElectionTimeout @Nonnegative long timeout, ReplicaManagerFactory replicaManagerFactory) {
 
     this.log = checkNotNull(log);
+    this.executor = checkNotNull(executor);
     this.scheduler = checkNotNull(scheduler);
     checkArgument(timeout > 0);
     this.timeout = timeout;
@@ -159,14 +164,29 @@ class Leader extends BaseState {
 
   @Nonnull
   @Override
-  public ListenableFuture<Boolean> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
+  public ListenableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
 
     resetTimeout(ctx);
     long index = log.append(operation);
-    SettableFuture<Boolean> f = SettableFuture.create();
-    requests.put(index, f);
-    return commit(ctx);
-
+    final SettableFuture<Object> future = SettableFuture.create();
+    requests.put(index, future);
+    final ListenableFuture<Boolean> sendMessageFuture = commit(ctx);
+    sendMessageFuture.addListener(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          Boolean sent = sendMessageFuture.get();
+          if (sent == Boolean.TRUE) {
+            // Okay, updateCommitted will be called and we will handle it there
+          } else {
+            future.setException(new IOException());
+          }
+        } catch (Throwable t) {
+          future.setException(t);
+        }
+      }
+    }, executor);
+    return future;
   }
 
   /**
@@ -186,12 +206,13 @@ class Leader extends BaseState {
 
     final int middle = (int) Math.ceil(sorted.size() / 2.0);
     final long committed = sorted.get(middle).getMatchIndex();
-    log.updateCommitIndex(committed);
 
-    SortedMap<Long, SettableFuture<Boolean>> entries = requests.headMap(committed + 1);
-    for (SettableFuture<Boolean> f : entries.values()) {
-      f.set(true);
-    }
+    SortedMap<Long, SettableFuture<Object>> entries = requests.headMap(committed + 1);
+    
+    // We need to make a copy, because updateCommitIndex is async
+    final Map<Long, SettableFuture<Object>> snapshot = Maps.newHashMap(entries);
+    
+    log.updateCommitIndex(committed, snapshot);
 
     entries.clear();
 

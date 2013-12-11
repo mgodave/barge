@@ -17,11 +17,13 @@
 package org.robotninjas.barge.log;
 
 import com.google.common.base.Optional;
+import com.google.common.util.concurrent.SettableFuture;
 import org.robotninjas.barge.Replica;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.Map;
 
 import static org.robotninjas.barge.proto.RaftProto.AppendEntries;
 
@@ -47,7 +49,7 @@ public interface RaftLog {
 
   @Nonnull Optional<Replica> lastVotedFor();
 
-  void updateCommitIndex(long index);
+  void updateCommitIndex(long index, Map<Long, SettableFuture<Object>> listeners);
 
   void updateCurrentTerm(@Nonnegative long term);
 
