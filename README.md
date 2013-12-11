@@ -33,40 +33,34 @@ Use It
 ======
 
 ```java
-
 public class Test implements StateMachine {
-
+ 
   @Override
   public void applyOperation(@Nonnull ByteBuffer entry) {
     System.out.println(entry.getLong());
   }
-
+ 
   public static void main(String... args) throws Exception {
-
-    final int port = Integer.parseInt(args[0]);
-
-    Replica local = Replica.fromString("localhost:" + port);
-    List<Replica> members = Lists.newArrayList(
-      Replica.fromString("localhost:10000"),
-      Replica.fromString("localhost:10001"),
-      Replica.fromString("localhost:10002")
+ 
+    ClusterConfig config = ClusterConfig.from(
+      Replica.fromString("localhost:10000"), // local
+      Replica.fromString("localhost:10001"), // remote
+      Replica.fromString("localhost:10002")  // remote
     );
-    members.remove(local);
-
+ 
     File logDir = new File(args[0]);
     logDir.mkdir();
-
-    RaftService raft = RaftService.newBuilder()
-      .local(local)
-      .members(members)
-      .logDir(logDir)
-      .timeout(300)
-      .build(new Test());
-
+ 
+    RaftService raft = 
+      RaftService.newBuilder(config)
+        .logDir(logDir)
+        .timeout(300)
+        .build(new Test());
+ 
     raft.startAsync().awaitRunning();
-
+ 
   }
-
+ 
 }
 
 
