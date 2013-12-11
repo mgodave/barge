@@ -116,7 +116,7 @@ class Follower extends BaseState {
       success = log.append(request);
 
       if (request.getCommitIndex() > log.commitIndex()) {
-        log.commitIndex(Math.min(request.getCommitIndex(), log.lastLogIndex()));
+        log.commitIndex(Math.min(request.getCommitIndex(), log.lastLogIndex()), null);
       }
 
     }
@@ -131,7 +131,7 @@ class Follower extends BaseState {
 
   @Nonnull
   @Override
-  public ListenableFuture<Boolean> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
+  public ListenableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
     if (leader.isPresent()) {
       throw new NotLeaderException(leader.get());
     } else {

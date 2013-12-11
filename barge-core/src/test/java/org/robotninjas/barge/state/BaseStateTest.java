@@ -172,7 +172,7 @@ public class BaseStateTest {
 
     @Nonnull
     @Override
-    public ListenableFuture<Boolean> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
+    public ListenableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
       return null;
     }
 

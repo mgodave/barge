@@ -28,6 +28,7 @@ import com.google.inject.Inject;
 import com.google.protobuf.ByteString;
 import journal.io.api.Journal;
 import org.robotninjas.barge.ClusterConfig;
+import com.google.common.util.concurrent.SettableFuture;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.rpc.RaftExecutor;
 import org.slf4j.Logger;
@@ -44,6 +45,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.TreeMap;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -111,7 +113,7 @@ public class RaftLog {
       }
     });
 
-    fireComitted();
+    fireComitted(null);
 
     LOGGER.info("Finished replaying log lastIndex {}, currentTerm {}, commitIndex {}, lastVotedFor {}",
       lastLogIndex, currentTerm, commitIndex, votedFor.orNull());
@@ -205,12 +207,16 @@ public class RaftLog {
 
   }
 
-  void fireComitted() {
+  void fireComitted(Map<Long, SettableFuture<Object>> listeners) {
     try {
       for (long i = lastApplied + 1; i <= Math.min(commitIndex, lastLogIndex); ++i, ++lastApplied) {
         byte[] rawCommand = log.get(i).getCommand().toByteArray();
         final ByteBuffer operation = ByteBuffer.wrap(rawCommand).asReadOnlyBuffer();
-        stateMachine.dispatchOperation(operation);
+        SettableFuture<Object> listener = null;
+        if (listeners != null) {
+          listener = listeners.get(i);
+        }
+        stateMachine.dispatchOperation(i, operation, listener);
       }
     } catch (Exception e) {
       throw propagate(e);
@@ -229,10 +235,10 @@ public class RaftLog {
     return commitIndex;
   }
 
-  public void commitIndex(long index) {
+  public void commitIndex(long index, Map<Long, SettableFuture<Object>> listeners) {
     commitIndex = index;
     journal.appendCommit(index);
-    fireComitted();
+    fireComitted(listeners);
   }
 
   public long currentTerm() {

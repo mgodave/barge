@@ -21,7 +21,7 @@ import java.nio.ByteBuffer;
 
 public interface StateMachine {
 
-  void applyOperation(@Nonnull ByteBuffer entry);
+  Object applyOperation(@Nonnull ByteBuffer entry);
 
 //  void takeSnapshot(@Nonnull OutputStream snapshot);
 //
