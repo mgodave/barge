@@ -34,33 +34,40 @@ Use It
 
 ```java
 public class Test implements StateMachine {
- 
+
   @Override
   public void applyOperation(@Nonnull ByteBuffer entry) {
     System.out.println(entry.getLong());
   }
- 
+
   public static void main(String... args) throws Exception {
- 
+
     ClusterConfig config = ClusterConfig.from(
       Replica.fromString("localhost:10000"), // local
       Replica.fromString("localhost:10001"), // remote
       Replica.fromString("localhost:10002")  // remote
     );
- 
+
     File logDir = new File(args[0]);
     logDir.mkdir();
- 
+
+    // configure the service
     RaftService raft = 
       RaftService.newBuilder(config)
         .logDir(logDir)
         .timeout(300)
         .build(new Test());
- 
+
+    // start this replica
     raft.startAsync().awaitRunning();
- 
+    
+    // let's commit some things
+    for (int i = 0; i < 10; i++) {
+      raft.commit(new byte[] {'O', '_', 'o'}).get();
+    }
+
   }
- 
+
 }
 
 
