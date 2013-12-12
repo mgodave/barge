@@ -212,11 +212,24 @@ public class RaftLog {
       for (long i = lastApplied + 1; i <= Math.min(commitIndex, lastLogIndex); ++i, ++lastApplied) {
         byte[] rawCommand = log.get(i).getCommand().toByteArray();
         final ByteBuffer operation = ByteBuffer.wrap(rawCommand).asReadOnlyBuffer();
-        SettableFuture<Object> listener = null;
+        final ListenableFuture<Object> future = stateMachine.dispatchOperation(operation);
+
         if (listeners != null) {
-          listener = listeners.get(i);
+          final SettableFuture<Object> listener = listeners.get(i);
+          if (listener != null) {
+            future.addListener(new Runnable() {
+              @Override
+              public void run() {
+                try {
+                  Object result = future.get();
+                  listener.set(result);
+                } catch (Throwable t) {
+                  listener.setException(t);
+                }
+              }
+            }, executor);
+          }
         }
-        stateMachine.dispatchOperation(i, operation, listener);
       }
     } catch (Exception e) {
       throw propagate(e);

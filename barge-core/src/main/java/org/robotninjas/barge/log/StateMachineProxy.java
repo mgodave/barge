@@ -4,7 +4,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.SettableFuture;
 import com.google.inject.Inject;
 import org.robotninjas.barge.StateMachine;
 
@@ -13,7 +12,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.util.Map;
+import java.util.concurrent.Callable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator;
@@ -37,23 +36,14 @@ class StateMachineProxy {
   }
 
   @Nonnull
-  public ListenableFuture dispatchOperation(final long index, @Nonnull final ByteBuffer op, final SettableFuture<Object> listener) {
+  public ListenableFuture<Object> dispatchOperation(@Nonnull final ByteBuffer op) {
 
     checkNotNull(op);
 
-    return executor.submit(new Runnable() {
+    return executor.submit(new Callable<Object>() {
       @Override
-      public void run() {
-        try {
-          Object result = stateMachine.applyOperation(op.asReadOnlyBuffer());
-          if (listener != null) {
-            listener.set(result);
-          }
-        } catch (Throwable t) {
-          if (listener != null) {
-            listener.setException(t);
-          }
-        }
+      public Object call() {
+        return stateMachine.applyOperation(op.asReadOnlyBuffer());
       }
     });
 
