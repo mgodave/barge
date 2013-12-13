@@ -116,7 +116,7 @@ class Follower extends BaseState {
       success = log.append(request);
 
       if (request.getCommitIndex() > log.commitIndex()) {
-        log.commitIndex(Math.min(request.getCommitIndex(), log.lastLogIndex()), null);
+        log.commitIndex(Math.min(request.getCommitIndex(), log.lastLogIndex()));
       }
 
     }

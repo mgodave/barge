@@ -11,7 +11,6 @@ import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.proto.RaftProto;
 import org.robotninjas.barge.rpc.Client;
 
-import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -80,7 +79,7 @@ public class CandidateTest {
     verify(mockRaftLog).lastVotedFor(Optional.of(mockCandidate));
     verify(mockRaftLog, times(2)).lastVotedFor(any(Optional.class));
 
-    verify(mockRaftLog, never()).commitIndex(anyLong(), any(Map.class));
+    verify(mockRaftLog, never()).commitIndex(anyLong());
 
     verify(mockRaftStateContext, times(1)).setState(FOLLOWER);
     verifyNoMoreInteractions(mockRaftStateContext);
@@ -113,7 +112,7 @@ public class CandidateTest {
     verify(mockRaftLog, never()).lastVotedFor(Optional.of(mockCandidate));
     verify(mockRaftLog, times(1)).lastVotedFor(any(Optional.class));
 
-    verify(mockRaftLog, never()).commitIndex(anyLong(), any(Map.class));
+    verify(mockRaftLog, never()).commitIndex(anyLong());
 
     verifyZeroInteractions(mockRaftStateContext);
 
@@ -144,7 +143,7 @@ public class CandidateTest {
     verify(mockRaftLog, never()).lastVotedFor(Optional.of(mockCandidate));
     verify(mockRaftLog, times(1)).lastVotedFor(any(Optional.class));
 
-    verify(mockRaftLog, never()).commitIndex(anyLong(), any(Map.class));
+    verify(mockRaftLog, never()).commitIndex(anyLong());
 
     verify(mockRaftStateContext, never()).setState(any(RaftStateContext.StateType.class));
 
@@ -179,7 +178,7 @@ public class CandidateTest {
     verify(mockRaftLog).lastVotedFor(Optional.of(self));
     verify(mockRaftLog, times(1)).lastVotedFor(any(Optional.class));
 
-    verify(mockRaftLog, never()).commitIndex(anyLong(), any(Map.class));
+    verify(mockRaftLog, never()).commitIndex(anyLong());
 
     verify(mockRaftStateContext).setState(FOLLOWER);
     verifyNoMoreInteractions(mockRaftStateContext);
@@ -213,7 +212,7 @@ public class CandidateTest {
     verify(mockRaftLog).lastVotedFor(Optional.of(self));
     verify(mockRaftLog, times(1)).lastVotedFor(any(Optional.class));
 
-    verify(mockRaftLog, never()).commitIndex(anyLong(), any(Map.class));
+    verify(mockRaftLog, never()).commitIndex(anyLong());
 
     verifyZeroInteractions(mockRaftStateContext);
 
@@ -244,7 +243,7 @@ public class CandidateTest {
     verify(mockRaftLog).lastVotedFor(Optional.of(self));
     verify(mockRaftLog, times(1)).lastVotedFor(any(Optional.class));
 
-    verify(mockRaftLog, never()).commitIndex(anyLong(), any(Map.class));
+    verify(mockRaftLog, never()).commitIndex(anyLong());
 
     verify(mockRaftStateContext).setState(FOLLOWER);
     verifyNoMoreInteractions(mockRaftStateContext);

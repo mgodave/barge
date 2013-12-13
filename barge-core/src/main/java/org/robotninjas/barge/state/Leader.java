@@ -64,7 +64,6 @@ class Leader extends BaseState {
   private final Map<Replica, ReplicaManager> managers = Maps.newHashMap();
   private final ReplicaManagerFactory replicaManagerFactory;
   private ScheduledFuture<?> heartbeatTask;
-  private final SortedMap<Long, SettableFuture<Object>> requests = Maps.newTreeMap();
 
   @Inject
   Leader(RaftLog log, @RaftExecutor ListeningExecutorService executor, @RaftScheduler ScheduledExecutorService scheduler,
@@ -167,26 +166,28 @@ class Leader extends BaseState {
   public ListenableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
 
     resetTimeout(ctx);
-    long index = log.append(operation);
-    final SettableFuture<Object> future = SettableFuture.create();
-    requests.put(index, future);
+    final SettableFuture<Object> future = log.append(operation);
     List<ListenableFuture<AppendEntriesResponse>> responses = sendRequests(ctx);
     final ListenableFuture<Boolean> sendMessageFuture = majorityResponse(responses, appendSuccessul());
-    sendMessageFuture.addListener(new Runnable() {
+
+    Futures.addCallback(sendMessageFuture, new FutureCallback<Object>() {
+
       @Override
-      public void run() {
-        try {
-          Boolean sent = sendMessageFuture.get();
-          if (sent == Boolean.TRUE) {
-            // Okay, updateCommitted will be called and we will handle it there
-          } else {
-            future.setException(new IOException());
-          }
-        } catch (Throwable t) {
-          future.setException(t);
+      public void onSuccess(Object sent) {
+        if (sent == Boolean.TRUE) {
+          // Okay, updateCommitted will be called and we will handle it there
+        } else {
+          future.setException(new IOException());
         }
       }
+
+      @Override
+      public void onFailure(Throwable t) {
+        future.setException(t);
+      }
+
     }, executor);
+
     return future;
   }
 
@@ -208,14 +209,7 @@ class Leader extends BaseState {
     final int middle = (int) Math.ceil(sorted.size() / 2.0);
     final long committed = sorted.get(middle).getMatchIndex();
 
-    SortedMap<Long, SettableFuture<Object>> entries = requests.headMap(committed + 1);
-    
-    // We need to make a copy, because updateCommitIndex is async
-    final Map<Long, SettableFuture<Object>> snapshot = Maps.newHashMap(entries);
-    
-    log.commitIndex(committed, snapshot);
-
-    entries.clear();
+    log.commitIndex(committed);
 
   }
 
