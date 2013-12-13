@@ -12,6 +12,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.concurrent.Callable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator;
@@ -35,14 +36,14 @@ class StateMachineProxy {
   }
 
   @Nonnull
-  public ListenableFuture dispatchOperation(@Nonnull final ByteBuffer op) {
+  public ListenableFuture<Object> dispatchOperation(@Nonnull final ByteBuffer op) {
 
     checkNotNull(op);
 
-    return executor.submit(new Runnable() {
+    return executor.submit(new Callable<Object>() {
       @Override
-      public void run() {
-        stateMachine.applyOperation(op.asReadOnlyBuffer());
+      public Object call() {
+        return stateMachine.applyOperation(op.asReadOnlyBuffer());
       }
     });
 

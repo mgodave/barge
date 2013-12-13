@@ -16,6 +16,7 @@
 
 package org.robotninjas.barge.log;
 
+import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
@@ -24,11 +25,13 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.SettableFuture;
 import com.google.inject.Inject;
 import com.google.protobuf.ByteString;
 import journal.io.api.Journal;
 import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.Replica;
+import org.robotninjas.barge.proto.RaftEntry.Entry;
 import org.robotninjas.barge.rpc.RaftExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +53,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Throwables.propagate;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.unmodifiableList;
-import static org.robotninjas.barge.proto.RaftEntry.Entry;
 import static org.robotninjas.barge.proto.RaftProto.AppendEntries;
 
 @NotThreadSafe
@@ -59,7 +61,17 @@ public class RaftLog {
   private static final Logger LOGGER = LoggerFactory.getLogger(RaftLog.class);
   private static final Entry SENTINEL = Entry.newBuilder().setCommand(ByteString.EMPTY).setTerm(0).build();
 
-  private final TreeMap<Long, Entry> log = Maps.newTreeMap();
+  static class EntryRecord {
+    final Entry entry;
+    SettableFuture<Object> future;
+
+    public EntryRecord(Entry entry, SettableFuture<Object> future) {
+      this.entry = entry;
+      this.future = future;
+    }
+  }
+
+  private final TreeMap<Long, EntryRecord> log = Maps.newTreeMap();
   private final ClusterConfig config;
   private final StateMachineProxy stateMachine;
   private final RaftJournal journal;
@@ -106,8 +118,8 @@ public class RaftLog {
       @Override
       public void append(Entry entry, long index) {
         lastLogIndex = Math.max(index, lastLogIndex);
-        lastLogTerm =  Math.max(entry.getTerm(), lastLogTerm);
-        log.put(index, entry);
+        lastLogTerm = Math.max(entry.getTerm(), lastLogTerm);
+        log.put(index, new EntryRecord(entry, null));
       }
     });
 
@@ -117,7 +129,7 @@ public class RaftLog {
       lastLogIndex, currentTerm, commitIndex, votedFor.orNull());
   }
 
-  private void storeEntry(final long index, @Nonnull Entry entry) {
+  private void storeEntry(final long index, @Nonnull Entry entry, SettableFuture<Object> future) {
     LOGGER.debug("{}", entry);
 
     if (index % 100 == 0) {
@@ -147,10 +159,10 @@ public class RaftLog {
     }
 
     journal.appendEntry(entry, index);
-    log.put(index, entry);
+    log.put(index, new EntryRecord(entry, future));
   }
 
-  public long append(@Nonnull byte[] operation) {
+  public SettableFuture<Object> append(@Nonnull byte[] operation) {
 
     long index = ++lastLogIndex;
     lastLogTerm = currentTerm;
@@ -161,10 +173,10 @@ public class RaftLog {
         .setTerm(currentTerm)
         .build();
 
-    storeEntry(index, entry);
+    SettableFuture<Object> future = SettableFuture.create();
+    storeEntry(index, entry, future);
 
-    return index;
-
+    return future;
 
   }
 
@@ -174,7 +186,7 @@ public class RaftLog {
     final long prevLogTerm = appendEntries.getPrevLogTerm();
     final List<Entry> entries = appendEntries.getEntriesList();
 
-    if ((prevLogIndex > 0) && (!log.containsKey(prevLogIndex) || log.get(prevLogIndex).getTerm() != prevLogTerm)) {
+    if ((prevLogIndex > 0) && (!log.containsKey(prevLogIndex) || log.get(prevLogIndex).entry.getTerm() != prevLogTerm)) {
       LOGGER.debug("Append prevLogIndex {} prevLogTerm {}", prevLogIndex, prevLogTerm);
       return false;
     }
@@ -184,7 +196,7 @@ public class RaftLog {
 
     lastLogIndex = prevLogIndex;
     for (Entry entry : entries) {
-      storeEntry(++lastLogIndex, entry);
+      storeEntry(++lastLogIndex, entry, null);
       lastLogTerm = entry.getTerm();
     }
 
@@ -198,8 +210,16 @@ public class RaftLog {
     checkArgument(beginningIndex >= 0);
 
     long previousIndex = beginningIndex - 1;
-    Entry previous = previousIndex <= 0 ? SENTINEL : log.get(previousIndex);
-    Iterable<Entry> entries = FluentIterable.from(log.tailMap(beginningIndex).values()).limit(max);
+    Entry previous = previousIndex <= 0 ? SENTINEL : log.get(previousIndex).entry;
+    Iterable<Entry> entries = FluentIterable.from(log.tailMap(beginningIndex).values()).limit(max)
+        .transform(new Function<EntryRecord, Entry>() {
+
+          @Override
+          public Entry apply(EntryRecord input) {
+            return input.entry;
+          }
+
+        });
 
     return new GetEntriesResult(previous.getTerm(), previousIndex, entries);
 
@@ -208,9 +228,32 @@ public class RaftLog {
   void fireComitted() {
     try {
       for (long i = lastApplied + 1; i <= Math.min(commitIndex, lastLogIndex); ++i, ++lastApplied) {
-        byte[] rawCommand = log.get(i).getCommand().toByteArray();
+        final EntryRecord logRecord = log.get(i);
+        byte[] rawCommand = logRecord.entry.getCommand().toByteArray();
         final ByteBuffer operation = ByteBuffer.wrap(rawCommand).asReadOnlyBuffer();
-        stateMachine.dispatchOperation(operation);
+        final ListenableFuture<Object> future = stateMachine.dispatchOperation(operation);
+
+        if (logRecord.future != null) {
+          Futures.addCallback(future, new FutureCallback<Object>() {
+
+            @Override
+            public void onSuccess(Object result) {
+              logRecord.future.set(result);
+
+              // Don't hold on to memory
+              logRecord.future = null;
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+              logRecord.future.setException(t);
+
+              // Don't hold on to memory
+              logRecord.future = null;
+            }
+
+          }, executor);
+        }
       }
     } catch (Exception e) {
       throw propagate(e);
