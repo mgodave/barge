@@ -38,7 +38,6 @@ class StateMachineProxy {
   public ListenableFuture dispatchOperation(@Nonnull final ByteBuffer op) {
 
     checkNotNull(op);
-
     return executor.submit(new Runnable() {
       @Override
       public void run() {

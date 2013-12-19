@@ -21,6 +21,9 @@ import javax.annotation.Nonnull;
 interface StateFactory {
 
   @Nonnull
+  Start start();
+
+  @Nonnull
   Candidate candidate();
 
   @Nonnull

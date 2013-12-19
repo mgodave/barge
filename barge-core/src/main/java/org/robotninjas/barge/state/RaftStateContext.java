@@ -43,11 +43,6 @@ public class RaftStateContext {
   @Inject
   RaftStateContext(StateFactory stateFactory) {
     this.stateFactory = stateFactory;
-    this.state = StateType.START;
-  }
-
-  public void init() {
-    setState(StateType.FOLLOWER);
   }
 
   @Nonnull
@@ -72,6 +67,9 @@ public class RaftStateContext {
     LOGGER.info("old state: {}, new state: {}", this.state, state);
     this.state = checkNotNull(state);
     switch (state) {
+      case START:
+        delegate = stateFactory.start();
+        break;
       case FOLLOWER:
         delegate = stateFactory.follower();
         break;

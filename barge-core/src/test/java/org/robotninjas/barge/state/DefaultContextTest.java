@@ -37,7 +37,6 @@ public class DefaultContextTest {
 
     RaftStateContext ctx = new RaftStateContext(mockStateFactory);
 
-    ctx.init();
     verify(mockFollower).init(ctx);
     assertEquals(StateType.FOLLOWER, ctx.getState());
 

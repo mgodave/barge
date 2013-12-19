@@ -23,7 +23,6 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.protobuf.Service;
 import io.netty.channel.nio.NioEventLoopGroup;
-import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.proto.RaftProto;
 import org.robotninjas.barge.rpc.RaftExecutor;
 import org.robotninjas.barge.state.RaftStateContext;
@@ -40,6 +39,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.robotninjas.barge.state.RaftStateContext.StateType.START;
 
 @ThreadSafe
 @Immutable
@@ -50,15 +50,13 @@ public class RaftService extends AbstractService {
   private final ListeningExecutorService executor;
   private final RpcServer rpcServer;
   private final RaftStateContext ctx;
-  private final RaftLog log;
 
   @Inject
-  RaftService(@Nonnull RpcServer rpcServer, @RaftExecutor ListeningExecutorService executor, @Nonnull RaftStateContext ctx, RaftLog log) {
+  RaftService(@Nonnull RpcServer rpcServer, @RaftExecutor ListeningExecutorService executor, @Nonnull RaftStateContext ctx) {
 
     this.executor = checkNotNull(executor);
     this.rpcServer = checkNotNull(rpcServer);
     this.ctx = checkNotNull(ctx);
-    this.log = checkNotNull(log);
 
   }
 
@@ -67,17 +65,11 @@ public class RaftService extends AbstractService {
 
     try {
 
-      log.load();
-
+      ctx.setState(START);
       RaftServiceEndpoint endpoint = new RaftServiceEndpoint(ctx);
       Service replicaService = RaftProto.RaftService.newReflectiveService(endpoint);
       rpcServer.registerService(replicaService);
-      rpcServer.startAsync().addListener(new Listener() {
-        @Override
-        public void running() {
-          ctx.setState(RaftStateContext.StateType.FOLLOWER);
-        }
-      }, MoreExecutors.sameThreadExecutor());
+      rpcServer.startAsync();
       rpcServer.awaitRunning();
 
       notifyStarted();
