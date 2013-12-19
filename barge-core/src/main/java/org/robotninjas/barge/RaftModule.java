@@ -17,6 +17,8 @@
 package org.robotninjas.barge;
 
 import com.google.common.base.Optional;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.inject.PrivateModule;
 import io.netty.channel.nio.NioEventLoopGroup;
 import org.robotninjas.barge.log.LogModule;
@@ -26,6 +28,7 @@ import org.robotninjas.barge.state.StateModule;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 import java.io.File;
+import java.util.concurrent.Executors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -40,6 +43,7 @@ class RaftModule extends PrivateModule {
   private final File logDir;
   private final StateMachine stateMachine;
   private Optional<NioEventLoopGroup> eventLoopGroup = Optional.absent();
+  private Optional<ListeningExecutorService> stateMachineExecutor = Optional.absent();
 
   public RaftModule(@Nonnull ClusterConfig config, @Nonnull File logDir, @Nonnull StateMachine stateMachine) {
     this.config = checkNotNull(config);
@@ -52,6 +56,10 @@ class RaftModule extends PrivateModule {
     this.eventLoopGroup = Optional.of(eventLoopGroup);
   }
 
+  public void setStateMachineExecutor(ListeningExecutorService stateMachineExecutor) {
+    this.stateMachineExecutor = Optional.of(stateMachineExecutor);
+  }
+
   public void setTimeout(long timeout) {
     this.timeout = timeout;
   }
@@ -61,12 +69,32 @@ class RaftModule extends PrivateModule {
 
     install(new StateModule(timeout));
     Replica local = config.local();
+
+    final NioEventLoopGroup eventLoop;
     if (eventLoopGroup.isPresent()) {
-      install(new RpcModule(local.address(), eventLoopGroup.get()));
+      eventLoop = eventLoopGroup.get();
     } else {
-      install(new RpcModule(local.address()));
+      eventLoop = new NioEventLoopGroup();
+      Runtime.getRuntime().addShutdownHook(new Thread() {
+        public void run() {
+          eventLoop.shutdownGracefully();
+        }
+      });
     }
-    install(new LogModule(logDir, stateMachine));
+    install(new RpcModule(local.address(), eventLoop));
+
+    final ListeningExecutorService executor;
+    if (stateMachineExecutor.isPresent()) {
+      executor = stateMachineExecutor.get();
+    } else {
+      executor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
+      Runtime.getRuntime().addShutdownHook(new Thread() {
+        public void run() {
+          executor.shutdownNow();
+        }
+      });
+    }
+    install(new LogModule(logDir, stateMachine, executor));
 
     bind(ClusterConfig.class)
       .toInstance(config);

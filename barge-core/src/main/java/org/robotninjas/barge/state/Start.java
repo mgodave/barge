@@ -7,6 +7,7 @@ import org.robotninjas.barge.log.RaftLog;
 
 import javax.annotation.Nonnull;
 
+import static com.google.inject.internal.util.$Preconditions.checkNotNull;
 import static org.robotninjas.barge.proto.RaftProto.*;
 import static org.robotninjas.barge.state.RaftStateContext.StateType.FOLLOWER;
 
@@ -16,7 +17,7 @@ class Start implements State {
 
   @Inject
   public Start(RaftLog log) {
-    this.log = log;
+    this.log = checkNotNull(log);
   }
 
   @Override

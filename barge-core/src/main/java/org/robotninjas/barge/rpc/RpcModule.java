@@ -16,7 +16,6 @@
 
 package org.robotninjas.barge.rpc;
 
-import com.google.common.base.Optional;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.inject.PrivateModule;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -34,51 +33,34 @@ public class RpcModule extends PrivateModule {
 
   private static final int NUM_THREADS = 1;
   private final SocketAddress saddr;
-  private final Optional<NioEventLoopGroup> eventLoopGroup;
+  private final NioEventLoopGroup eventLoopGroup;
 
   public RpcModule(@Nonnull SocketAddress saddr, NioEventLoopGroup eventLoopGroup) {
     this.saddr = checkNotNull(saddr);
-    this.eventLoopGroup = Optional.fromNullable(eventLoopGroup);
-  }
-
-  public RpcModule(@Nonnull SocketAddress saddr) {
-    this(saddr, null);
+    this.eventLoopGroup = checkNotNull(eventLoopGroup);
   }
 
   @Override
   protected void configure() {
 
-    final NioEventLoopGroup eventLoop;
-    if (!eventLoopGroup.isPresent()) {
-      eventLoop = new NioEventLoopGroup(1);
-      Runtime.getRuntime().addShutdownHook(new Thread() {
-        @Override
-        public void run() {
-          eventLoop.shutdownGracefully();
-        }
-      });
-    } else {
-      eventLoop = eventLoopGroup.get();
-    }
-
     bind(ListeningExecutorService.class)
       .annotatedWith(RaftExecutor.class)
-      .toInstance(listeningDecorator(eventLoop));
+      .toInstance(listeningDecorator(eventLoopGroup));
 
     expose(ListeningExecutorService.class)
       .annotatedWith(RaftExecutor.class);
 
     bind(ScheduledExecutorService.class)
       .annotatedWith(RaftScheduler.class)
-      .toInstance(listeningDecorator(eventLoop));
+      .toInstance(listeningDecorator(eventLoopGroup));
 
     expose(ScheduledExecutorService.class)
       .annotatedWith(RaftScheduler.class);
 
     bind(NioEventLoopGroup.class)
-      .toInstance(eventLoop);
+      .toInstance(eventLoopGroup);
 
-    RpcServer rpcServer = new RpcServer(eventLoop, saddr);
+    RpcServer rpcServer = new RpcServer(eventLoopGroup, saddr);
     bind(RpcServer.class)
       .toInstance(rpcServer);
     expose(RpcServer.class);
@@ -87,7 +69,7 @@ public class RpcModule extends PrivateModule {
       .asEagerSingleton();
 
     bind(RpcClient.class)
-      .toInstance(new RpcClient(eventLoop));
+      .toInstance(new RpcClient(eventLoopGroup));
 
     bind(Client.class).asEagerSingleton();
     expose(Client.class);

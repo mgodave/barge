@@ -37,6 +37,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.robotninjas.barge.state.RaftStateContext.StateType.START;
@@ -66,11 +67,12 @@ public class RaftService extends AbstractService {
     try {
 
       ctx.setState(START);
+
       RaftServiceEndpoint endpoint = new RaftServiceEndpoint(ctx);
       Service replicaService = RaftProto.RaftService.newReflectiveService(endpoint);
       rpcServer.registerService(replicaService);
-      rpcServer.startAsync();
-      rpcServer.awaitRunning();
+
+      rpcServer.startAsync().awaitRunning();
 
       notifyStarted();
 
@@ -135,6 +137,7 @@ public class RaftService extends AbstractService {
     private File logDir = Files.createTempDir();
     private long timeout = TIMEOUT;
     private Optional<NioEventLoopGroup> eventLoop = Optional.absent();
+    private Optional<ListeningExecutorService> stateExecutor = Optional.absent();
 
     protected Builder(ClusterConfig config) {
       this.config = config;
@@ -155,12 +158,20 @@ public class RaftService extends AbstractService {
       return this;
     }
 
+    public Builder stateExecutor(ExecutorService executor) {
+      this.stateExecutor = Optional.of(MoreExecutors.listeningDecorator(executor));
+      return this;
+    }
+
     public RaftService build(StateMachine stateMachine) {
 
       RaftModule raftModule = new RaftModule(config, logDir, stateMachine);
       raftModule.setTimeout(timeout);
       if (eventLoop.isPresent()) {
         raftModule.setNioEventLoop(eventLoop.get());
+      }
+      if (stateExecutor.isPresent()) {
+        raftModule.setStateMachineExecutor(stateExecutor.get());
       }
 
       Injector injector = Guice.createInjector(raftModule);
