@@ -70,8 +70,9 @@ class RaftJournal {
     }
   }
 
-  public RaftEntry.Entry get(long index) {
-    return read(entryIndex.get(index)).getAppend().getEntry();
+  public RaftEntry.Entry get(Mark mark) {
+    LogProto.JournalEntry entry = read(mark.getLocation());
+    return entry.getAppend().getEntry();
   }
 
   public void removeAfter(long index) {
@@ -108,7 +109,7 @@ class RaftJournal {
     }
   }
 
-  public void truncateBefore(Mark mark) {
+  public void truncateHead(Mark mark) {
     try {
       for (Location loc : journal.undo(mark.getLocation())) {
         delete(loc);
@@ -118,7 +119,17 @@ class RaftJournal {
     }
   }
 
-  public void appendEntry(RaftEntry.Entry entry, long index) {
+  public void truncateTail(Mark mark) {
+    try {
+      for (Location loc : journal.redo(mark.getLocation())) {
+        delete(loc);
+      }
+    } catch (IOException e) {
+      throw propagate(e);
+    }
+  }
+
+  public Mark appendEntry(RaftEntry.Entry entry, long index) {
     LogProto.JournalEntry je =
       LogProto.JournalEntry.newBuilder()
         .setAppend(LogProto.Append.newBuilder()
@@ -128,36 +139,45 @@ class RaftJournal {
 
     Location location = write(je);
     entryIndex.put(index, location);
+    return new Mark(location);
   }
 
-  public void appendTerm(long term) {
-    write(LogProto.JournalEntry.newBuilder()
-      .setTerm(LogProto.Term.newBuilder()
-        .setTerm(term))
-      .build());
+  public Mark appendTerm(long term) {
+    Location location =
+      write(LogProto.JournalEntry.newBuilder()
+        .setTerm(LogProto.Term.newBuilder()
+          .setTerm(term))
+        .build());
+    return new Mark(location);
   }
 
-  public void appendCommit(long commit) {
-    write(LogProto.JournalEntry.newBuilder()
-      .setCommit(LogProto.Commit.newBuilder()
-        .setIndex(commit))
-      .build());
+  public Mark appendCommit(long commit) {
+    Location location =
+      write(LogProto.JournalEntry.newBuilder()
+        .setCommit(LogProto.Commit.newBuilder()
+          .setIndex(commit))
+        .build());
+    return new Mark(location);
   }
 
-  public void appendVote(Optional<Replica> vote) {
-    write(LogProto.JournalEntry.newBuilder()
-      .setVote(LogProto.Vote.newBuilder()
-        .setVotedFor(vote.transform(toStringFunction()).or("")))
-      .build());
+  public Mark appendVote(Optional<Replica> vote) {
+    Location location =
+      write(LogProto.JournalEntry.newBuilder()
+        .setVote(LogProto.Vote.newBuilder()
+          .setVotedFor(vote.transform(toStringFunction()).or("")))
+        .build());
+    return new Mark(location);
   }
 
-  public void appendSnapshot(File file, long index, long term) {
-    write(LogProto.JournalEntry.newBuilder()
-      .setSnapshot(LogProto.Snapshot.newBuilder()
-        .setLastIncludedIndex(index)
-        .setLastIncludedTerm(term)
-        .setSnapshotFile(file.getName()))
-      .build());
+  public Mark appendSnapshot(File file, long index, long term) {
+    Location location =
+      write(LogProto.JournalEntry.newBuilder()
+        .setSnapshot(LogProto.Snapshot.newBuilder()
+          .setLastIncludedIndex(index)
+          .setLastIncludedTerm(term)
+          .setSnapshotFile(file.getName()))
+        .build());
+    return new Mark(location);
   }
 
   public void replay(Visitor visitor) {

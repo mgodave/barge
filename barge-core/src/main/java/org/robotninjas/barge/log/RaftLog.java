@@ -20,10 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.*;
 import com.google.inject.Inject;
 import com.google.protobuf.ByteString;
 import journal.io.api.Journal;
@@ -44,6 +41,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentMap;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -64,6 +62,8 @@ public class RaftLog {
   private final StateMachineProxy stateMachine;
   private final RaftJournal journal;
   private final ListeningExecutorService executor;
+
+  private final ConcurrentMap<Object, SettableFuture<Object>> operationResults = Maps.newConcurrentMap();
 
   private volatile long lastLogIndex = 0;
   private volatile long lastLogTerm = 0;
@@ -117,7 +117,7 @@ public class RaftLog {
       lastLogIndex, currentTerm, commitIndex, votedFor.orNull());
   }
 
-  private void storeEntry(final long index, @Nonnull Entry entry) {
+  private SettableFuture<Object> storeEntry(final long index, @Nonnull Entry entry) {
     LOGGER.debug("{}", entry);
 
     if (index % 100 == 0) {
@@ -130,13 +130,12 @@ public class RaftLog {
 
           @Override
           public void onSuccess(@Nullable Object result) {
-            //log.headMap(index, false).clear();
+            log.headMap(index, false).clear();
             journal.removeBefore(index);
           }
 
           @Override
           public void onFailure(Throwable t) {
-            // FUCK!
           }
 
         }, executor);
@@ -148,9 +147,12 @@ public class RaftLog {
 
     journal.appendEntry(entry, index);
     log.put(index, entry);
+    SettableFuture<Object> result = SettableFuture.create();
+    operationResults.put(index, result);
+    return result;
   }
 
-  public long append(@Nonnull byte[] operation) {
+  public ListenableFuture<Object> append(@Nonnull byte[] operation) {
 
     long index = ++lastLogIndex;
     lastLogTerm = currentTerm;
@@ -161,10 +163,7 @@ public class RaftLog {
         .setTerm(currentTerm)
         .build();
 
-    storeEntry(index, entry);
-
-    return index;
-
+    return storeEntry(index, entry);
 
   }
 
@@ -210,7 +209,9 @@ public class RaftLog {
       for (long i = lastApplied + 1; i <= Math.min(commitIndex, lastLogIndex); ++i, ++lastApplied) {
         byte[] rawCommand = log.get(i).getCommand().toByteArray();
         final ByteBuffer operation = ByteBuffer.wrap(rawCommand).asReadOnlyBuffer();
-        stateMachine.dispatchOperation(operation);
+        ListenableFuture<Object> result = stateMachine.dispatchOperation(operation);
+        final SettableFuture<Object> returnedResult = operationResults.remove(i);
+        Futures.addCallback(result, new PromiseBridge<Object>(returnedResult));
       }
     } catch (Exception e) {
       throw propagate(e);
@@ -276,6 +277,25 @@ public class RaftLog {
       .add("commitIndex", commitIndex)
       .add("lastVotedFor", votedFor)
       .toString();
+  }
+
+  private static class PromiseBridge<V> implements FutureCallback<V> {
+
+    private final SettableFuture<V> promise;
+
+    private PromiseBridge(SettableFuture<V> promise) {
+      this.promise = promise;
+    }
+
+    @Override
+    public void onSuccess(@Nullable V result) {
+      promise.set(result);
+    }
+
+    @Override
+    public void onFailure(Throwable t) {
+      promise.setException(t);
+    }
   }
 
 }

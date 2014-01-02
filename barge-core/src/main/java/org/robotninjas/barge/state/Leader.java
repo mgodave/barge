@@ -23,7 +23,6 @@ import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.log.RaftLog;
@@ -36,7 +35,10 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
@@ -45,8 +47,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.robotninjas.barge.proto.RaftProto.*;
-import static org.robotninjas.barge.state.MajorityCollector.majorityResponse;
-import static org.robotninjas.barge.state.RaftPredicates.appendSuccessul;
 import static org.robotninjas.barge.state.RaftStateContext.StateType.FOLLOWER;
 
 @NotThreadSafe
@@ -60,7 +60,6 @@ class Leader extends BaseState {
   private final Map<Replica, ReplicaManager> managers = Maps.newHashMap();
   private final ReplicaManagerFactory replicaManagerFactory;
   private ScheduledFuture<?> heartbeatTask;
-  private final SortedMap<Long, SettableFuture<Boolean>> requests = Maps.newTreeMap();
 
   @Inject
   Leader(RaftLog log, @RaftScheduler ScheduledExecutorService scheduler,
@@ -159,13 +158,12 @@ class Leader extends BaseState {
 
   @Nonnull
   @Override
-  public ListenableFuture<Boolean> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
+  public ListenableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
 
     resetTimeout(ctx);
-    long index = log.append(operation);
-    requests.put(index, SettableFuture.<Boolean>create());
-    List<ListenableFuture<AppendEntriesResponse>> responses = sendRequests(ctx);
-    return majorityResponse(responses, appendSuccessul());
+    ListenableFuture<Object> result = log.append(operation);
+    sendRequests(ctx);
+    return result;
 
   }
 
@@ -187,13 +185,6 @@ class Leader extends BaseState {
     final int middle = (int) Math.ceil(sorted.size() / 2.0);
     final long committed = sorted.get(middle).getMatchIndex();
     log.commitIndex(committed);
-
-    SortedMap<Long, SettableFuture<Boolean>> entries = requests.headMap(committed + 1);
-    for (SettableFuture<Boolean> f : entries.values()) {
-      f.set(true);
-    }
-
-    entries.clear();
 
   }
 

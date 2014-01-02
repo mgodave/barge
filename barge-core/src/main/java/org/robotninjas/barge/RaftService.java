@@ -40,6 +40,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Throwables.propagate;
+import static com.google.common.base.Throwables.propagateIfInstanceOf;
 import static org.robotninjas.barge.state.RaftStateContext.StateType.START;
 
 @ThreadSafe
@@ -101,7 +103,6 @@ public class RaftService extends AbstractService {
       executor.submit(new Callable<ListenableFuture<Boolean>>() {
         @Override
         public ListenableFuture<Boolean> call() throws Exception {
-//          System.out.println("Sending operation");
           return ctx.commitOperation(operation);
         }
       });
@@ -114,14 +115,9 @@ public class RaftService extends AbstractService {
     try {
       return commitAsync(operation).get();
     } catch (ExecutionException e) {
-      Throwable cause = e.getCause();
-      if (cause instanceof NotLeaderException) {
-        throw (NotLeaderException) cause;
-      }
-      if (cause instanceof NoLeaderException) {
-        throw (NoLeaderException) cause;
-      }
-      throw new RaftException(e.getCause());
+      propagateIfInstanceOf(e.getCause(), NotLeaderException.class);
+      propagateIfInstanceOf(e.getCause(), NoLeaderException.class);
+      throw propagate(e.getCause());
     }
   }
 
