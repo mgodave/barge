@@ -54,6 +54,9 @@ class MajorityCollector<T> extends AbstractFuture<Boolean> implements FutureCall
     for (ListenableFuture<U> response : responses) {
       Futures.addCallback(response, collector);
     }
+    if (responses.isEmpty()) {
+      collector.checkComplete();
+    }
     return collector;
   }
 
