@@ -81,6 +81,15 @@ class Candidate extends BaseState {
     List<ListenableFuture<RequestVoteResponse>> responses = sendRequests(ctx);
     electionResult = majorityResponse(responses, voteGranted());
 
+    long timeout = electionTimeout + (RAND.nextLong() % electionTimeout);
+    electionTimer = scheduler.schedule(new Runnable() {
+      @Override
+      public void run() {
+        LOGGER.debug("Election timeout");
+        transition(ctx, CANDIDATE);
+      }
+    }, timeout, MILLISECONDS);
+
     addCallback(electionResult, new FutureCallback<Boolean>() {
       @Override
       public void onSuccess(@Nullable Boolean elected) {
@@ -99,15 +108,6 @@ class Candidate extends BaseState {
       }
 
     });
-
-    long timeout = electionTimeout + (RAND.nextLong() % electionTimeout);
-    electionTimer = scheduler.schedule(new Runnable() {
-      @Override
-      public void run() {
-        LOGGER.debug("Election timeout");
-        transition(ctx, CANDIDATE);
-      }
-    }, timeout, MILLISECONDS);
 
   }
 
