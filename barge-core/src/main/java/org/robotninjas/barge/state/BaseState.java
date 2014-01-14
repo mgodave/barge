@@ -2,6 +2,8 @@ package org.robotninjas.barge.state;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
+import com.google.common.util.concurrent.ListenableFuture;
+import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.log.RaftLog;
 
@@ -30,5 +32,12 @@ public abstract class BaseState implements State {
       || logAsComplete;
 
   }
+
+  @Nonnull
+  public ListenableFuture<Boolean> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
+    throw throwMustBeLeader();
+  }
+
+  protected abstract RuntimeException throwMustBeLeader() throws RaftException;
 
 }

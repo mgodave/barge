@@ -174,7 +174,6 @@ class Candidate extends BaseState {
     throw new NoLeaderException();
   }
 
-
   @VisibleForTesting
   List<ListenableFuture<RequestVoteResponse>> sendRequests(RaftStateContext ctx) {
 
