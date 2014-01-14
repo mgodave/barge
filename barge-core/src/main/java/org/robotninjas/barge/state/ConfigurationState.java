@@ -30,7 +30,9 @@ public class ConfigurationState {
   public ConfigurationState(Replica self) {
     this.local = self;
     this.localKey = self.getKey();
-    setMembership(0, Membership.getDefaultInstance());
+    Membership.Builder membership = Membership.newBuilder();
+    membership.addMembers(self.getKey());
+    setMembership(0, membership.build());
   }
   
   public long getId() {

@@ -67,8 +67,8 @@ class RaftModule extends PrivateModule {
   @Override
   protected void configure() {
 
-    install(new StateModule(timeout));
     Replica local = config.local();
+    install(new StateModule(local, timeout));
 
     final NioEventLoopGroup eventLoop;
     if (eventLoopGroup.isPresent()) {
