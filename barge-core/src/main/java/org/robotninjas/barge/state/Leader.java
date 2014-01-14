@@ -38,7 +38,6 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
@@ -186,21 +185,51 @@ class Leader extends BaseState {
    * matchIndex values are greater and half are less than this value. So, at least half of the replicas have stored the
    * median value, this is the definition of committed.
    */
-  private void updateCommitted(RaftStateContext ctx) {
-
-    List<ReplicaManager> sorted = newArrayList(managers.values());
-    Collections.sort(sorted, new Comparator<ReplicaManager>() {
-      @Override
-      public int compare(ReplicaManager o, ReplicaManager o2) {
-        return Longs.compare(o.getMatchIndex(), o2.getMatchIndex());
+  long getQuorumMatchIndex(List<String> serverKeys) {
+    List<Long> sorted = newArrayList();
+    for (String serverKey : serverKeys) {
+      ReplicaManager replicaManager = managers.get(serverKey);
+      if (replicaManager != null) {
+        sorted.add(replicaManager.getMatchIndex());
+      } else if (serverKey.equals(log.self().getKey())) {
+        sorted.add(log.lastLogIndex());
+      } else {
+        throw new IllegalStateException("No replica manager for server: " + serverKey);
       }
-    });
+    }
+    Collections.sort(sorted);
 
-    final int middle = (int) Math.ceil(sorted.size() / 2.0);
-    final long committed = sorted.get(middle).getMatchIndex();
+    int n = sorted.size();
+    int quorumSize;
+    if ((n & 1) == 1) {
+      // Odd
+      quorumSize = (n + 1) / 2;
+    } else {
+      // Even
+      quorumSize = (n / 2) + 1;
+    }
+    final int middle = quorumSize - 1;
+    final long committed = sorted.get(middle);
+    
+    return committed;
+  }
+
+  long getQuorumMatchIndex(ConfigurationState configurationState) {
+    if (configurationState.isTransitional()) {
+      return Math.min(
+          getQuorumMatchIndex(configurationState.getMembership().getMembersList()),
+          getQuorumMatchIndex(configurationState.getMembership().getProposedMembersList()));      
+    } else {
+      return getQuorumMatchIndex(configurationState.getMembership().getMembersList());
+    }
+  }
+
+  private void updateCommitted(RaftStateContext ctx) {
+    ConfigurationState configurationState = ctx.getConfigurationState();
+
+    long committed = getQuorumMatchIndex(configurationState);
     log.commitIndex(committed);
 
-    ConfigurationState configurationState = ctx.getConfigurationState();
     if (committed >= configurationState.getId()) {
       handleConfigurationUpdate(ctx);
     }
