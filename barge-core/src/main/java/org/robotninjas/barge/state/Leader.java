@@ -20,12 +20,14 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Longs;
+import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.log.RaftLog;
+import org.robotninjas.barge.proto.RaftEntry.Membership;
 import org.robotninjas.barge.rpc.RaftScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -75,7 +78,7 @@ class Leader extends BaseState {
   @Override
   public void init(@Nonnull RaftStateContext ctx) {
 
-    for (Replica replica : log.members()) {
+    for (Replica replica : ctx.getConfigurationState().remote()) {
       managers.put(replica, replicaManagerFactory.create(replica));
     }
 
@@ -161,7 +164,18 @@ class Leader extends BaseState {
   public ListenableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
 
     resetTimeout(ctx);
-    ListenableFuture<Object> result = log.append(operation);
+
+    ListenableFuture<Object> result = log.append(operation, null);
+    sendRequests(ctx);
+    return result;
+
+  }
+
+  ListenableFuture<Object> commitMembership(@Nonnull RaftStateContext ctx, @Nonnull Membership membership) {
+
+    resetTimeout(ctx);
+    
+    ListenableFuture<Object> result = log.append(null, membership);
     sendRequests(ctx);
     return result;
 
@@ -172,7 +186,7 @@ class Leader extends BaseState {
    * matchIndex values are greater and half are less than this value. So, at least half of the replicas have stored the
    * median value, this is the definition of committed.
    */
-  private void updateCommitted() {
+  private void updateCommitted(RaftStateContext ctx) {
 
     List<ReplicaManager> sorted = newArrayList(managers.values());
     Collections.sort(sorted, new Comparator<ReplicaManager>() {
@@ -186,6 +200,49 @@ class Leader extends BaseState {
     final long committed = sorted.get(middle).getMatchIndex();
     log.commitIndex(committed);
 
+    ConfigurationState configurationState = ctx.getConfigurationState();
+    if (committed >= configurationState.getId()) {
+      handleConfigurationUpdate(ctx);
+    }
+ 
+  }
+
+  private void handleConfigurationUpdate(RaftStateContext ctx) {
+    ConfigurationState configurationState = ctx.getConfigurationState();
+    
+    // Upon committing a configuration that excludes itself, the leader
+    // steps down.
+    if (!configurationState.hasVote(configurationState.self())) {
+        stepDown(ctx /*logcabin: currentTerm + 1*/);
+        return;
+    }
+
+    // Upon committing a reconfiguration (Cold,new) entry, the leader
+    // creates the next configuration (Cnew) entry.
+    if (configurationState.isTransitional()) {
+      final Membership membership = configurationState.getMembership();
+      
+      Membership.Builder members = Membership.newBuilder();
+      members.addAllMembers(membership.getProposedMembersList());
+      
+      Futures.addCallback(commitMembership(ctx, members.build()),
+          new FutureCallback<Object>() {
+
+            @Override
+            public void onSuccess(Object result) {
+              if (Boolean.TRUE.equals(result)) {
+                LOGGER.info("Committed new cluster configuration: {}", membership);
+              } else {
+                LOGGER.warn("Failed to commit new cluster configuration: {}", membership);
+              }
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+              LOGGER.warn("Error committing new cluster configuration: {}", membership);
+            }
+          });
+      }
   }
 
   private void checkTermOnResponse(RaftStateContext ctx, AppendEntriesResponse response) {
@@ -212,7 +269,7 @@ class Leader extends BaseState {
       Futures.addCallback(response, new FutureCallback<AppendEntriesResponse>() {
         @Override
         public void onSuccess(@Nullable AppendEntriesResponse result) {
-          updateCommitted();
+          updateCommitted(ctx);
           checkTermOnResponse(ctx, result);
         }
 
@@ -223,6 +280,49 @@ class Leader extends BaseState {
 
     }
     return responses;
+  }
+  
+  @Override
+  public ListenableFuture<Boolean> setConfiguration(@Nonnull RaftStateContext ctx, long oldId, final Membership nextConfiguration) throws RaftException {
+    if (nextConfiguration.getProposedMembersCount() != 0) {
+      // We expect members to be passed in, not proposed_members
+      throw new IllegalArgumentException();
+    }
+    
+    final ConfigurationState configuration = ctx.getConfigurationState();
+    if (configuration.getId() != oldId || configuration.isTransitional()) {
+      // configurations has changed in the meantime
+      return Futures.immediateFuture(Boolean.FALSE);
+    }
+
+    // TODO: Introduce Staging state; wait for staging servers to catch up
+
+    // Commit a transitional configuration with old and new
+    Membership.Builder transitionalMembership = Membership.newBuilder();
+    transitionalMembership.addAllMembers(configuration.getMembership().getMembersList());
+    transitionalMembership.addAllProposedMembers(nextConfiguration.getMembersList());
+    ListenableFuture<Object> transitionFuture = commitMembership(ctx, transitionalMembership.build());
+    
+    return Futures.transform(transitionFuture, new AsyncFunction<Object, Boolean>() {
+      // In response to the transitional configuration, the leader commits the final configuration
+      // We poll for this configuration
+      @Override
+      public ListenableFuture<Boolean> apply(Object input) throws Exception {
+        if (!Boolean.TRUE.equals(input)) {
+          return Futures.immediateFuture(Boolean.FALSE);
+        }
+        
+        return new PollFor<Boolean>(scheduler, 200, 200, TimeUnit.MILLISECONDS) {
+          @Override
+          protected Optional<Boolean> poll() {
+            if (!configuration.isTransitional()) {
+              return Optional.of(configuration.getMembership().equals(nextConfiguration));
+            }
+            return Optional.absent();
+          }
+        }.start();
+      }
+    });
   }
 
 }

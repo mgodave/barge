@@ -24,6 +24,7 @@ import org.robotninjas.barge.NotLeaderException;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.log.RaftLog;
+import org.robotninjas.barge.proto.RaftEntry.Membership;
 import org.robotninjas.barge.rpc.RaftScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -136,11 +137,22 @@ class Follower extends BaseState {
   @Nonnull
   @Override
   public ListenableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
+    throw throwMustBeLeader();
+  }
+
+  protected RuntimeException throwMustBeLeader() throws RaftException {
     if (leader.isPresent()) {
       throw new NotLeaderException(leader.get());
     } else {
       throw new NoLeaderException();
     }
   }
+  
+  @Override
+  public ListenableFuture<Boolean> setConfiguration(RaftStateContext ctx, long oldId, Membership nextConfiguration)
+      throws RaftException {
+    throw throwMustBeLeader();
+  }
+
 
 }

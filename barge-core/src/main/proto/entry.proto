@@ -17,7 +17,13 @@
 option java_package = "org.robotninjas.barge.proto";
 option java_outer_classname = "RaftEntry";
 
+message Membership {
+	repeated string members = 1;
+	repeated string proposed_members = 2;
+}
+
 message Entry {
 	required int64 term = 1;
-	required bytes command = 2;
+	optional bytes command = 2;
+	optional Membership membership = 3;
 }

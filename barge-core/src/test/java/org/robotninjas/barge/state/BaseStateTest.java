@@ -10,6 +10,7 @@ import org.mockito.MockitoAnnotations;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.log.RaftLog;
+import org.robotninjas.barge.proto.RaftEntry.Membership;
 import org.robotninjas.barge.proto.RaftProto;
 
 import javax.annotation.Nonnull;
@@ -173,6 +174,12 @@ public class BaseStateTest {
     @Nonnull
     @Override
     public ListenableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
+      return null;
+    }
+
+    @Override
+    public ListenableFuture<Boolean> setConfiguration(RaftStateContext ctx, long oldId, Membership nextConfiguration)
+        throws RaftException {
       return null;
     }
 

@@ -39,10 +39,12 @@ public class RaftStateContext {
   private final StateFactory stateFactory;
   private volatile StateType state;
   private volatile State delegate;
+  private final ConfigurationState configurationState;
 
   @Inject
-  RaftStateContext(StateFactory stateFactory) {
+  RaftStateContext(StateFactory stateFactory, ConfigurationState configurationState) {
     this.stateFactory = stateFactory;
+    this.configurationState = configurationState;
   }
 
   @Nonnull
@@ -94,5 +96,10 @@ public class RaftStateContext {
   @Nonnull
   public StateType getState() {
     return state;
+  }
+
+  @Nonnull
+  public ConfigurationState getConfigurationState() {
+    return configurationState;
   }
 }

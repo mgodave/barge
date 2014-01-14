@@ -36,12 +36,17 @@ public class CandidateTest {
   private @Mock RaftLog mockRaftLog;
   private @Mock
   RaftStateContext mockRaftStateContext;
+  private @Mock
+  ConfigurationState configurationState;
 
   @Before
   public void initMocks() {
 
     MockitoAnnotations.initMocks(this);
 
+    when(configurationState.self()).thenReturn(self);
+    when(mockRaftStateContext.getConfigurationState()).thenReturn(configurationState);
+    
     when(mockRaftLog.self()).thenReturn(self);
     when(mockRaftLog.lastVotedFor()).thenReturn(Optional.<Replica>absent());
     when(mockRaftLog.lastLogTerm()).thenReturn(0L);
@@ -84,6 +89,8 @@ public class CandidateTest {
 
     verify(mockRaftStateContext, times(1)).setState(any(Candidate.class), eq(FOLLOWER));
     verify(mockRaftStateContext, times(1)).setState(any(Candidate.class), eq(LEADER));
+    verify(mockRaftStateContext, times(1)).getConfigurationState();
+    verifyNoMoreInteractions(mockRaftStateContext);
 
     verifyZeroInteractions(mockRaftClient);
 
@@ -116,6 +123,8 @@ public class CandidateTest {
     verify(mockRaftLog, never()).commitIndex(anyLong());
 
     verify(mockRaftStateContext).setState(any(Candidate.class), eq(LEADER));
+    verify(mockRaftStateContext, times(1)).getConfigurationState();
+    verifyNoMoreInteractions(mockRaftStateContext);
 
     verifyZeroInteractions(mockRaftClient);
   }
@@ -148,7 +157,8 @@ public class CandidateTest {
 
     verify(mockRaftStateContext).setState(any(State.class), any(RaftStateContext.StateType.class));
 
-    verifyZeroInteractions(mockRaftStateContext);
+    verify(mockRaftStateContext, times(1)).getConfigurationState();
+    verifyNoMoreInteractions(mockRaftStateContext);
 
     verifyZeroInteractions(mockRaftClient);
   }
@@ -183,6 +193,8 @@ public class CandidateTest {
 
     verify(mockRaftStateContext).setState(any(Candidate.class), eq(FOLLOWER));
     verify(mockRaftStateContext).setState(any(Candidate.class), eq(LEADER));
+    verify(mockRaftStateContext, times(1)).getConfigurationState();
+    verifyNoMoreInteractions(mockRaftStateContext);
 
     verifyZeroInteractions(mockRaftClient);
 
@@ -216,6 +228,8 @@ public class CandidateTest {
     verify(mockRaftLog, never()).commitIndex(anyLong());
 
     verify(mockRaftStateContext).setState(any(Candidate.class), eq(LEADER));
+    verify(mockRaftStateContext, times(1)).getConfigurationState();
+    verifyNoMoreInteractions(mockRaftStateContext);
 
     verifyZeroInteractions(mockRaftClient);
 
@@ -248,6 +262,8 @@ public class CandidateTest {
 
     verify(mockRaftStateContext).setState(any(Candidate.class), eq(FOLLOWER));
     verify(mockRaftStateContext).setState(any(Candidate.class), eq(LEADER));
+    verify(mockRaftStateContext, times(1)).getConfigurationState();
+    verifyNoMoreInteractions(mockRaftStateContext);
 
     verifyZeroInteractions(mockRaftClient);
 

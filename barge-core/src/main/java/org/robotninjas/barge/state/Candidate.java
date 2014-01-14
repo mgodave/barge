@@ -26,6 +26,7 @@ import org.robotninjas.barge.NoLeaderException;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.log.RaftLog;
+import org.robotninjas.barge.proto.RaftEntry.Membership;
 import org.robotninjas.barge.rpc.Client;
 import org.robotninjas.barge.rpc.RaftScheduler;
 import org.slf4j.Logger;
@@ -177,16 +178,18 @@ class Candidate extends BaseState {
   @VisibleForTesting
   List<ListenableFuture<RequestVoteResponse>> sendRequests(RaftStateContext ctx) {
 
+    ConfigurationState configurationState = ctx.getConfigurationState();
+    
     RequestVote request =
       RequestVote.newBuilder()
         .setTerm(log.currentTerm())
-        .setCandidateId(log.self().toString())
+        .setCandidateId(configurationState.self().toString())
         .setLastLogIndex(log.lastLogIndex())
         .setLastLogTerm(log.lastLogTerm())
         .build();
 
     List<ListenableFuture<RequestVoteResponse>> responses = Lists.newArrayList();
-    for (Replica replica : log.members()) {
+    for (Replica replica : configurationState.remote()) {
       ListenableFuture<RequestVoteResponse> response = client.requestVote(replica, request);
       Futures.addCallback(response, checkTerm(ctx));
       responses.add(response);
@@ -208,6 +211,12 @@ class Candidate extends BaseState {
       @Override
       public void onFailure(Throwable t) {}
     };
+  }
+
+  @Override
+  public ListenableFuture<Boolean> setConfiguration(RaftStateContext ctx, long oldId, Membership nextConfiguration)
+      throws RaftException {
+    throw new NoLeaderException();
   }
 
 }

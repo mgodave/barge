@@ -2488,6 +2488,20 @@ public final class RaftProto {
      * <code>optional int64 last_log_index = 3;</code>
      */
     long getLastLogIndex();
+
+    // optional .AppendEntriesResponse.TermInfo term_info = 4;
+    /**
+     * <code>optional .AppendEntriesResponse.TermInfo term_info = 4;</code>
+     */
+    boolean hasTermInfo();
+    /**
+     * <code>optional .AppendEntriesResponse.TermInfo term_info = 4;</code>
+     */
+    org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo getTermInfo();
+    /**
+     * <code>optional .AppendEntriesResponse.TermInfo term_info = 4;</code>
+     */
+    org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfoOrBuilder getTermInfoOrBuilder();
   }
   /**
    * Protobuf type {@code AppendEntriesResponse}
@@ -2555,6 +2569,19 @@ public final class RaftProto {
               lastLogIndex_ = input.readInt64();
               break;
             }
+            case 34: {
+              org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo.Builder subBuilder = null;
+              if (((bitField0_ & 0x00000008) == 0x00000008)) {
+                subBuilder = termInfo_.toBuilder();
+              }
+              termInfo_ = input.readMessage(org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(termInfo_);
+                termInfo_ = subBuilder.buildPartial();
+              }
+              bitField0_ |= 0x00000008;
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -2592,6 +2619,588 @@ public final class RaftProto {
     @java.lang.Override
     public com.google.protobuf.Parser<AppendEntriesResponse> getParserForType() {
       return PARSER;
+    }
+
+    public interface TermInfoOrBuilder
+        extends com.google.protobuf.MessageOrBuilder {
+
+      // required int64 term = 1;
+      /**
+       * <code>required int64 term = 1;</code>
+       */
+      boolean hasTerm();
+      /**
+       * <code>required int64 term = 1;</code>
+       */
+      long getTerm();
+
+      // required int64 begin_index = 2;
+      /**
+       * <code>required int64 begin_index = 2;</code>
+       */
+      boolean hasBeginIndex();
+      /**
+       * <code>required int64 begin_index = 2;</code>
+       */
+      long getBeginIndex();
+
+      // required int64 end_index = 3;
+      /**
+       * <code>required int64 end_index = 3;</code>
+       */
+      boolean hasEndIndex();
+      /**
+       * <code>required int64 end_index = 3;</code>
+       */
+      long getEndIndex();
+    }
+    /**
+     * Protobuf type {@code AppendEntriesResponse.TermInfo}
+     */
+    public static final class TermInfo extends
+        com.google.protobuf.GeneratedMessage
+        implements TermInfoOrBuilder {
+      // Use TermInfo.newBuilder() to construct.
+      private TermInfo(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+        super(builder);
+        this.unknownFields = builder.getUnknownFields();
+      }
+      private TermInfo(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+      private static final TermInfo defaultInstance;
+      public static TermInfo getDefaultInstance() {
+        return defaultInstance;
+      }
+
+      public TermInfo getDefaultInstanceForType() {
+        return defaultInstance;
+      }
+
+      private final com.google.protobuf.UnknownFieldSet unknownFields;
+      @java.lang.Override
+      public final com.google.protobuf.UnknownFieldSet
+          getUnknownFields() {
+        return this.unknownFields;
+      }
+      private TermInfo(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        initFields();
+        int mutable_bitField0_ = 0;
+        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+            com.google.protobuf.UnknownFieldSet.newBuilder();
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              default: {
+                if (!parseUnknownField(input, unknownFields,
+                                       extensionRegistry, tag)) {
+                  done = true;
+                }
+                break;
+              }
+              case 8: {
+                bitField0_ |= 0x00000001;
+                term_ = input.readInt64();
+                break;
+              }
+              case 16: {
+                bitField0_ |= 0x00000002;
+                beginIndex_ = input.readInt64();
+                break;
+              }
+              case 24: {
+                bitField0_ |= 0x00000004;
+                endIndex_ = input.readInt64();
+                break;
+              }
+            }
+          }
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(this);
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(
+              e.getMessage()).setUnfinishedMessage(this);
+        } finally {
+          this.unknownFields = unknownFields.build();
+          makeExtensionsImmutable();
+        }
+      }
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return org.robotninjas.barge.proto.RaftProto.internal_static_AppendEntriesResponse_TermInfo_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return org.robotninjas.barge.proto.RaftProto.internal_static_AppendEntriesResponse_TermInfo_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo.class, org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo.Builder.class);
+      }
+
+      public static com.google.protobuf.Parser<TermInfo> PARSER =
+          new com.google.protobuf.AbstractParser<TermInfo>() {
+        public TermInfo parsePartialFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+          return new TermInfo(input, extensionRegistry);
+        }
+      };
+
+      @java.lang.Override
+      public com.google.protobuf.Parser<TermInfo> getParserForType() {
+        return PARSER;
+      }
+
+      private int bitField0_;
+      // required int64 term = 1;
+      public static final int TERM_FIELD_NUMBER = 1;
+      private long term_;
+      /**
+       * <code>required int64 term = 1;</code>
+       */
+      public boolean hasTerm() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>required int64 term = 1;</code>
+       */
+      public long getTerm() {
+        return term_;
+      }
+
+      // required int64 begin_index = 2;
+      public static final int BEGIN_INDEX_FIELD_NUMBER = 2;
+      private long beginIndex_;
+      /**
+       * <code>required int64 begin_index = 2;</code>
+       */
+      public boolean hasBeginIndex() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>required int64 begin_index = 2;</code>
+       */
+      public long getBeginIndex() {
+        return beginIndex_;
+      }
+
+      // required int64 end_index = 3;
+      public static final int END_INDEX_FIELD_NUMBER = 3;
+      private long endIndex_;
+      /**
+       * <code>required int64 end_index = 3;</code>
+       */
+      public boolean hasEndIndex() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>required int64 end_index = 3;</code>
+       */
+      public long getEndIndex() {
+        return endIndex_;
+      }
+
+      private void initFields() {
+        term_ = 0L;
+        beginIndex_ = 0L;
+        endIndex_ = 0L;
+      }
+      private byte memoizedIsInitialized = -1;
+      public final boolean isInitialized() {
+        byte isInitialized = memoizedIsInitialized;
+        if (isInitialized != -1) return isInitialized == 1;
+
+        if (!hasTerm()) {
+          memoizedIsInitialized = 0;
+          return false;
+        }
+        if (!hasBeginIndex()) {
+          memoizedIsInitialized = 0;
+          return false;
+        }
+        if (!hasEndIndex()) {
+          memoizedIsInitialized = 0;
+          return false;
+        }
+        memoizedIsInitialized = 1;
+        return true;
+      }
+
+      public void writeTo(com.google.protobuf.CodedOutputStream output)
+                          throws java.io.IOException {
+        getSerializedSize();
+        if (((bitField0_ & 0x00000001) == 0x00000001)) {
+          output.writeInt64(1, term_);
+        }
+        if (((bitField0_ & 0x00000002) == 0x00000002)) {
+          output.writeInt64(2, beginIndex_);
+        }
+        if (((bitField0_ & 0x00000004) == 0x00000004)) {
+          output.writeInt64(3, endIndex_);
+        }
+        getUnknownFields().writeTo(output);
+      }
+
+      private int memoizedSerializedSize = -1;
+      public int getSerializedSize() {
+        int size = memoizedSerializedSize;
+        if (size != -1) return size;
+
+        size = 0;
+        if (((bitField0_ & 0x00000001) == 0x00000001)) {
+          size += com.google.protobuf.CodedOutputStream
+            .computeInt64Size(1, term_);
+        }
+        if (((bitField0_ & 0x00000002) == 0x00000002)) {
+          size += com.google.protobuf.CodedOutputStream
+            .computeInt64Size(2, beginIndex_);
+        }
+        if (((bitField0_ & 0x00000004) == 0x00000004)) {
+          size += com.google.protobuf.CodedOutputStream
+            .computeInt64Size(3, endIndex_);
+        }
+        size += getUnknownFields().getSerializedSize();
+        memoizedSerializedSize = size;
+        return size;
+      }
+
+      private static final long serialVersionUID = 0L;
+      @java.lang.Override
+      protected java.lang.Object writeReplace()
+          throws java.io.ObjectStreamException {
+        return super.writeReplace();
+      }
+
+      public static org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo parseFrom(
+          com.google.protobuf.ByteString data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo parseFrom(
+          com.google.protobuf.ByteString data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo parseFrom(byte[] data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo parseFrom(
+          byte[] data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo parseFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return PARSER.parseFrom(input);
+      }
+      public static org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo parseFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return PARSER.parseFrom(input, extensionRegistry);
+      }
+      public static org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo parseDelimitedFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return PARSER.parseDelimitedFrom(input);
+      }
+      public static org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo parseDelimitedFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return PARSER.parseDelimitedFrom(input, extensionRegistry);
+      }
+      public static org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo parseFrom(
+          com.google.protobuf.CodedInputStream input)
+          throws java.io.IOException {
+        return PARSER.parseFrom(input);
+      }
+      public static org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo parseFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return PARSER.parseFrom(input, extensionRegistry);
+      }
+
+      public static Builder newBuilder() { return Builder.create(); }
+      public Builder newBuilderForType() { return newBuilder(); }
+      public static Builder newBuilder(org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo prototype) {
+        return newBuilder().mergeFrom(prototype);
+      }
+      public Builder toBuilder() { return newBuilder(this); }
+
+      @java.lang.Override
+      protected Builder newBuilderForType(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        Builder builder = new Builder(parent);
+        return builder;
+      }
+      /**
+       * Protobuf type {@code AppendEntriesResponse.TermInfo}
+       */
+      public static final class Builder extends
+          com.google.protobuf.GeneratedMessage.Builder<Builder>
+         implements org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfoOrBuilder {
+        public static final com.google.protobuf.Descriptors.Descriptor
+            getDescriptor() {
+          return org.robotninjas.barge.proto.RaftProto.internal_static_AppendEntriesResponse_TermInfo_descriptor;
+        }
+
+        protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+            internalGetFieldAccessorTable() {
+          return org.robotninjas.barge.proto.RaftProto.internal_static_AppendEntriesResponse_TermInfo_fieldAccessorTable
+              .ensureFieldAccessorsInitialized(
+                  org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo.class, org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo.Builder.class);
+        }
+
+        // Construct using org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo.newBuilder()
+        private Builder() {
+          maybeForceBuilderInitialization();
+        }
+
+        private Builder(
+            com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+          super(parent);
+          maybeForceBuilderInitialization();
+        }
+        private void maybeForceBuilderInitialization() {
+          if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+          }
+        }
+        private static Builder create() {
+          return new Builder();
+        }
+
+        public Builder clear() {
+          super.clear();
+          term_ = 0L;
+          bitField0_ = (bitField0_ & ~0x00000001);
+          beginIndex_ = 0L;
+          bitField0_ = (bitField0_ & ~0x00000002);
+          endIndex_ = 0L;
+          bitField0_ = (bitField0_ & ~0x00000004);
+          return this;
+        }
+
+        public Builder clone() {
+          return create().mergeFrom(buildPartial());
+        }
+
+        public com.google.protobuf.Descriptors.Descriptor
+            getDescriptorForType() {
+          return org.robotninjas.barge.proto.RaftProto.internal_static_AppendEntriesResponse_TermInfo_descriptor;
+        }
+
+        public org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo getDefaultInstanceForType() {
+          return org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo.getDefaultInstance();
+        }
+
+        public org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo build() {
+          org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo result = buildPartial();
+          if (!result.isInitialized()) {
+            throw newUninitializedMessageException(result);
+          }
+          return result;
+        }
+
+        public org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo buildPartial() {
+          org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo result = new org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo(this);
+          int from_bitField0_ = bitField0_;
+          int to_bitField0_ = 0;
+          if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+            to_bitField0_ |= 0x00000001;
+          }
+          result.term_ = term_;
+          if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+            to_bitField0_ |= 0x00000002;
+          }
+          result.beginIndex_ = beginIndex_;
+          if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+            to_bitField0_ |= 0x00000004;
+          }
+          result.endIndex_ = endIndex_;
+          result.bitField0_ = to_bitField0_;
+          onBuilt();
+          return result;
+        }
+
+        public Builder mergeFrom(com.google.protobuf.Message other) {
+          if (other instanceof org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo) {
+            return mergeFrom((org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo)other);
+          } else {
+            super.mergeFrom(other);
+            return this;
+          }
+        }
+
+        public Builder mergeFrom(org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo other) {
+          if (other == org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo.getDefaultInstance()) return this;
+          if (other.hasTerm()) {
+            setTerm(other.getTerm());
+          }
+          if (other.hasBeginIndex()) {
+            setBeginIndex(other.getBeginIndex());
+          }
+          if (other.hasEndIndex()) {
+            setEndIndex(other.getEndIndex());
+          }
+          this.mergeUnknownFields(other.getUnknownFields());
+          return this;
+        }
+
+        public final boolean isInitialized() {
+          if (!hasTerm()) {
+            
+            return false;
+          }
+          if (!hasBeginIndex()) {
+            
+            return false;
+          }
+          if (!hasEndIndex()) {
+            
+            return false;
+          }
+          return true;
+        }
+
+        public Builder mergeFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws java.io.IOException {
+          org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo parsedMessage = null;
+          try {
+            parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            parsedMessage = (org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo) e.getUnfinishedMessage();
+            throw e;
+          } finally {
+            if (parsedMessage != null) {
+              mergeFrom(parsedMessage);
+            }
+          }
+          return this;
+        }
+        private int bitField0_;
+
+        // required int64 term = 1;
+        private long term_ ;
+        /**
+         * <code>required int64 term = 1;</code>
+         */
+        public boolean hasTerm() {
+          return ((bitField0_ & 0x00000001) == 0x00000001);
+        }
+        /**
+         * <code>required int64 term = 1;</code>
+         */
+        public long getTerm() {
+          return term_;
+        }
+        /**
+         * <code>required int64 term = 1;</code>
+         */
+        public Builder setTerm(long value) {
+          bitField0_ |= 0x00000001;
+          term_ = value;
+          onChanged();
+          return this;
+        }
+        /**
+         * <code>required int64 term = 1;</code>
+         */
+        public Builder clearTerm() {
+          bitField0_ = (bitField0_ & ~0x00000001);
+          term_ = 0L;
+          onChanged();
+          return this;
+        }
+
+        // required int64 begin_index = 2;
+        private long beginIndex_ ;
+        /**
+         * <code>required int64 begin_index = 2;</code>
+         */
+        public boolean hasBeginIndex() {
+          return ((bitField0_ & 0x00000002) == 0x00000002);
+        }
+        /**
+         * <code>required int64 begin_index = 2;</code>
+         */
+        public long getBeginIndex() {
+          return beginIndex_;
+        }
+        /**
+         * <code>required int64 begin_index = 2;</code>
+         */
+        public Builder setBeginIndex(long value) {
+          bitField0_ |= 0x00000002;
+          beginIndex_ = value;
+          onChanged();
+          return this;
+        }
+        /**
+         * <code>required int64 begin_index = 2;</code>
+         */
+        public Builder clearBeginIndex() {
+          bitField0_ = (bitField0_ & ~0x00000002);
+          beginIndex_ = 0L;
+          onChanged();
+          return this;
+        }
+
+        // required int64 end_index = 3;
+        private long endIndex_ ;
+        /**
+         * <code>required int64 end_index = 3;</code>
+         */
+        public boolean hasEndIndex() {
+          return ((bitField0_ & 0x00000004) == 0x00000004);
+        }
+        /**
+         * <code>required int64 end_index = 3;</code>
+         */
+        public long getEndIndex() {
+          return endIndex_;
+        }
+        /**
+         * <code>required int64 end_index = 3;</code>
+         */
+        public Builder setEndIndex(long value) {
+          bitField0_ |= 0x00000004;
+          endIndex_ = value;
+          onChanged();
+          return this;
+        }
+        /**
+         * <code>required int64 end_index = 3;</code>
+         */
+        public Builder clearEndIndex() {
+          bitField0_ = (bitField0_ & ~0x00000004);
+          endIndex_ = 0L;
+          onChanged();
+          return this;
+        }
+
+        // @@protoc_insertion_point(builder_scope:AppendEntriesResponse.TermInfo)
+      }
+
+      static {
+        defaultInstance = new TermInfo(true);
+        defaultInstance.initFields();
+      }
+
+      // @@protoc_insertion_point(class_scope:AppendEntriesResponse.TermInfo)
     }
 
     private int bitField0_;
@@ -2643,10 +3252,33 @@ public final class RaftProto {
       return lastLogIndex_;
     }
 
+    // optional .AppendEntriesResponse.TermInfo term_info = 4;
+    public static final int TERM_INFO_FIELD_NUMBER = 4;
+    private org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo termInfo_;
+    /**
+     * <code>optional .AppendEntriesResponse.TermInfo term_info = 4;</code>
+     */
+    public boolean hasTermInfo() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional .AppendEntriesResponse.TermInfo term_info = 4;</code>
+     */
+    public org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo getTermInfo() {
+      return termInfo_;
+    }
+    /**
+     * <code>optional .AppendEntriesResponse.TermInfo term_info = 4;</code>
+     */
+    public org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfoOrBuilder getTermInfoOrBuilder() {
+      return termInfo_;
+    }
+
     private void initFields() {
       term_ = 0L;
       success_ = false;
       lastLogIndex_ = 0L;
+      termInfo_ = org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo.getDefaultInstance();
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -2660,6 +3292,12 @@ public final class RaftProto {
       if (!hasSuccess()) {
         memoizedIsInitialized = 0;
         return false;
+      }
+      if (hasTermInfo()) {
+        if (!getTermInfo().isInitialized()) {
+          memoizedIsInitialized = 0;
+          return false;
+        }
       }
       memoizedIsInitialized = 1;
       return true;
@@ -2676,6 +3314,9 @@ public final class RaftProto {
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         output.writeInt64(3, lastLogIndex_);
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        output.writeMessage(4, termInfo_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -2697,6 +3338,10 @@ public final class RaftProto {
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(3, lastLogIndex_);
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(4, termInfo_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -2806,6 +3451,7 @@ public final class RaftProto {
       }
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+          getTermInfoFieldBuilder();
         }
       }
       private static Builder create() {
@@ -2820,6 +3466,12 @@ public final class RaftProto {
         bitField0_ = (bitField0_ & ~0x00000002);
         lastLogIndex_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000004);
+        if (termInfoBuilder_ == null) {
+          termInfo_ = org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo.getDefaultInstance();
+        } else {
+          termInfoBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000008);
         return this;
       }
 
@@ -2860,6 +3512,14 @@ public final class RaftProto {
           to_bitField0_ |= 0x00000004;
         }
         result.lastLogIndex_ = lastLogIndex_;
+        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+          to_bitField0_ |= 0x00000008;
+        }
+        if (termInfoBuilder_ == null) {
+          result.termInfo_ = termInfo_;
+        } else {
+          result.termInfo_ = termInfoBuilder_.build();
+        }
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -2885,6 +3545,9 @@ public final class RaftProto {
         if (other.hasLastLogIndex()) {
           setLastLogIndex(other.getLastLogIndex());
         }
+        if (other.hasTermInfo()) {
+          mergeTermInfo(other.getTermInfo());
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
@@ -2897,6 +3560,12 @@ public final class RaftProto {
         if (!hasSuccess()) {
           
           return false;
+        }
+        if (hasTermInfo()) {
+          if (!getTermInfo().isInitialized()) {
+            
+            return false;
+          }
         }
         return true;
       }
@@ -3017,6 +3686,123 @@ public final class RaftProto {
         lastLogIndex_ = 0L;
         onChanged();
         return this;
+      }
+
+      // optional .AppendEntriesResponse.TermInfo term_info = 4;
+      private org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo termInfo_ = org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo.getDefaultInstance();
+      private com.google.protobuf.SingleFieldBuilder<
+          org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo, org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo.Builder, org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfoOrBuilder> termInfoBuilder_;
+      /**
+       * <code>optional .AppendEntriesResponse.TermInfo term_info = 4;</code>
+       */
+      public boolean hasTermInfo() {
+        return ((bitField0_ & 0x00000008) == 0x00000008);
+      }
+      /**
+       * <code>optional .AppendEntriesResponse.TermInfo term_info = 4;</code>
+       */
+      public org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo getTermInfo() {
+        if (termInfoBuilder_ == null) {
+          return termInfo_;
+        } else {
+          return termInfoBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .AppendEntriesResponse.TermInfo term_info = 4;</code>
+       */
+      public Builder setTermInfo(org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo value) {
+        if (termInfoBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          termInfo_ = value;
+          onChanged();
+        } else {
+          termInfoBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000008;
+        return this;
+      }
+      /**
+       * <code>optional .AppendEntriesResponse.TermInfo term_info = 4;</code>
+       */
+      public Builder setTermInfo(
+          org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo.Builder builderForValue) {
+        if (termInfoBuilder_ == null) {
+          termInfo_ = builderForValue.build();
+          onChanged();
+        } else {
+          termInfoBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000008;
+        return this;
+      }
+      /**
+       * <code>optional .AppendEntriesResponse.TermInfo term_info = 4;</code>
+       */
+      public Builder mergeTermInfo(org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo value) {
+        if (termInfoBuilder_ == null) {
+          if (((bitField0_ & 0x00000008) == 0x00000008) &&
+              termInfo_ != org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo.getDefaultInstance()) {
+            termInfo_ =
+              org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo.newBuilder(termInfo_).mergeFrom(value).buildPartial();
+          } else {
+            termInfo_ = value;
+          }
+          onChanged();
+        } else {
+          termInfoBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000008;
+        return this;
+      }
+      /**
+       * <code>optional .AppendEntriesResponse.TermInfo term_info = 4;</code>
+       */
+      public Builder clearTermInfo() {
+        if (termInfoBuilder_ == null) {
+          termInfo_ = org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo.getDefaultInstance();
+          onChanged();
+        } else {
+          termInfoBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000008);
+        return this;
+      }
+      /**
+       * <code>optional .AppendEntriesResponse.TermInfo term_info = 4;</code>
+       */
+      public org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo.Builder getTermInfoBuilder() {
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return getTermInfoFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .AppendEntriesResponse.TermInfo term_info = 4;</code>
+       */
+      public org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfoOrBuilder getTermInfoOrBuilder() {
+        if (termInfoBuilder_ != null) {
+          return termInfoBuilder_.getMessageOrBuilder();
+        } else {
+          return termInfo_;
+        }
+      }
+      /**
+       * <code>optional .AppendEntriesResponse.TermInfo term_info = 4;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo, org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo.Builder, org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfoOrBuilder> 
+          getTermInfoFieldBuilder() {
+        if (termInfoBuilder_ == null) {
+          termInfoBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo, org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfo.Builder, org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse.TermInfoOrBuilder>(
+                  termInfo_,
+                  getParentForChildren(),
+                  isClean());
+          termInfo_ = null;
+        }
+        return termInfoBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:AppendEntriesResponse)
@@ -4521,6 +5307,11 @@ public final class RaftProto {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_AppendEntriesResponse_fieldAccessorTable;
   private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_AppendEntriesResponse_TermInfo_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_AppendEntriesResponse_TermInfo_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_InstallSnapshot_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -4547,17 +5338,20 @@ public final class RaftProto {
       "\022\014\n\004term\030\001 \002(\003\022\021\n\tleader_id\030\002 \002(\t\022\026\n\016pre" +
       "v_log_index\030\003 \002(\003\022\025\n\rprev_log_term\030\004 \002(\003" +
       "\022\024\n\014commit_index\030\005 \002(\003\022\027\n\007entries\030\006 \003(\0132" +
-      "\006.Entry\"N\n\025AppendEntriesResponse\022\014\n\004term" +
-      "\030\001 \002(\003\022\017\n\007success\030\002 \002(\010\022\026\n\016last_log_inde",
-      "x\030\003 \001(\003\"o\n\017InstallSnapshot\022\014\n\004term\030\001 \002(\003" +
-      "\022\033\n\023last_included_index\030\002 \002(\003\022\032\n\022last_in" +
-      "cluded_term\030\003 \002(\003\022\025\n\rsnapshot_data\030\004 \002(\014" +
-      "\"8\n\027InstallSnapshotResponse\022\014\n\004term\030\001 \002(" +
-      "\003\022\017\n\007success\030\002 \002(\0102y\n\013RaftService\0221\n\013req" +
-      "uestVote\022\014.RequestVote\032\024.RequestVoteResp" +
-      "onse\0227\n\rappendEntries\022\016.AppendEntries\032\026." +
-      "AppendEntriesResponseB+\n\033org.robotninjas" +
-      ".barge.protoB\tRaftProto\210\001\001"
+      "\006.Entry\"\304\001\n\025AppendEntriesResponse\022\014\n\004ter" +
+      "m\030\001 \002(\003\022\017\n\007success\030\002 \002(\010\022\026\n\016last_log_ind",
+      "ex\030\003 \001(\003\0222\n\tterm_info\030\004 \001(\0132\037.AppendEntr" +
+      "iesResponse.TermInfo\032@\n\010TermInfo\022\014\n\004term" +
+      "\030\001 \002(\003\022\023\n\013begin_index\030\002 \002(\003\022\021\n\tend_index" +
+      "\030\003 \002(\003\"o\n\017InstallSnapshot\022\014\n\004term\030\001 \002(\003\022" +
+      "\033\n\023last_included_index\030\002 \002(\003\022\032\n\022last_inc" +
+      "luded_term\030\003 \002(\003\022\025\n\rsnapshot_data\030\004 \002(\014\"" +
+      "8\n\027InstallSnapshotResponse\022\014\n\004term\030\001 \002(\003" +
+      "\022\017\n\007success\030\002 \002(\0102y\n\013RaftService\0221\n\013requ" +
+      "estVote\022\014.RequestVote\032\024.RequestVoteRespo" +
+      "nse\0227\n\rappendEntries\022\016.AppendEntries\032\026.A",
+      "ppendEntriesResponseB+\n\033org.robotninjas." +
+      "barge.protoB\tRaftProto\210\001\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -4587,7 +5381,13 @@ public final class RaftProto {
           internal_static_AppendEntriesResponse_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_AppendEntriesResponse_descriptor,
-              new java.lang.String[] { "Term", "Success", "LastLogIndex", });
+              new java.lang.String[] { "Term", "Success", "LastLogIndex", "TermInfo", });
+          internal_static_AppendEntriesResponse_TermInfo_descriptor =
+            internal_static_AppendEntriesResponse_descriptor.getNestedTypes().get(0);
+          internal_static_AppendEntriesResponse_TermInfo_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_AppendEntriesResponse_TermInfo_descriptor,
+              new java.lang.String[] { "Term", "BeginIndex", "EndIndex", });
           internal_static_InstallSnapshot_descriptor =
             getDescriptor().getMessageTypes().get(4);
           internal_static_InstallSnapshot_fieldAccessorTable = new

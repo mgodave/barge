@@ -35,19 +35,21 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class Replica {
 
   private final InetSocketAddress address;
+  private final String key;
 
-  Replica(@Nonnull InetSocketAddress address) {
+  private Replica(@Nonnull String key, @Nonnull InetSocketAddress address) {
+    this.key = checkNotNull(key);
     this.address = checkNotNull(address);
   }
 
   @Nonnull
-  public static Replica fromString(@Nonnull String info) {
+  public static Replica fromString(@Nonnull String key) {
     try {
-      checkNotNull(info);
-      HostAndPort hostAndPort = HostAndPort.fromString(info);
+      checkNotNull(key);
+      HostAndPort hostAndPort = HostAndPort.fromString(key);
       InetAddress addr = InetAddress.getByName(hostAndPort.getHostText());
       InetSocketAddress saddr = new InetSocketAddress(addr, hostAndPort.getPort());
-      return new Replica(saddr);
+      return new Replica(key, saddr);
     } catch (UnknownHostException e) {
       throw Throwables.propagate(e);
     }
@@ -82,5 +84,9 @@ public class Replica {
   @Override
   public String toString() {
     return address.getAddress().getHostName() + ":" + address.getPort();
+  }
+
+  public String getKey() {
+    return key;
   }
 }
