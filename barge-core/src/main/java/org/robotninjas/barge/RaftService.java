@@ -68,7 +68,7 @@ public class RaftService extends AbstractService {
 
     try {
 
-      ctx.setState(START);
+      ctx.setState(null, START);
 
       RaftServiceEndpoint endpoint = new RaftServiceEndpoint(ctx);
       Service replicaService = RaftProto.RaftService.newReflectiveService(endpoint);

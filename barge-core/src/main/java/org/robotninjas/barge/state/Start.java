@@ -23,7 +23,7 @@ class Start implements State {
   @Override
   public void init(@Nonnull RaftStateContext ctx) {
     log.load();
-    ctx.setState(FOLLOWER);
+    ctx.setState(this, FOLLOWER);
   }
 
   @Nonnull
