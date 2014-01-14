@@ -308,6 +308,10 @@ class Leader extends BaseState {
       });
 
     }
+    
+    if (responses.isEmpty()) {
+      updateCommitted(ctx);
+    }
     return responses;
   }
   
