@@ -170,12 +170,6 @@ class Candidate extends BaseState {
 
   }
 
-  @Nonnull
-  @Override
-  public ListenableFuture<Boolean> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
-    throw new NoLeaderException();
-  }
-
 
   @VisibleForTesting
   List<ListenableFuture<RequestVoteResponse>> sendRequests(RaftStateContext ctx) {
@@ -211,6 +205,11 @@ class Candidate extends BaseState {
       @Override
       public void onFailure(Throwable t) {}
     };
+  }
+
+  @Override
+  protected RuntimeException throwMustBeLeader() throws NoLeaderException {
+    throw new NoLeaderException();
   }
 
 }

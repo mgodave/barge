@@ -129,16 +129,6 @@ class Follower extends BaseState {
 
   }
 
-  @Nonnull
-  @Override
-  public ListenableFuture<Boolean> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
-    if (leader.isPresent()) {
-      throw new NotLeaderException(leader.get());
-    } else {
-      throw new NoLeaderException();
-    }
-  }
-
   void resetTimeout(@Nonnull final RaftStateContext ctx) {
 
     if (null != timeoutTask) {
@@ -153,6 +143,15 @@ class Follower extends BaseState {
       }
     }, timeout * 2, MILLISECONDS);
 
+  }
+
+  @Override
+  protected RuntimeException throwMustBeLeader() throws RaftException {
+    if (leader.isPresent()) {
+      throw new NotLeaderException(leader.get());
+    } else {
+      throw new NoLeaderException();
+    }
   }
 
 }
