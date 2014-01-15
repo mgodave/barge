@@ -25,12 +25,12 @@ import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import org.robotninjas.barge.BargeThreadPools;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.RaftMembership;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.proto.RaftEntry.Membership;
-import org.robotninjas.barge.rpc.RaftScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,11 +70,11 @@ class Leader extends BaseState {
   private ScheduledFuture<?> heartbeatTask;
 
   @Inject
-  Leader(RaftLog log, @RaftScheduler ScheduledExecutorService scheduler, @ElectionTimeout @Nonnegative long timeout,
+  Leader(RaftLog log, BargeThreadPools bargeThreadPools, @ElectionTimeout @Nonnegative long timeout,
       ReplicaManagerFactory replicaManagerFactory) {
 
     this.log = checkNotNull(log);
-    this.scheduler = checkNotNull(scheduler);
+    this.scheduler = checkNotNull(bargeThreadPools.getRaftScheduler());
     checkArgument(timeout > 0);
     this.timeout = timeout;
     this.replicaManagerFactory = checkNotNull(replicaManagerFactory);

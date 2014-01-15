@@ -19,6 +19,8 @@ package org.robotninjas.barge.state;
 import com.google.common.base.Optional;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Inject;
+
+import org.robotninjas.barge.BargeThreadPools;
 import org.robotninjas.barge.NoLeaderException;
 import org.robotninjas.barge.NotLeaderException;
 import org.robotninjas.barge.RaftException;
@@ -26,13 +28,13 @@ import org.robotninjas.barge.RaftMembership;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.proto.RaftEntry.Membership;
-import org.robotninjas.barge.rpc.RaftScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
+
 import java.util.concurrent.ScheduledExecutorService;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -52,10 +54,10 @@ class Follower extends BaseState {
   private DeadlineTimer timeoutTask;
 
   @Inject
-  Follower(RaftLog log, @RaftScheduler ScheduledExecutorService scheduler, @ElectionTimeout @Nonnegative long timeout) {
+  Follower(RaftLog log, BargeThreadPools bargeThreadPools, @ElectionTimeout @Nonnegative long timeout) {
 
     this.log = checkNotNull(log);
-    this.scheduler = checkNotNull(scheduler);
+    this.scheduler = checkNotNull(bargeThreadPools.getRaftScheduler());
     checkArgument(timeout >= 0);
     this.timeout = timeout;
 

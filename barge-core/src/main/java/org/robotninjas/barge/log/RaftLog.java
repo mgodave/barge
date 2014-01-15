@@ -23,12 +23,13 @@ import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.*;
 import com.google.inject.Inject;
 import com.google.protobuf.ByteString;
+
 import journal.io.api.Journal;
 
+import org.robotninjas.barge.BargeThreadPools;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.proto.RaftEntry.Entry;
 import org.robotninjas.barge.proto.RaftEntry.Membership;
-import org.robotninjas.barge.rpc.RaftExecutor;
 import org.robotninjas.barge.state.ConfigurationState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +39,7 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
+
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.TreeMap;
@@ -72,11 +74,11 @@ public class RaftLog {
 
   @Inject
   RaftLog(@Nonnull Journal journal, @Nonnull ConfigurationState config,
-          @Nonnull StateMachineProxy stateMachine, @RaftExecutor ListeningExecutorService raftThread) {
+          @Nonnull StateMachineProxy stateMachine, @Nonnull BargeThreadPools bargeThreadPools) {
     this.journal = new RaftJournal(checkNotNull(journal));
     this.config = checkNotNull(config);
     this.stateMachine = checkNotNull(stateMachine);
-    this.executor = checkNotNull(raftThread);
+    this.executor = checkNotNull(bargeThreadPools.getRaftExecutor());
     
     this.name = journal.getDirectory().getName();
   }

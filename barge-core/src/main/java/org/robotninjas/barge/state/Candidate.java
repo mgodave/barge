@@ -22,13 +22,14 @@ import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+
+import org.robotninjas.barge.BargeThreadPools;
 import org.robotninjas.barge.NoLeaderException;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.RaftMembership;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.rpc.Client;
-import org.robotninjas.barge.rpc.RaftScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +37,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
+
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ScheduledExecutorService;
@@ -61,10 +63,10 @@ class Candidate extends BaseState {
   private ListenableFuture<Boolean> electionResult;
 
   @Inject
-  Candidate(RaftLog log, @RaftScheduler ScheduledExecutorService scheduler,
+  Candidate(RaftLog log, BargeThreadPools bargeThreadPools,
             @ElectionTimeout long electionTimeout, Client client) {
     this.log = log;
-    this.scheduler = scheduler;
+    this.scheduler = bargeThreadPools.getRaftScheduler();
     this.electionTimeout = electionTimeout;
     this.client = client;
   }

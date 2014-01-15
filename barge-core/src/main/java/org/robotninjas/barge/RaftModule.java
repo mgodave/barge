@@ -20,13 +20,17 @@ import com.google.common.base.Optional;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.inject.PrivateModule;
+
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.util.concurrent.DefaultThreadFactory;
+
 import org.robotninjas.barge.log.LogModule;
 import org.robotninjas.barge.rpc.RpcModule;
 import org.robotninjas.barge.state.StateModule;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
+
 import java.io.File;
 import java.util.concurrent.Executors;
 
@@ -70,31 +74,10 @@ class RaftModule extends PrivateModule {
     Replica local = config.local();
     install(new StateModule(local, timeout));
 
-    final NioEventLoopGroup eventLoop;
-    if (eventLoopGroup.isPresent()) {
-      eventLoop = eventLoopGroup.get();
-    } else {
-      eventLoop = new NioEventLoopGroup(1);
-      Runtime.getRuntime().addShutdownHook(new Thread() {
-        public void run() {
-          eventLoop.shutdownGracefully();
-        }
-      });
-    }
-    install(new RpcModule(local.address(), eventLoop));
+    BargeThreadPools bargeThreadPools = new BargeThreadPools(eventLoopGroup, stateMachineExecutor);
+    install(new RpcModule(local.address(), bargeThreadPools));
 
-    final ListeningExecutorService executor;
-    if (stateMachineExecutor.isPresent()) {
-      executor = stateMachineExecutor.get();
-    } else {
-      executor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
-      Runtime.getRuntime().addShutdownHook(new Thread() {
-        public void run() {
-          executor.shutdownNow();
-        }
-      });
-    }
-    install(new LogModule(logDir, stateMachine, executor));
+    install(new LogModule(logDir, stateMachine));
 
     bind(ClusterConfig.class)
       .toInstance(config);
