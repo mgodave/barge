@@ -123,6 +123,7 @@ public class RaftLog {
 
   private SettableFuture<Object> storeEntry(final long index, @Nonnull Entry entry) {
     LOGGER.debug("{}", entry);
+
     journal.appendEntry(entry, index);
     log.put(index, entry);
 
