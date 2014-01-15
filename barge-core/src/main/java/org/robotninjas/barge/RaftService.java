@@ -23,6 +23,9 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.protobuf.Service;
 import io.netty.channel.nio.NioEventLoopGroup;
+
+import org.robotninjas.barge.log.RaftLog;
+import org.robotninjas.barge.proto.RaftEntry.Membership;
 import org.robotninjas.barge.proto.RaftProto;
 import org.robotninjas.barge.rpc.RaftExecutor;
 import org.robotninjas.barge.state.RaftStateContext;
@@ -53,16 +56,28 @@ public class RaftService extends AbstractService {
   private final ListeningExecutorService executor;
   private final RpcServer rpcServer;
   private final RaftStateContext ctx;
+  private final RaftLog raftLog;
 
   @Inject
-  RaftService(@Nonnull RpcServer rpcServer, @RaftExecutor ListeningExecutorService executor, @Nonnull RaftStateContext ctx) {
+  RaftService(@Nonnull RpcServer rpcServer, @RaftExecutor ListeningExecutorService executor, @Nonnull RaftStateContext ctx, @Nonnull RaftLog raftLog) {
 
     this.executor = checkNotNull(executor);
     this.rpcServer = checkNotNull(rpcServer);
     this.ctx = checkNotNull(ctx);
+    this.raftLog = raftLog;
 
   }
 
+  public void bootstrap(Membership membership) {
+    
+    LOGGER.info("Bootstrapping log with {}", membership);
+    if (raftLog.lastLogTerm() != 0 || raftLog.lastLogIndex() != 0) {
+      LOGGER.warn("Cannot bootstrap, as raft log already contains data");
+      throw new IllegalStateException();
+    }
+    raftLog.append(null, membership);
+  }
+  
   @Override
   protected void doStart() {
 
@@ -174,6 +189,29 @@ public class RaftService extends AbstractService {
       return injector.getInstance(RaftService.class);
     }
 
+  }
+
+  public ListenableFuture<Boolean> setConfiguration(final RaftMembership oldMembership, final RaftMembership newMembership) {
+
+    // Make sure this happens on the Barge thread
+    ListenableFuture<ListenableFuture<Boolean>> response =
+      executor.submit(new Callable<ListenableFuture<Boolean>>() {
+        @Override
+        public ListenableFuture<Boolean> call() throws Exception {
+          return ctx.setConfiguration(oldMembership, newMembership);
+        }
+      });
+
+    return Futures.dereference(response);
+
+  }
+
+  public RaftMembership getClusterMembership() {
+    return ctx.getConfigurationState().getClusterMembership();
+  }
+
+  public String getServerKey() {
+    return ctx.getConfigurationState().self().getKey();
   }
 
 

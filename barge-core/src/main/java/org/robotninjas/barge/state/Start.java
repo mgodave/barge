@@ -3,6 +3,7 @@ package org.robotninjas.barge.state;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Inject;
 import org.robotninjas.barge.RaftException;
+import org.robotninjas.barge.RaftMembership;
 import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.proto.RaftEntry.Membership;
 import javax.annotation.Nonnull;
@@ -44,8 +45,8 @@ class Start implements State {
   }
 
   @Override
-  public ListenableFuture<Boolean> setConfiguration(RaftStateContext ctx, long oldId, Membership nextConfiguration)
-      throws RaftException {
+  public ListenableFuture<Boolean> setConfiguration(RaftStateContext ctx, RaftMembership oldMembership,
+      RaftMembership newMembership) throws RaftException {
     throw new RaftException("Service has not started yet");
   }
 

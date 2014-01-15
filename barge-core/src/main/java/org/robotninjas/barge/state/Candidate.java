@@ -24,9 +24,9 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.robotninjas.barge.NoLeaderException;
 import org.robotninjas.barge.RaftException;
+import org.robotninjas.barge.RaftMembership;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.log.RaftLog;
-import org.robotninjas.barge.proto.RaftEntry.Membership;
 import org.robotninjas.barge.rpc.Client;
 import org.robotninjas.barge.rpc.RaftScheduler;
 import org.slf4j.Logger;
@@ -75,9 +75,16 @@ class Candidate extends BaseState {
     log.currentTerm(log.currentTerm() + 1);
     log.lastVotedFor(Optional.of(log.self()));
 
+    if (configurationState.getAllVotingMembers().isEmpty()) {
+      //  If there is nobody to vote in an election, we can't run it...
+      LOGGER.debug("No voting members; won't run election");
+      return;
+    }
+    
     LOGGER.debug("Election starting for term {}", log.currentTerm());
 
     List<ListenableFuture<RequestVoteResponse>> responses = sendRequests(ctx);
+    
     electionResult = majorityResponse(responses, voteGranted());
 
     long timeout = electionTimeout + (RAND.nextLong() % electionTimeout);
@@ -189,10 +196,17 @@ class Candidate extends BaseState {
         .build();
 
     List<ListenableFuture<RequestVoteResponse>> responses = Lists.newArrayList();
-    for (Replica replica : configurationState.remote()) {
-      ListenableFuture<RequestVoteResponse> response = client.requestVote(replica, request);
-      Futures.addCallback(response, checkTerm(ctx));
-      responses.add(response);
+    Replica self = configurationState.self();
+    LOGGER.info("Starting election with members: {}", configurationState.getAllVotingMembers());
+    for (Replica replica : configurationState.getAllVotingMembers()) {
+      if (replica == self) {
+        // We always vote for ourselves
+        responses.add(Futures.immediateFuture(RequestVoteResponse.newBuilder().setVoteGranted(true).buildPartial()));
+      } else {
+        ListenableFuture<RequestVoteResponse> response = client.requestVote(replica, request);
+        Futures.addCallback(response, checkTerm(ctx));
+        responses.add(response);
+      }
     }
 
     return responses;
@@ -214,9 +228,13 @@ class Candidate extends BaseState {
   }
 
   @Override
-  public ListenableFuture<Boolean> setConfiguration(RaftStateContext ctx, long oldId, Membership nextConfiguration)
-      throws RaftException {
+  public ListenableFuture<Boolean> setConfiguration(RaftStateContext ctx, RaftMembership oldMembership,
+      RaftMembership newMembership) throws RaftException {
     throw new NoLeaderException();
   }
 
+  @Override
+  public String toString() {
+    return "Candidate [" + log.getName() + " @ " + log.self() + "]";
+  }
 }

@@ -18,6 +18,7 @@ package org.robotninjas.barge.state;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.robotninjas.barge.RaftException;
+import org.robotninjas.barge.RaftMembership;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -63,6 +64,13 @@ public class RaftStateContext {
   public ListenableFuture<Object> commitOperation(@Nonnull byte[] op) throws RaftException {
     checkNotNull(op);
     return delegate.commitOperation(this, op);
+  }
+  
+  @Nonnull
+  public ListenableFuture<Boolean> setConfiguration(@Nonnull RaftMembership oldMembership, @Nonnull RaftMembership newMembership) throws RaftException {
+    checkNotNull(oldMembership);
+    checkNotNull(newMembership);
+    return delegate.setConfiguration(this, oldMembership, newMembership);
   }
 
   public synchronized void setState(@Nonnull State oldState, @Nonnull StateType state) {

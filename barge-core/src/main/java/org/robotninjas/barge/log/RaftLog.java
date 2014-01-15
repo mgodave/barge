@@ -68,6 +68,7 @@ public class RaftLog {
   private volatile Optional<Replica> votedFor = Optional.absent();
   private volatile long commitIndex = 0;
   private volatile long lastApplied = 0;
+  private final String name;
 
   @Inject
   RaftLog(@Nonnull Journal journal, @Nonnull ConfigurationState config,
@@ -76,6 +77,8 @@ public class RaftLog {
     this.config = checkNotNull(config);
     this.stateMachine = checkNotNull(stateMachine);
     this.executor = checkNotNull(raftThread);
+    
+    this.name = journal.getDirectory().getName();
   }
 
   public void load() {
@@ -107,7 +110,7 @@ public class RaftLog {
         log.put(index, entry);
         
         if (entry.hasMembership()) {
-          config.add(index, entry);
+          config.addMembershipEntry(index, entry);
         }
       }
     });
@@ -124,7 +127,7 @@ public class RaftLog {
     log.put(index, entry);
 
     if (entry.hasMembership()) {
-      config.add(index, entry);
+      config.addMembershipEntry(index, entry);
     }
 
     SettableFuture<Object> result = SettableFuture.create();
@@ -195,6 +198,10 @@ public class RaftLog {
     try {
       for (long i = lastApplied + 1; i <= Math.min(commitIndex, lastLogIndex); ++i, ++lastApplied) {
         Entry entry = log.get(i);
+        
+        final SettableFuture<Object> returnedResult = operationResults.remove(i);
+        assert returnedResult != null;
+
         if (entry.hasCommand()) {
           ByteString command = entry.getCommand();
 //          byte[] rawCommand = command.toByteArray();
@@ -202,7 +209,6 @@ public class RaftLog {
           final ByteBuffer operation = command.asReadOnlyByteBuffer();
 
           ListenableFuture<Object> result = stateMachine.dispatchOperation(operation);
-          final SettableFuture<Object> returnedResult = operationResults.remove(i);
           Futures.addCallback(result, new PromiseBridge<Object>(returnedResult));
         }
 
@@ -287,6 +293,10 @@ public class RaftLog {
 
   public Replica self() {
     return config.self();
+  }
+
+  public String getName() {
+    return name;
   }
 
 }

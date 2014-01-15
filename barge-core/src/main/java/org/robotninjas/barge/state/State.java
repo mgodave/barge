@@ -18,6 +18,7 @@ package org.robotninjas.barge.state;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.robotninjas.barge.RaftException;
+import org.robotninjas.barge.RaftMembership;
 import org.robotninjas.barge.proto.RaftEntry.Membership;
 
 import javax.annotation.Nonnull;
@@ -38,6 +39,6 @@ interface State {
   ListenableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException;
 
   @Nonnull
-  ListenableFuture<Boolean> setConfiguration(@Nonnull RaftStateContext ctx, long oldId, @Nonnull Membership nextConfiguration) throws RaftException;
+  ListenableFuture<Boolean> setConfiguration(@Nonnull RaftStateContext ctx, @Nonnull RaftMembership oldMembership, @Nonnull RaftMembership newMembership) throws RaftException;
 
 }

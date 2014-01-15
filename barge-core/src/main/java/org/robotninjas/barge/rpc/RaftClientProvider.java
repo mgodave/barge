@@ -59,7 +59,7 @@ class RaftClientProvider {
   @Nonnull
   public RaftClient get(@Nonnull Replica replica) {
     checkNotNull(replica);
-    return new RaftClient(adapt(connectionPools, replica));
+    return new RaftClient(replica, adapt(connectionPools, replica));
   }
 
 }
