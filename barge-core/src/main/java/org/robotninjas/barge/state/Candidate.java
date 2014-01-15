@@ -75,7 +75,7 @@ class Candidate extends BaseState {
     log.currentTerm(log.currentTerm() + 1);
     log.lastVotedFor(Optional.of(log.self()));
 
-    if (configurationState.getAllVotingMembers().isEmpty()) {
+    if (ctx.getConfigurationState().getAllVotingMembers().isEmpty()) {
       //  If there is nobody to vote in an election, we can't run it...
       LOGGER.debug("No voting members; won't run election");
       return;
