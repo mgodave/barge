@@ -23,9 +23,7 @@ import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.*;
 import com.google.inject.Inject;
 import com.google.protobuf.ByteString;
-
 import journal.io.api.Journal;
-
 import org.robotninjas.barge.BargeThreadPools;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.proto.RaftEntry.Entry;
@@ -34,17 +32,15 @@ import org.robotninjas.barge.state.ConfigurationState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
-
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentMap;
-
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Throwables.propagate;
@@ -220,6 +216,15 @@ public class RaftLog {
         }
 
         if (!entry.hasMembership() && !entry.hasCommand()){
+          if (returnedResult != null) {
+            Futures.addCallback(returnedResult, new PromiseBridge<Object>(returnedResult));
+          }
+          // TODO: If this fails during replay, what should we do?
+        } else if (entry.hasMembership()) {
+          if (returnedResult != null) {
+            returnedResult.set(Boolean.TRUE);
+          }
+        } else {
           LOGGER.warn("Ignoring unusual log entry: {}", entry);
         }
       }
