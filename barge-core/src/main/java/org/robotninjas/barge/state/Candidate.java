@@ -38,11 +38,9 @@ import javax.inject.Inject;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.util.concurrent.Futures.addCallback;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.robotninjas.barge.proto.RaftProto.*;
 import static org.robotninjas.barge.state.MajorityCollector.majorityResponse;
 import static org.robotninjas.barge.state.RaftPredicates.voteGranted;
@@ -58,7 +56,7 @@ class Candidate extends BaseState {
   private final ScheduledExecutorService scheduler;
   private final long electionTimeout;
   private final Client client;
-  private ScheduledFuture<?> electionTimer;
+  private DeadlineTimer electionTimer;
   private ListenableFuture<Boolean> electionResult;
 
   @Inject
@@ -82,13 +80,13 @@ class Candidate extends BaseState {
     electionResult = majorityResponse(responses, voteGranted());
 
     long timeout = electionTimeout + (RAND.nextLong() % electionTimeout);
-    electionTimer = scheduler.schedule(new Runnable() {
+    electionTimer = DeadlineTimer.start(scheduler, new Runnable() {
       @Override
       public void run() {
         LOGGER.debug("Election timeout");
         transition(ctx, CANDIDATE);
       }
-    }, timeout, MILLISECONDS);
+    }, timeout);
 
     addCallback(electionResult, new FutureCallback<Boolean>() {
       @Override
@@ -114,7 +112,7 @@ class Candidate extends BaseState {
   private void transition(@Nonnull RaftStateContext ctx, @Nonnull RaftStateContext.StateType state) {
     ctx.setState(state);
     electionResult.cancel(false);
-    electionTimer.cancel(false);
+    electionTimer.cancel();
   }
 
   @Nonnull
