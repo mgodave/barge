@@ -117,7 +117,9 @@ class Leader extends BaseState {
   }
 
   private void stepDown(RaftStateContext ctx) {
-    heartbeatTask.cancel(false);
+    if (heartbeatTask != null) {
+      heartbeatTask.cancel(false);
+    }
     for (ReplicaManager mgr : replicaManagers.values()) {
       mgr.shutdown();
     }
@@ -333,6 +335,10 @@ class Leader extends BaseState {
   @Nonnull
   @VisibleForTesting
   List<ListenableFuture<AppendEntriesResponse>> sendRequests(final RaftStateContext ctx) {
+    if (ctx.shouldStop()) {
+      stepDown(ctx);
+      return null;
+    }
     List<ListenableFuture<AppendEntriesResponse>> responses = newArrayList();
     Replica self = ctx.getConfigurationState().self();
     for (Replica replica : ctx.getConfigurationState().getAllVotingMembers()) {
