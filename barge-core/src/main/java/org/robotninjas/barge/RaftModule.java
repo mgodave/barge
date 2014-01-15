@@ -74,7 +74,7 @@ class RaftModule extends PrivateModule {
     if (eventLoopGroup.isPresent()) {
       eventLoop = eventLoopGroup.get();
     } else {
-      eventLoop = new NioEventLoopGroup();
+      eventLoop = new NioEventLoopGroup(1);
       Runtime.getRuntime().addShutdownHook(new Thread() {
         public void run() {
           eventLoop.shutdownGracefully();
