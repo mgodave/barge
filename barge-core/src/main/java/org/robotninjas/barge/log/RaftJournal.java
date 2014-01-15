@@ -27,6 +27,10 @@ class RaftJournal {
     this.journal = journal;
   }
 
+  public boolean isEmpty() {
+    return journal.getFiles().isEmpty();
+  }
+
   public void init() {
 
     try {

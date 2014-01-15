@@ -73,7 +73,7 @@ public class RaftService extends AbstractService {
   public void bootstrap(Membership membership) {
     
     LOGGER.info("Bootstrapping log with {}", membership);
-    if (raftLog.lastLogTerm() != 0 || raftLog.lastLogIndex() != 0) {
+    if (!raftLog.isEmpty()) {
       LOGGER.warn("Cannot bootstrap, as raft log already contains data");
       throw new IllegalStateException();
     }

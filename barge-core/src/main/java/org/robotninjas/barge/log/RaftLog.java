@@ -302,4 +302,8 @@ public class RaftLog {
     return name;
   }
 
+  public boolean isEmpty() {
+    return journal.isEmpty();
+  }
+
 }
