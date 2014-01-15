@@ -157,5 +157,9 @@ class Follower extends BaseState {
     throw throwMustBeLeader();
   }
 
+  @Override
+  public String toString() {
+    return "Follower [" + log.getName() + " @ " + log.self() + "]";
+  }
 
 }
