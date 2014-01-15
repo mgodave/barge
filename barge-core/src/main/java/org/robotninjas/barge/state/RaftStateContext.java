@@ -33,7 +33,7 @@ import static org.robotninjas.barge.proto.RaftProto.*;
 @NotThreadSafe
 public class RaftStateContext {
 
-  public enum StateType {START, FOLLOWER, CANDIDATE, LEADER}
+  public enum StateType {START, FOLLOWER, CANDIDATE, LEADER,STOPPED}
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RaftStateContext.class);
 
@@ -41,6 +41,8 @@ public class RaftStateContext {
   private volatile StateType state;
   private volatile State delegate;
   private final ConfigurationState configurationState;
+
+  private boolean stop;
 
   @Inject
   RaftStateContext(StateFactory stateFactory, ConfigurationState configurationState) {
@@ -82,8 +84,13 @@ public class RaftStateContext {
     }
 
     LOGGER.info("old state: {}, new state: {}", this.state, state);
-    this.state = checkNotNull(state);
-    switch (state) {
+    if (stop) {
+      this.state = StateType.STOPPED;
+      LOGGER.info("Service stopped; replaced state with: {}", this.state);
+    } else {
+      this.state = checkNotNull(state);
+    }
+    switch (this.state) {
       case START:
         delegate = stateFactory.start();
         break;
@@ -96,9 +103,14 @@ public class RaftStateContext {
       case CANDIDATE:
         delegate = stateFactory.candidate();
         break;
+      case STOPPED:
+        delegate = null;
+        break;
     }
     MDC.put("state", this.state.toString());
-    delegate.init(this);
+    if (delegate != null) {
+      delegate.init(this);
+    }
   }
 
   @Nonnull
@@ -109,5 +121,17 @@ public class RaftStateContext {
   @Nonnull
   public ConfigurationState getConfigurationState() {
     return configurationState;
+  }
+
+  public synchronized boolean shouldStop() {
+    return stop;
+  }
+
+  public synchronized void stop() {
+    stop = true;
+  }
+
+  public synchronized boolean isStopped() {
+    return this.state == StateType.STOPPED;
   }
 }

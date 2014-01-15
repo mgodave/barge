@@ -27,6 +27,10 @@ class RaftJournal {
     this.journal = journal;
   }
 
+  public void close() throws IOException {
+    this.journal.close();
+  }
+  
   public boolean isEmpty() {
     return journal.getFiles().isEmpty();
   }

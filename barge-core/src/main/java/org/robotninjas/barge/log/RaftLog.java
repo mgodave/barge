@@ -83,6 +83,10 @@ public class RaftLog {
     this.name = journal.getDirectory().getName();
   }
 
+  public void close() throws IOException {
+    this.journal.close();
+  }
+
   public void load() {
 
     LOGGER.info("Replaying log");

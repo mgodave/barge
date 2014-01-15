@@ -106,6 +106,12 @@ public class RaftService extends AbstractService {
 
     try {
       rpcServer.stopAsync().awaitTerminated();
+      ctx.stop();
+      while (!ctx.isStopped()) {
+        Thread.sleep(10);
+      }
+      raftLog.close();
+
       bargeThreadPools.close();
       notifyStopped();
     } catch (Exception e) {
