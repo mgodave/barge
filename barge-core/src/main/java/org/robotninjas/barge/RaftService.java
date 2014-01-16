@@ -28,6 +28,7 @@ import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.proto.RaftEntry.Membership;
 import org.robotninjas.barge.proto.RaftProto;
 import org.robotninjas.barge.state.RaftStateContext;
+import org.robotninjas.barge.state.RaftStateContext.StateType;
 import org.robotninjas.protobuf.netty.server.RpcServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -221,6 +222,10 @@ public class RaftService extends AbstractService {
 
   public String getServerKey() {
     return ctx.getConfigurationState().self().getKey();
+  }
+
+  public boolean isLeader() {
+    return ctx.getState() == StateType.LEADER;
   }
 
 
