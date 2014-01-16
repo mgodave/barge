@@ -16,6 +16,7 @@
 
 package org.robotninjas.barge.state;
 
+import com.google.common.base.Optional;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.robotninjas.barge.RaftException;
 import org.slf4j.Logger;
@@ -64,6 +65,14 @@ public class RaftStateContext {
   }
 
   public void setState(@Nonnull StateType state) {
+    setState(state, Optional.absent());
+  }
+
+  public <T> void setState(@Nonnull StateType state, @Nonnull T data) {
+    setState(state, Optional.of(data));
+  }
+
+  private <T> void setState(@Nonnull StateType state, @Nonnull Optional<T> data) {
     LOGGER.info("old state: {}, new state: {}", this.state, state);
     this.state = checkNotNull(state);
     switch (state) {
@@ -81,7 +90,7 @@ public class RaftStateContext {
         break;
     }
     MDC.put("state", this.state.toString());
-    delegate.init(this);
+    delegate.init(this, data);
   }
 
   @Nonnull

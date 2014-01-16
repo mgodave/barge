@@ -69,7 +69,7 @@ class Candidate extends BaseState {
   }
 
   @Override
-  public void init(@Nonnull final RaftStateContext ctx) {
+  public void init(@Nonnull final RaftStateContext ctx, Optional data) {
 
     log.currentTerm(log.currentTerm() + 1);
     log.lastVotedFor(Optional.of(log.self()));

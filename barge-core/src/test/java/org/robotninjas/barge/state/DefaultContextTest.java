@@ -1,5 +1,6 @@
 package org.robotninjas.barge.state;
 
+import com.google.common.base.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -37,7 +38,7 @@ public class DefaultContextTest {
 
     RaftStateContext ctx = new RaftStateContext(mockStateFactory);
 
-    verify(mockFollower).init(ctx);
+    verify(mockFollower).init(ctx, Optional.absent());
     assertEquals(StateType.FOLLOWER, ctx.getState());
 
     ctx.appendEntries(appendEntries);
@@ -50,7 +51,7 @@ public class DefaultContextTest {
 
 
     ctx.setState(StateType.LEADER);
-    verify(mockLeader).init(ctx);
+    verify(mockLeader).init(ctx, Optional.absent());
     assertEquals(StateType.LEADER, ctx.getState());
 
     ctx.appendEntries(appendEntries);
@@ -63,7 +64,7 @@ public class DefaultContextTest {
 
 
     ctx.setState(StateType.CANDIDATE);
-    verify(mockCandidate).init(ctx);
+    verify(mockCandidate).init(ctx, Optional.absent());
     assertEquals(StateType.CANDIDATE, ctx.getState());
 
     ctx.appendEntries(appendEntries);

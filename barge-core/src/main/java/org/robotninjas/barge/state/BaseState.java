@@ -9,7 +9,7 @@ import javax.annotation.Nonnull;
 
 import static org.robotninjas.barge.proto.RaftProto.RequestVote;
 
-public abstract class BaseState implements State {
+public abstract class BaseState<T> implements State<T> {
 
   @VisibleForTesting
   boolean shouldVoteFor(@Nonnull RaftLog log, @Nonnull RequestVote request) {

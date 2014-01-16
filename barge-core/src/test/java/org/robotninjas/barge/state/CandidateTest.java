@@ -57,7 +57,7 @@ public class CandidateTest {
   public void testRequestVoteWithNewerTerm() throws Exception {
 
     Candidate candidate = new Candidate(mockRaftLog, mockScheduler, 150, mockRaftClient);
-    candidate.init(mockRaftStateContext);
+    candidate.init(mockRaftStateContext, Optional.absent());
 
     Replica mockCandidate = Replica.fromString("localhost:10001");
 
@@ -91,7 +91,7 @@ public class CandidateTest {
   @Test
   public void testRequestVoteWithOlderTerm() throws Exception {
     Candidate candidate = new Candidate(mockRaftLog, mockScheduler, 150, mockRaftClient);
-    candidate.init(mockRaftStateContext);
+    candidate.init(mockRaftStateContext, Optional.absent());
 
     Replica mockCandidate = Replica.fromString("localhost:10001");
 
@@ -122,7 +122,7 @@ public class CandidateTest {
   @Test
   public void testRequestVoteWithSameTerm() throws Exception {
     Candidate candidate = new Candidate(mockRaftLog, mockScheduler, 150, mockRaftClient);
-    candidate.init(mockRaftStateContext);
+    candidate.init(mockRaftStateContext, Optional.absent());
 
     Replica mockCandidate = Replica.fromString("localhost:10001");
 
@@ -156,7 +156,7 @@ public class CandidateTest {
   public void testAppendEntriesWithNewerTerm() throws Exception {
 
     Candidate candidate = new Candidate(mockRaftLog, mockScheduler, 1, mockRaftClient);
-    candidate.init(mockRaftStateContext);
+    candidate.init(mockRaftStateContext, Optional.absent());
 
     Replica mockLeader = Replica.fromString("localhost:10001");
 
@@ -191,7 +191,7 @@ public class CandidateTest {
   public void testAppendEntriesWithOlderTerm() throws Exception {
 
     Candidate candidate = new Candidate(mockRaftLog, mockScheduler, 1, mockRaftClient);
-    candidate.init(mockRaftStateContext);
+    candidate.init(mockRaftStateContext, Optional.absent());
 
     Replica mockLeader = Replica.fromString("localhost:10001");
 
@@ -224,7 +224,7 @@ public class CandidateTest {
   public void testAppendEntriesWithSameTerm() throws Exception {
 
     Candidate candidate = new Candidate(mockRaftLog, mockScheduler, 1, mockRaftClient);
-    candidate.init(mockRaftStateContext);
+    candidate.init(mockRaftStateContext, Optional.absent());
 
     AppendEntries request =
       AppendEntries.newBuilder()

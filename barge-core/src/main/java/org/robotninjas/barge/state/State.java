@@ -16,6 +16,7 @@
 
 package org.robotninjas.barge.state;
 
+import com.google.common.base.Optional;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.robotninjas.barge.RaftException;
 
@@ -23,9 +24,9 @@ import javax.annotation.Nonnull;
 
 import static org.robotninjas.barge.proto.RaftProto.*;
 
-interface State {
+interface State<T> {
 
-  void init(@Nonnull RaftStateContext ctx);
+  void init(@Nonnull RaftStateContext ctx, @Nonnull Optional<T> data);
 
   @Nonnull
   RequestVoteResponse requestVote(@Nonnull RaftStateContext ctx, @Nonnull RequestVote request);

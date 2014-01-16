@@ -60,7 +60,7 @@ class Follower extends BaseState {
   }
 
   @Override
-  public void init(@Nonnull final RaftStateContext ctx) {
+  public void init(@Nonnull final RaftStateContext ctx, Optional data) {
     timeoutTask = DeadlineTimer.start(scheduler, new Runnable() {
       @Override
       public void run() {

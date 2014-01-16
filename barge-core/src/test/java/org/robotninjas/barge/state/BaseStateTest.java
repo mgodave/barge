@@ -154,7 +154,7 @@ public class BaseStateTest {
 
   static class EmptyState extends BaseState {
     @Override
-    public void init(@Nonnull RaftStateContext ctx) {
+    public void init(@Nonnull RaftStateContext ctx, Optional data) {
 
     }
 

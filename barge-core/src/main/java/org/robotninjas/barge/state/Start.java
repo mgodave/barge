@@ -1,5 +1,6 @@
 package org.robotninjas.barge.state;
 
+import com.google.common.base.Optional;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Inject;
 import org.robotninjas.barge.RaftException;
@@ -21,7 +22,7 @@ class Start implements State {
   }
 
   @Override
-  public void init(@Nonnull RaftStateContext ctx) {
+  public void init(@Nonnull RaftStateContext ctx, Optional data) {
     log.load();
     ctx.setState(FOLLOWER);
   }
