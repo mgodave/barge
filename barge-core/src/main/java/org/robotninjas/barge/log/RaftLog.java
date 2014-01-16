@@ -89,6 +89,8 @@ public class RaftLog {
 
     journal.init();
 
+    long oldCommitIndex = commitIndex;
+    
     journal.replay(new RaftJournal.Visitor() {
       @Override
       public void term(long term) {
@@ -117,7 +119,19 @@ public class RaftLog {
       }
     });
 
+    final SettableFuture<Object> lastResult;
+    if (oldCommitIndex != commitIndex) {
+      lastResult = SettableFuture.create();
+      operationResults.put(commitIndex, lastResult);
+    } else {
+      lastResult = null;
+    }
+    
     fireComitted();
+
+    if (lastResult != null) {
+      Futures.getUnchecked(lastResult);
+    }
 
     LOGGER.info("Finished replaying log lastIndex {}, currentTerm {}, commitIndex {}, lastVotedFor {}",
       lastLogIndex, currentTerm, commitIndex, votedFor.orNull());
