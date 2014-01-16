@@ -91,6 +91,8 @@ public class RaftLog {
 
     long oldCommitIndex = commitIndex;
     
+    // TODO: fireCommitted more often??
+
     journal.replay(new RaftJournal.Visitor() {
       @Override
       public void term(long term) {
