@@ -46,8 +46,8 @@ public class BargeThreadPools implements Closeable {
       this.stateMachineExecutor = stateMachineExecutor.get();
       this.closeStateMachineExecutor = false;
     } else {
-      this.stateMachineExecutor = MoreExecutors.listeningDecorator(Executors
-          .newCachedThreadPool(new DefaultThreadFactory("pool-raft-worker")));
+      this.stateMachineExecutor = MoreExecutors.listeningDecorator(
+          Executors.newSingleThreadExecutor(new DefaultThreadFactory("pool-raft-worker")));
       this.closeStateMachineExecutor = true;
       //
       // Runtime.getRuntime().addShutdownHook(new Thread() {
