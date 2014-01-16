@@ -39,6 +39,7 @@ message AppendEntries {
 	required int64 prev_log_term = 4;
 	required int64 commit_index = 5;
 	repeated Entry entries = 6;
+    optional string snapshot_uri = 7;
 }
 
 message AppendEntriesResponse {
