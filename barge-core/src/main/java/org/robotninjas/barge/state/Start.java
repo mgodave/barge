@@ -5,7 +5,6 @@ import com.google.inject.Inject;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.RaftMembership;
 import org.robotninjas.barge.log.RaftLog;
-import org.robotninjas.barge.proto.RaftEntry.Membership;
 import javax.annotation.Nonnull;
 import static com.google.inject.internal.util.$Preconditions.checkNotNull;
 import static org.robotninjas.barge.proto.RaftProto.*;

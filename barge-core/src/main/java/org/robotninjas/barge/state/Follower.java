@@ -27,7 +27,6 @@ import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.RaftMembership;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.log.RaftLog;
-import org.robotninjas.barge.proto.RaftEntry.Membership;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
