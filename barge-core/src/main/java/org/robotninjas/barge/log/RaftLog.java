@@ -103,7 +103,7 @@ public class RaftLog {
       @Override
       public void append(Entry entry, long index) {
         lastLogIndex = Math.max(index, lastLogIndex);
-        lastLogTerm =  Math.max(entry.getTerm(), lastLogTerm);
+        lastLogTerm = Math.max(entry.getTerm(), lastLogTerm);
         log.put(index, entry);
       }
     });
@@ -111,7 +111,7 @@ public class RaftLog {
     fireComitted();
 
     LOGGER.info("Finished replaying log lastIndex {}, currentTerm {}, commitIndex {}, lastVotedFor {}",
-      lastLogIndex, currentTerm, commitIndex, votedFor.orNull());
+        lastLogIndex, currentTerm, commitIndex, votedFor.orNull());
   }
 
   private SettableFuture<Object> storeEntry(final long index, @Nonnull Entry entry) {
@@ -129,10 +129,10 @@ public class RaftLog {
     lastLogTerm = currentTerm;
 
     Entry entry =
-      Entry.newBuilder()
-        .setCommand(ByteString.copyFrom(operation))
-        .setTerm(currentTerm)
-        .build();
+        Entry.newBuilder()
+            .setCommand(ByteString.copyFrom(operation))
+            .setTerm(currentTerm)
+            .build();
 
     return storeEntry(index, entry);
 
@@ -243,11 +243,11 @@ public class RaftLog {
   @Override
   public String toString() {
     return Objects.toStringHelper(getClass())
-      .add("lastLogIndex", lastLogIndex)
-      .add("lastApplied", lastApplied)
-      .add("commitIndex", commitIndex)
-      .add("lastVotedFor", votedFor)
-      .toString();
+        .add("lastLogIndex", lastLogIndex)
+        .add("lastApplied", lastApplied)
+        .add("commitIndex", commitIndex)
+        .add("lastVotedFor", votedFor)
+        .toString();
   }
 
   private static class PromiseBridge<V> implements FutureCallback<V> {
@@ -260,12 +260,16 @@ public class RaftLog {
 
     @Override
     public void onSuccess(@Nullable V result) {
-      promise.set(result);
+      if (promise != null) {
+        promise.set(result);
+      }
     }
 
     @Override
     public void onFailure(Throwable t) {
-      promise.setException(t);
+      if (promise != null) {
+        promise.setException(t);
+      }
     }
   }
 

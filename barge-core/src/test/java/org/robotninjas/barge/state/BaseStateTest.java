@@ -41,7 +41,7 @@ public class BaseStateTest {
   @Test
   public void testHaventVoted() {
 
-    BaseState state = new EmptyState();
+    BaseState state = new EmptyState(mockRaftLog);
 
     RequestVote requestVote = RequestVote.newBuilder()
       .setCandidateId(candidate.toString())
@@ -59,7 +59,7 @@ public class BaseStateTest {
   @Test
   public void testAlreadyVotedForCandidate() {
 
-    BaseState state = new EmptyState();
+    BaseState state = new EmptyState(mockRaftLog);
 
     RequestVote requestVote = RequestVote.newBuilder()
       .setCandidateId(candidate.toString())
@@ -78,7 +78,7 @@ public class BaseStateTest {
   @Ignore
   public void testCandidateWithGreaterTerm() {
 
-    BaseState state = new EmptyState();
+    BaseState state = new EmptyState(mockRaftLog);
 
     RequestVote requestVote = RequestVote.newBuilder()
       .setCandidateId(candidate.toString())
@@ -97,7 +97,7 @@ public class BaseStateTest {
   @Test
   public void testCandidateWithLesserTerm() {
 
-    BaseState state = new EmptyState();
+    BaseState state = new EmptyState(mockRaftLog);
 
     RequestVote requestVote = RequestVote.newBuilder()
       .setCandidateId(candidate.toString())
@@ -116,7 +116,7 @@ public class BaseStateTest {
   @Test
   public void testCandidateWithLesserIndex() {
 
-    BaseState state = new EmptyState();
+    BaseState state = new EmptyState(mockRaftLog);
 
     RequestVote requestVote = RequestVote.newBuilder()
       .setCandidateId(candidate.toString())
@@ -136,7 +136,7 @@ public class BaseStateTest {
   @Ignore
   public void testCandidateWithGreaterIndex() {
 
-    BaseState state = new EmptyState();
+    BaseState state = new EmptyState(mockRaftLog);
 
     RequestVote requestVote = RequestVote.newBuilder()
       .setCandidateId(candidate.toString())
@@ -153,6 +153,12 @@ public class BaseStateTest {
   }
 
   static class EmptyState extends BaseState {
+
+
+    protected EmptyState(RaftLog log) {
+      super(log);
+    }
+
     @Override
     public void init(@Nonnull RaftStateContext ctx, Optional data) {
 

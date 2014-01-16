@@ -75,6 +75,9 @@ public class RaftStateContext {
   private <T> void setState(@Nonnull StateType state, @Nonnull Optional<T> data) {
     LOGGER.info("old state: {}, new state: {}", this.state, state);
     this.state = checkNotNull(state);
+    if (delegate != null) {
+      delegate.destroy(this);
+    }
     switch (state) {
       case START:
         delegate = stateFactory.start();

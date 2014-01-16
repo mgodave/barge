@@ -18,7 +18,7 @@ class DeadlineTimer {
   private boolean started = false;
   private Optional<? extends ScheduledFuture<?>> future;
 
-  DeadlineTimer(ScheduledExecutorService scheduler, Runnable action, long timeout) {
+  public DeadlineTimer(ScheduledExecutorService scheduler, Runnable action, long timeout) {
     this.scheduler = scheduler;
     this.action = action;
     this.timeout = timeout;

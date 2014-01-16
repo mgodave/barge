@@ -63,6 +63,12 @@
             <version>4.0.11.Final</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.netflix.rxjava</groupId>
+            <artifactId>rxjava-apache-http</artifactId>
+            <version>0.16.1</version>
+        </dependency>
+
         <!-- Optional Dependencies -->
         <dependency>
             <groupId>com.google.code.findbugs</groupId>

@@ -28,6 +28,8 @@ interface State<T> {
 
   void init(@Nonnull RaftStateContext ctx, @Nonnull Optional<T> data);
 
+  void destroy(RaftStateContext ctx);
+
   @Nonnull
   RequestVoteResponse requestVote(@Nonnull RaftStateContext ctx, @Nonnull RequestVote request);
 

@@ -65,6 +65,7 @@ class Leader extends BaseState {
   Leader(RaftLog log, @RaftScheduler ScheduledExecutorService scheduler,
          @ElectionTimeout @Nonnegative long timeout, ReplicaManagerFactory replicaManagerFactory) {
 
+    super(log);
     this.log = checkNotNull(log);
     this.scheduler = checkNotNull(scheduler);
     checkArgument(timeout > 0);
@@ -84,60 +85,12 @@ class Leader extends BaseState {
 
   }
 
-  private void stepDown(RaftStateContext ctx) {
+  @Override
+  public void destroy(RaftStateContext ctx) {
     heartbeatTask.cancel(false);
     for (ReplicaManager mgr : managers.values()) {
       mgr.shutdown();
     }
-    ctx.setState(FOLLOWER);
-  }
-
-  @Nonnull
-  @Override
-  public RequestVoteResponse requestVote(@Nonnull RaftStateContext ctx, @Nonnull RequestVote request) {
-
-    LOGGER.debug("RequestVote received for term {}", request.getTerm());
-
-    boolean voteGranted = false;
-
-    if (request.getTerm() > log.currentTerm()) {
-
-      log.currentTerm(request.getTerm());
-      stepDown(ctx);
-
-      Replica candidate = Replica.fromString(request.getCandidateId());
-      voteGranted = shouldVoteFor(log, request);
-
-      if (voteGranted) {
-        log.lastVotedFor(Optional.of(candidate));
-      }
-
-    }
-
-    return RequestVoteResponse.newBuilder()
-      .setTerm(log.currentTerm())
-      .setVoteGranted(voteGranted)
-      .build();
-
-  }
-
-  @Nonnull
-  @Override
-  public AppendEntriesResponse appendEntries(@Nonnull RaftStateContext ctx, @Nonnull AppendEntries request) {
-
-    boolean success = false;
-
-    if (request.getTerm() > log.currentTerm()) {
-      log.currentTerm(request.getTerm());
-      stepDown(ctx);
-      success = log.append(request);
-    }
-
-    return AppendEntriesResponse.newBuilder()
-      .setTerm(log.currentTerm())
-      .setSuccess(success)
-      .build();
-
   }
 
   void resetTimeout(@Nonnull final RaftStateContext ctx) {
@@ -188,15 +141,6 @@ class Leader extends BaseState {
 
   }
 
-  private void checkTermOnResponse(RaftStateContext ctx, AppendEntriesResponse response) {
-
-      if (response.getTerm() > log.currentTerm()) {
-        log.currentTerm(response.getTerm());
-        stepDown(ctx);
-      }
-
-  }
-
   /**
    * Notify the {@link ReplicaManager} to send an update the next possible time it can
    *
@@ -213,7 +157,10 @@ class Leader extends BaseState {
         @Override
         public void onSuccess(@Nullable AppendEntriesResponse result) {
           updateCommitted();
-          checkTermOnResponse(ctx, result);
+          if (result.getTerm() > log.currentTerm()) {
+            log.currentTerm(result.getTerm());
+            ctx.setState(FOLLOWER);
+          }
         }
 
         @Override
