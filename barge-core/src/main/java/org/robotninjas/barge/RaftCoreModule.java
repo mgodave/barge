@@ -20,9 +20,7 @@ import com.google.common.base.Optional;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.inject.PrivateModule;
-import io.netty.channel.nio.NioEventLoopGroup;
 import org.robotninjas.barge.log.LogModule;
-import org.robotninjas.barge.rpc.RpcModule;
 import org.robotninjas.barge.state.StateModule;
 
 import javax.annotation.Nonnull;
@@ -34,7 +32,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 @Immutable
-class RaftModule extends PrivateModule {
+class RaftCoreModule extends PrivateModule {
 
   private static final long DEFAULT_TIMEOUT = 225;
 
@@ -42,18 +40,13 @@ class RaftModule extends PrivateModule {
   private final ClusterConfig config;
   private final File logDir;
   private final StateMachine stateMachine;
-  private Optional<NioEventLoopGroup> eventLoopGroup = Optional.absent();
   private Optional<ListeningExecutorService> stateMachineExecutor = Optional.absent();
 
-  public RaftModule(@Nonnull ClusterConfig config, @Nonnull File logDir, @Nonnull StateMachine stateMachine) {
+  public RaftCoreModule(@Nonnull ClusterConfig config, @Nonnull File logDir, @Nonnull StateMachine stateMachine) {
     this.config = checkNotNull(config);
     checkArgument(timeout > 0);
     this.logDir = checkNotNull(logDir);
     this.stateMachine = checkNotNull(stateMachine);
-  }
-
-  public void setNioEventLoop(NioEventLoopGroup eventLoopGroup) {
-    this.eventLoopGroup = Optional.of(eventLoopGroup);
   }
 
   public void setStateMachineExecutor(ListeningExecutorService stateMachineExecutor) {
@@ -70,19 +63,6 @@ class RaftModule extends PrivateModule {
     install(new StateModule(timeout));
     Replica local = config.local();
 
-    final NioEventLoopGroup eventLoop;
-    if (eventLoopGroup.isPresent()) {
-      eventLoop = eventLoopGroup.get();
-    } else {
-      eventLoop = new NioEventLoopGroup();
-      Runtime.getRuntime().addShutdownHook(new Thread() {
-        public void run() {
-          eventLoop.shutdownGracefully();
-        }
-      });
-    }
-    install(new RpcModule(local.address(), eventLoop));
-
     final ListeningExecutorService executor;
     if (stateMachineExecutor.isPresent()) {
       executor = stateMachineExecutor.get();
@@ -98,9 +78,6 @@ class RaftModule extends PrivateModule {
 
     bind(ClusterConfig.class)
       .toInstance(config);
-
-    bind(RaftService.class);
-    expose(RaftService.class);
 
   }
 }

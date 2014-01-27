@@ -41,6 +41,8 @@
   <modules>
     <module>barge-core</module>
     <module>barge-tools</module>
+    <module>barge-rpc-proto</module>
+    <module>barge-api</module>
   </modules>
 
   <dependencyManagement>
@@ -52,6 +54,12 @@
         <version>${project.version}</version>
       </dependency>
 
+      <dependency>
+        <groupId>org.robotninjas.barge</groupId>
+        <artifactId>barge-api</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
       <!-- Compile Dependencies -->
       <dependency>
         <groupId>org.robotninjas</groupId>
@@ -59,6 +67,12 @@
         <version>0.1.0-alpha2-SNAPSHOT</version>
       </dependency>
 
+      <dependency>
+        <groupId>com.google.protobuf</groupId>
+        <artifactId>protobuf-java</artifactId>
+        <version>2.5.0</version>
+      </dependency>
+      
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>

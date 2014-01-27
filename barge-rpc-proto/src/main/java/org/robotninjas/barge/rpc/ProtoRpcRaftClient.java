@@ -42,14 +42,14 @@ import static org.robotninjas.barge.proto.RaftProto.*;
 
 //TODO write a protoc code generator for this bullshit
 @Immutable
-class RaftClient {
+class ProtoRpcRaftClient implements AsynchronousRaftClient {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(RaftClient.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AsynchronousRaftClient.class);
   private static final long DEFAULT_TIMEOUT = 2000;
 
   private final ObjectPool<ListenableFuture<NettyRpcChannel>> channelPool;
 
-  RaftClient(@Nonnull ObjectPool<ListenableFuture<NettyRpcChannel>> channelPool) {
+  ProtoRpcRaftClient(@Nonnull ObjectPool<ListenableFuture<NettyRpcChannel>> channelPool) {
     this.channelPool = checkNotNull(channelPool);
   }
 

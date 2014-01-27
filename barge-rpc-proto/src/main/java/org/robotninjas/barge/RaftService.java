@@ -161,16 +161,16 @@ public class RaftService extends AbstractService {
 
     public RaftService build(StateMachine stateMachine) {
 
-      RaftModule raftModule = new RaftModule(config, logDir, stateMachine);
-      raftModule.setTimeout(timeout);
+        RaftProtoRpcModule raftProtoRpcModule = new RaftProtoRpcModule(config, logDir, stateMachine);
+      raftProtoRpcModule.setTimeout(timeout);
       if (eventLoop.isPresent()) {
-        raftModule.setNioEventLoop(eventLoop.get());
+        raftProtoRpcModule.setNioEventLoop(eventLoop.get());
       }
       if (stateExecutor.isPresent()) {
-        raftModule.setStateMachineExecutor(stateExecutor.get());
+        raftProtoRpcModule.setStateMachineExecutor(stateExecutor.get());
       }
 
-      Injector injector = Guice.createInjector(raftModule);
+      Injector injector = Guice.createInjector(raftProtoRpcModule);
       return injector.getInstance(RaftService.class);
     }
 

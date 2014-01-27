@@ -42,7 +42,7 @@ public class Client {
     checkNotNull(replica);
     checkNotNull(request);
 
-    RaftClient client = clientProvider.get(replica);
+    AsynchronousRaftClient client = clientProvider.get(replica);
     return client.requestVote(request);
 
   }
@@ -53,7 +53,7 @@ public class Client {
     checkNotNull(replica);
     checkNotNull(request);
 
-    RaftClient client = clientProvider.get(replica);
+    AsynchronousRaftClient client = clientProvider.get(replica);
     return client.appendEntries(request);
 
   }
