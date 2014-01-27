@@ -185,7 +185,7 @@ public class ReplicaManagerTest {
 
     assertFalse(replicaManager.isRunning());
     assertFalse(replicaManager.isRequested());
-    assertEquals(2, replicaManager.getNextIndex());
+    assertEquals(1, replicaManager.getNextIndex());
 
   }
 
