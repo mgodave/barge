@@ -1,5 +1,5 @@
 language: java
-script: "mvn deploy --settings travis-settings.xml"
+script: "mvn deploy -Ptravis --settings travis-settings.xml"
 jdk:
     - openjdk6
     - openjdk7
