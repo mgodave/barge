@@ -22,9 +22,9 @@ import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-
 import org.robotninjas.barge.BargeThreadPools;
 import org.robotninjas.barge.NoLeaderException;
+import org.robotninjas.barge.RaftClusterHealth;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.RaftMembership;
 import org.robotninjas.barge.Replica;
@@ -37,7 +37,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
-
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ScheduledExecutorService;
@@ -235,6 +234,11 @@ class Candidate extends BaseState {
     throw new NoLeaderException();
   }
 
+  @Override
+  public RaftClusterHealth getClusterHealth(@Nonnull RaftStateContext ctx) throws NoLeaderException {
+    throw new NoLeaderException();
+  }
+  
   @Override
   public String toString() {
     return "Candidate [" + log.getName() + " @ " + log.self() + "]";

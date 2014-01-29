@@ -26,6 +26,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.robotninjas.barge.BargeThreadPools;
+import org.robotninjas.barge.RaftClusterHealth;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.RaftMembership;
 import org.robotninjas.barge.Replica;
@@ -60,6 +61,8 @@ import static org.robotninjas.barge.state.RaftStateContext.StateType.FOLLOWER;
 class Leader extends BaseState {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Leader.class);
+
+  private static final long HEALTH_TIMEOUT = TimeUnit.MINUTES.toNanos(1);
 
   private final RaftLog log;
   private final ScheduledExecutorService scheduler;
@@ -445,6 +448,34 @@ class Leader extends BaseState {
   @Override
   public String toString() {
     return "Leader [" + log.getName() + " @ " + log.self() + "]";
+  }
+
+  @Override
+  public RaftClusterHealth getClusterHealth(final RaftStateContext ctx) {
+    ConfigurationState configurationState = ctx.getConfigurationState();
+    if (configurationState.isTransitional()) {
+      return null;
+    }
+    
+    List<Replica> deadPeers = Lists.newArrayList();
+    
+    Replica self = log.self();
+    for (Replica replica : configurationState.getAllVotingMembers()) {
+      if (replica == self) {
+        continue;
+      }
+
+      ReplicaManager replicaManager = getReplicaManager(ctx, replica);
+      long now = System.nanoTime();
+      long lastSeen = replicaManager.getLastProofOfLife();
+      if ((now - lastSeen) > HEALTH_TIMEOUT) {
+        deadPeers.add(replica);
+      }
+    }
+    
+    RaftMembership membership = configurationState.getClusterMembership();
+    RaftClusterHealth health = new RaftClusterHealth(membership, deadPeers);
+    return health;
   }
 
 }

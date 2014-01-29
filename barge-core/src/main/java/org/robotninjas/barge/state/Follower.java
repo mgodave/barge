@@ -19,10 +19,10 @@ package org.robotninjas.barge.state;
 import com.google.common.base.Optional;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Inject;
-
 import org.robotninjas.barge.BargeThreadPools;
 import org.robotninjas.barge.NoLeaderException;
 import org.robotninjas.barge.NotLeaderException;
+import org.robotninjas.barge.RaftClusterHealth;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.RaftMembership;
 import org.robotninjas.barge.Replica;
@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
-
 import java.util.concurrent.ScheduledExecutorService;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -153,6 +152,11 @@ class Follower extends BaseState {
   @Override
   public ListenableFuture<Boolean> setConfiguration(RaftStateContext ctx, RaftMembership oldMembership,
       RaftMembership newMembership) throws RaftException {
+    throw throwMustBeLeader();
+  }
+  
+  @Override
+  public RaftClusterHealth getClusterHealth(@Nonnull RaftStateContext ctx) throws RaftException {
     throw throwMustBeLeader();
   }
 

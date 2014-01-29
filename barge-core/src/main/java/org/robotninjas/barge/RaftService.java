@@ -23,7 +23,6 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.protobuf.Service;
 import io.netty.channel.nio.NioEventLoopGroup;
-
 import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.proto.RaftEntry.Membership;
 import org.robotninjas.barge.proto.RaftProto;
@@ -228,5 +227,18 @@ public class RaftService extends AbstractService {
     return ctx.getState() == StateType.LEADER;
   }
 
+  public RaftClusterHealth getClusterHealth() throws RaftException {
+
+    // Make sure this happens on the Barge thread
+    ListenableFuture<RaftClusterHealth> response = executor.submit(new Callable<RaftClusterHealth>() {
+      @Override
+      public RaftClusterHealth call() throws Exception {
+        return ctx.getClusterHealth();
+      }
+    });
+
+    return Futures.get(response, RaftException.class);
+
+  }
 
 }

@@ -17,13 +17,11 @@
 package org.robotninjas.barge.rpc;
 
 import com.google.inject.PrivateModule;
-
 import org.robotninjas.barge.BargeThreadPools;
 import org.robotninjas.protobuf.netty.client.RpcClient;
 import org.robotninjas.protobuf.netty.server.RpcServer;
 
 import javax.annotation.Nonnull;
-
 import java.net.SocketAddress;
 
 import static com.google.common.base.Preconditions.checkNotNull;

@@ -18,21 +18,15 @@ package org.robotninjas.barge;
 
 import com.google.common.base.Optional;
 import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.inject.PrivateModule;
-
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.util.concurrent.DefaultThreadFactory;
-
 import org.robotninjas.barge.log.LogModule;
 import org.robotninjas.barge.rpc.RpcModule;
 import org.robotninjas.barge.state.StateModule;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
-
 import java.io.File;
-import java.util.concurrent.Executors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;

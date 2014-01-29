@@ -7,6 +7,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.robotninjas.barge.RaftClusterHealth;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.RaftMembership;
 import org.robotninjas.barge.Replica;
@@ -181,6 +182,11 @@ public class BaseStateTest {
     @Override
     public ListenableFuture<Boolean> setConfiguration(RaftStateContext ctx, RaftMembership oldMembership,
         RaftMembership newMembership) throws RaftException {
+      return null;
+    }
+
+    @Override
+    public RaftClusterHealth getClusterHealth(RaftStateContext ctx) {
       return null;
     }
 

@@ -21,7 +21,6 @@ import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.RpcCallback;
 import com.google.protobuf.RpcController;
-
 import org.apache.commons.pool.ObjectPool;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.Replica;

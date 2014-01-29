@@ -19,14 +19,11 @@ package org.robotninjas.barge.log;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-
 import journal.io.api.Journal;
 import journal.io.api.JournalBuilder;
-
 import org.robotninjas.barge.StateMachine;
 
 import javax.annotation.Nonnull;
-
 import java.io.File;
 import java.io.IOException;
 

@@ -4,13 +4,11 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
 import com.google.common.util.concurrent.*;
 import com.google.inject.Inject;
-
 import org.robotninjas.barge.BargeThreadPools;
 import org.robotninjas.barge.StateMachine;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;

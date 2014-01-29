@@ -17,6 +17,7 @@
 package org.robotninjas.barge.state;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.robotninjas.barge.RaftClusterHealth;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.RaftMembership;
 
@@ -39,5 +40,7 @@ interface State {
 
   @Nonnull
   ListenableFuture<Boolean> setConfiguration(@Nonnull RaftStateContext ctx, @Nonnull RaftMembership oldMembership, @Nonnull RaftMembership newMembership) throws RaftException;
+
+  RaftClusterHealth getClusterHealth(@Nonnull RaftStateContext ctx) throws RaftException;
 
 }

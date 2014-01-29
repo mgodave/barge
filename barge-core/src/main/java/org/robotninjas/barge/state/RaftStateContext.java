@@ -17,6 +17,7 @@
 package org.robotninjas.barge.state;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.robotninjas.barge.RaftClusterHealth;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.RaftMembership;
 import org.slf4j.Logger;
@@ -133,5 +134,9 @@ public class RaftStateContext {
 
   public synchronized boolean isStopped() {
     return this.state == StateType.STOPPED;
+  }
+
+  public RaftClusterHealth getClusterHealth() throws RaftException {
+    return delegate.getClusterHealth(this);
   }
 }
