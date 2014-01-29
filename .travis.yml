@@ -3,7 +3,6 @@ script: "mvn deploy -Ptravis --settings travis-settings.xml"
 jdk:
     - openjdk6
     - openjdk7
-    - sunjdk6
     - sunjdk7
 
 branches:
