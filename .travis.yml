@@ -1,9 +1,8 @@
 language: java
-script: "mvn deploy --settings travis-settings.xml"
+script: "mvn package -Ptravis --settings travis-settings.xml"
 jdk:
     - openjdk6
     - openjdk7
-    - sunjdk6
     - sunjdk7
 
 branches:
