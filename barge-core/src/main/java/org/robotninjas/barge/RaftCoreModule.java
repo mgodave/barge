@@ -21,6 +21,7 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.inject.PrivateModule;
 import org.robotninjas.barge.log.LogModule;
+import org.robotninjas.barge.state.RaftStateContext;
 import org.robotninjas.barge.state.StateModule;
 
 import javax.annotation.Nonnull;
@@ -61,7 +62,7 @@ class RaftCoreModule extends PrivateModule {
   protected void configure() {
 
     install(new StateModule(timeout));
-    Replica local = config.local();
+    expose(RaftStateContext.class);
 
     final ListeningExecutorService executor;
     if (stateMachineExecutor.isPresent()) {

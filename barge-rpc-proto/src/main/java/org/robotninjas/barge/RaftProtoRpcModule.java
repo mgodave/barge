@@ -50,8 +50,6 @@ class RaftProtoRpcModule extends PrivateModule{
 
         bind(RaftService.class);
         expose(RaftService.class);
-
-
     }
 
     public void setTimeout(long timeout) {
