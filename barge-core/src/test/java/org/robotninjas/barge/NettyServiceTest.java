@@ -9,13 +9,7 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
 
-import static java.nio.file.FileVisitResult.CONTINUE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class NettyServiceTest {
@@ -59,34 +53,19 @@ public class NettyServiceTest {
   public void tearDown() throws Exception {
     for (int i = 0; i < 3; i++) {
       services[i].stopAsync().awaitTerminated();
-      deleteLogDirectory(logDirectories[i].toPath());
+      deleteLogDirectory(logDirectories[i]);
     }
   }
 
-  private Path deleteLogDirectory(Path directory) throws IOException {
-    return Files.walkFileTree(directory, new FileVisitor<Path>() {
-      @Override
-      public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-        return CONTINUE;
-      }
-
-      @Override
-      public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-        Files.delete(file);
-        return CONTINUE;
-      }
-
-      @Override
-      public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-        return CONTINUE;
-      }
-
-      @Override
-      public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-        Files.delete(dir);
-        return CONTINUE;
-      }
-    });
+  @SuppressWarnings({"ConstantConditions", "ResultOfMethodCallIgnored"})
+  private void deleteLogDirectory(File directory) throws IOException {
+    for (File file : directory.listFiles()) {
+      if (file.isFile())
+        file.delete();
+      else
+        deleteLogDirectory(file);
+    }
+    directory.delete();
   }
 
   private RaftService startRaft(int replicaId, File logDirectory) {
@@ -105,11 +84,11 @@ public class NettyServiceTest {
 
   private File makeLogDirectory(int replicaId) throws IOException {
     File logDir1 = new File(target, "log" + replicaId);
-    
-    if(logDir1.exists()) {
-      deleteLogDirectory(logDir1.toPath());
+
+    if (logDir1.exists()) {
+      deleteLogDirectory(logDir1);
     }
-    
+
     if (!logDir1.exists() && !logDir1.mkdirs()) {
       throw new IllegalStateException("cannot create log directory " + logDir1);
     }
