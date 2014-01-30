@@ -58,12 +58,19 @@ public class RaftStateContext {
   }
 
   @Nonnull
-  public ListenableFuture<Boolean> commitOperation(@Nonnull byte[] op) throws RaftException {
+  public ListenableFuture<Object> commitOperation(@Nonnull byte[] op) throws RaftException {
     checkNotNull(op);
     return delegate.commitOperation(this, op);
   }
 
-  public void setState(@Nonnull StateType state) {
+  public synchronized void setState(@Nonnull State oldState, @Nonnull StateType state) {
+    if (this.delegate != oldState) {
+      LOGGER.warn("State transition from incorrect previous state.  Expected {}, was {}",
+              this.delegate,
+              oldState);
+      throw new IllegalStateException();
+    }
+
     LOGGER.info("old state: {}, new state: {}", this.state, state);
     this.state = checkNotNull(state);
     switch (state) {

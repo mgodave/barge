@@ -35,9 +35,6 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.TreeMap;
@@ -119,32 +116,6 @@ public class RaftLog {
 
   private SettableFuture<Object> storeEntry(final long index, @Nonnull Entry entry) {
     LOGGER.debug("{}", entry);
-
-    if (index % 100 == 0) {
-      try {
-        File snapshot = File.createTempFile("snapshot", "bin");
-        journal.appendSnapshot(snapshot, lastLogIndex, lastLogTerm);
-        final FileOutputStream fos = new FileOutputStream(snapshot);
-        ListenableFuture snap = stateMachine.takeSnapshot(fos);
-        Futures.addCallback(snap, new FutureCallback() {
-
-          @Override
-          public void onSuccess(@Nullable Object result) {
-            log.headMap(index, false).clear();
-            journal.removeBefore(index);
-          }
-
-          @Override
-          public void onFailure(Throwable t) {
-          }
-
-        }, executor);
-      } catch (IOException e) {
-        throw propagate(e);
-      }
-
-    }
-
     journal.appendEntry(entry, index);
     log.put(index, entry);
     SettableFuture<Object> result = SettableFuture.create();

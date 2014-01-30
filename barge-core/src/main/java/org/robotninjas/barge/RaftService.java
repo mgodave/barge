@@ -68,7 +68,7 @@ public class RaftService extends AbstractService {
 
     try {
 
-      ctx.setState(START);
+      ctx.setState(null, START);
 
       RaftServiceEndpoint endpoint = new RaftServiceEndpoint(ctx);
       Service replicaService = RaftProto.RaftService.newReflectiveService(endpoint);
@@ -96,13 +96,13 @@ public class RaftService extends AbstractService {
 
   }
 
-  public ListenableFuture<Boolean> commitAsync(final byte[] operation) throws RaftException {
+  public ListenableFuture<Object> commitAsync(final byte[] operation) throws RaftException {
 
     // Make sure this happens on the Barge thread
-    ListenableFuture<ListenableFuture<Boolean>> response =
-      executor.submit(new Callable<ListenableFuture<Boolean>>() {
+    ListenableFuture<ListenableFuture<Object>> response =
+      executor.submit(new Callable<ListenableFuture<Object>>() {
         @Override
-        public ListenableFuture<Boolean> call() throws Exception {
+        public ListenableFuture<Object> call() throws Exception {
           return ctx.commitOperation(operation);
         }
       });
@@ -111,7 +111,7 @@ public class RaftService extends AbstractService {
 
   }
 
-  public boolean commit(final byte[] operation) throws RaftException, InterruptedException {
+  public Object commit(final byte[] operation) throws RaftException, InterruptedException {
     try {
       return commitAsync(operation).get();
     } catch (ExecutionException e) {

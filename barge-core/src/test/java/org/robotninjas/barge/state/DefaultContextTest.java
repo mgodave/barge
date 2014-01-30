@@ -37,6 +37,8 @@ public class DefaultContextTest {
 
     RaftStateContext ctx = new RaftStateContext(mockStateFactory);
 
+    ctx.setState(null, StateType.FOLLOWER);
+      
     verify(mockFollower).init(ctx);
     assertEquals(StateType.FOLLOWER, ctx.getState());
 
@@ -49,7 +51,7 @@ public class DefaultContextTest {
     verifyNoMoreInteractions(mockFollower);
 
 
-    ctx.setState(StateType.LEADER);
+    ctx.setState(mockFollower, StateType.LEADER);
     verify(mockLeader).init(ctx);
     assertEquals(StateType.LEADER, ctx.getState());
 
@@ -62,7 +64,7 @@ public class DefaultContextTest {
     verifyNoMoreInteractions(mockLeader);
 
 
-    ctx.setState(StateType.CANDIDATE);
+    ctx.setState(mockLeader, StateType.CANDIDATE);
     verify(mockCandidate).init(ctx);
     assertEquals(StateType.CANDIDATE, ctx.getState());
 

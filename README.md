@@ -3,7 +3,7 @@
 barge (ALPHA)
 =====
 
-An implementation of the [Raft Concensus Protocol][1]. Join [#barge][2] on freenode to chat about it.
+An implementation of the [Raft Concensus Protocol][1].
 
 [1]: http://raftconsensus.github.io/
 [2]: irc://chat.freenode.net/barge

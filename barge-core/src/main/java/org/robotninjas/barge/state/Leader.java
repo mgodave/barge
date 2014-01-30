@@ -89,7 +89,7 @@ class Leader extends BaseState {
     for (ReplicaManager mgr : managers.values()) {
       mgr.shutdown();
     }
-    ctx.setState(FOLLOWER);
+    ctx.setState(this, FOLLOWER);
   }
 
   @Nonnull

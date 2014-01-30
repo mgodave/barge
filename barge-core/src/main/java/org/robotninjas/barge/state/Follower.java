@@ -32,11 +32,9 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.robotninjas.barge.proto.RaftProto.*;
 import static org.robotninjas.barge.state.RaftStateContext.StateType.CANDIDATE;
 
@@ -49,7 +47,7 @@ class Follower extends BaseState {
   private final ScheduledExecutorService scheduler;
   private final long timeout;
   private Optional<Replica> leader = Optional.absent();
-  private ScheduledFuture<?> timeoutTask;
+  private DeadlineTimer timeoutTask;
 
   @Inject
   Follower(RaftLog log, @RaftScheduler ScheduledExecutorService scheduler, @ElectionTimeout @Nonnegative long timeout) {
@@ -62,8 +60,14 @@ class Follower extends BaseState {
   }
 
   @Override
-  public void init(@Nonnull RaftStateContext ctx) {
-    resetTimeout(ctx);
+  public void init(@Nonnull final RaftStateContext ctx) {
+    timeoutTask = DeadlineTimer.start(scheduler, new Runnable() {
+      @Override
+      public void run() {
+        LOGGER.debug("DeadlineTimer expired, starting election");
+        ctx.setState(Follower.this, CANDIDATE);
+      }
+    }, timeout * 2);
   }
 
   @Nonnull
@@ -112,7 +116,7 @@ class Follower extends BaseState {
       }
 
       leader = Optional.of(Replica.fromString(request.getLeaderId()));
-      resetTimeout(ctx);
+      timeoutTask.reset();
       success = log.append(request);
 
       if (request.getCommitIndex() > log.commitIndex()) {
@@ -137,22 +141,6 @@ class Follower extends BaseState {
     } else {
       throw new NoLeaderException();
     }
-  }
-
-  void resetTimeout(@Nonnull final RaftStateContext ctx) {
-
-    if (null != timeoutTask) {
-      timeoutTask.cancel(false);
-    }
-
-    timeoutTask = scheduler.schedule(new Runnable() {
-      @Override
-      public void run() {
-        LOGGER.debug("Timeout expired, starting election");
-        ctx.setState(CANDIDATE);
-      }
-    }, timeout * 2, MILLISECONDS);
-
   }
 
 }
