@@ -65,7 +65,7 @@ class Follower extends BaseState {
       @Override
       public void run() {
         LOGGER.debug("DeadlineTimer expired, starting election");
-        ctx.setState(CANDIDATE);
+        ctx.setState(Follower.this, CANDIDATE);
       }
     }, timeout * 2);
   }
@@ -142,6 +142,5 @@ class Follower extends BaseState {
       throw new NoLeaderException();
     }
   }
-
 
 }

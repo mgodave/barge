@@ -110,7 +110,7 @@ class Candidate extends BaseState {
   }
 
   private void transition(@Nonnull RaftStateContext ctx, @Nonnull RaftStateContext.StateType state) {
-    ctx.setState(state);
+    ctx.setState(this, state);
     electionResult.cancel(false);
     electionTimer.cancel();
   }
