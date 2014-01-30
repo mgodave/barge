@@ -30,6 +30,7 @@ import javax.inject.Inject;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static org.robotninjas.barge.proto.RaftProto.*;
 
 @NotThreadSafe
@@ -72,9 +73,15 @@ class RaftStateContext implements Raft {
 
   @Override
   public synchronized void setState(State oldState, @Nonnull StateType state) {
+
     if (this.delegate != oldState) {
       notifiesInvalidTransition(oldState);
       throw new IllegalStateException();
+    }
+
+    LOGGER.info("old state: {}, new state: {}", this.state, state);
+    if (this.delegate != null) {
+      this.delegate.destroy(this);
     }
 
     this.state = checkNotNull(state);

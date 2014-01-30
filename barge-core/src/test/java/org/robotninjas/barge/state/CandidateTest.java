@@ -20,6 +20,8 @@ import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.*;
 import static org.robotninjas.barge.proto.RaftProto.AppendEntries;
 import static org.robotninjas.barge.proto.RaftProto.RequestVote;
+import static org.robotninjas.barge.state.Raft.StateType.CANDIDATE;
+import static org.robotninjas.barge.state.Raft.StateType.LEADER;
 
 public class CandidateTest {
 
@@ -48,6 +50,8 @@ public class CandidateTest {
     ScheduledFuture mockScheduledFuture = mock(ScheduledFuture.class);
     when(mockScheduler.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class)))
       .thenReturn(mockScheduledFuture);
+
+    when(mockRaftStateContext.type()).thenReturn(CANDIDATE);
 
   }
 
@@ -138,8 +142,8 @@ public class CandidateTest {
     verify(mockRaftLog, times(1)).currentTerm(anyLong());
 
     verify(mockRaftLog).lastVotedFor(Optional.of(self));
-    verify(mockRaftLog, never()).lastVotedFor(Optional.of(mockCandidate));
-    verify(mockRaftLog, times(1)).lastVotedFor(any(Optional.class));
+    verify(mockRaftLog, times(1)).lastVotedFor(Optional.of(mockCandidate));
+    verify(mockRaftLog, times(2)).lastVotedFor(any(Optional.class));
 
     verify(mockRaftLog, never()).commitIndex(anyLong());
 
@@ -176,7 +180,7 @@ public class CandidateTest {
     verify(mockRaftLog).lastVotedFor(Optional.of(self));
     verify(mockRaftLog, times(1)).lastVotedFor(any(Optional.class));
 
-    verify(mockRaftLog, never()).commitIndex(anyLong());
+    verify(mockRaftLog, times(1)).commitIndex(anyLong());
 
     verify(mockRaftStateContext).setState(any(Candidate.class), eq(Raft.StateType.FOLLOWER));
     verify(mockRaftStateContext).setState(any(Candidate.class), eq(Raft.StateType.LEADER));
@@ -227,7 +231,7 @@ public class CandidateTest {
     AppendEntries request =
       AppendEntries.newBuilder()
         .setTerm(2L)
-        .setLeaderId("leader")
+        .setLeaderId("leader:1000")
         .setPrevLogIndex(1L)
         .setPrevLogTerm(1L)
         .setCommitIndex(1L)
@@ -241,10 +245,9 @@ public class CandidateTest {
     verify(mockRaftLog).lastVotedFor(Optional.of(self));
     verify(mockRaftLog, times(1)).lastVotedFor(any(Optional.class));
 
-    verify(mockRaftLog, never()).commitIndex(anyLong());
+    verify(mockRaftLog, times(1)).commitIndex(anyLong());
 
-    verify(mockRaftStateContext).setState(any(Candidate.class), eq(Raft.StateType.FOLLOWER));
-    verify(mockRaftStateContext).setState(any(Candidate.class), eq(Raft.StateType.LEADER));
+    verify(mockRaftStateContext).setState(any(Candidate.class), eq(LEADER));
 
     verifyZeroInteractions(mockRaftClient);
 

@@ -17,7 +17,6 @@
 package org.robotninjas.barge.state;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.FutureCallback;
@@ -55,7 +54,6 @@ class Leader extends BaseState {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Leader.class);
 
-  private final RaftLog log;
   private final ScheduledExecutorService scheduler;
   private final long timeout;
   private final Map<Replica, ReplicaManager> managers = Maps.newHashMap();
@@ -65,19 +63,20 @@ class Leader extends BaseState {
   @Inject
   Leader(RaftLog log, @RaftScheduler ScheduledExecutorService scheduler,
          @ElectionTimeout @Nonnegative long timeout, ReplicaManagerFactory replicaManagerFactory) {
-    super(LEADER);
 
-    this.log = checkNotNull(log);
+    super(LEADER, log);
+
     this.scheduler = checkNotNull(scheduler);
     checkArgument(timeout > 0);
     this.timeout = timeout;
     this.replicaManagerFactory = checkNotNull(replicaManagerFactory);
+
   }
 
   @Override
   public void init(@Nonnull RaftStateContext ctx) {
 
-    for (Replica replica : log.members()) {
+    for (Replica replica : getLog().members()) {
       managers.put(replica, replicaManagerFactory.create(replica));
     }
 
@@ -86,60 +85,12 @@ class Leader extends BaseState {
 
   }
 
-  private void stepDown(RaftStateContext ctx) {
+  @Override
+  public void destroy(RaftStateContext ctx) {
     heartbeatTask.cancel(false);
     for (ReplicaManager mgr : managers.values()) {
       mgr.shutdown();
     }
-    ctx.setState(this, FOLLOWER);
-  }
-
-  @Nonnull
-  @Override
-  public RequestVoteResponse requestVote(@Nonnull RaftStateContext ctx, @Nonnull RequestVote request) {
-
-    LOGGER.debug("RequestVote received for term {}", request.getTerm());
-
-    boolean voteGranted = false;
-
-    if (request.getTerm() > log.currentTerm()) {
-
-      log.currentTerm(request.getTerm());
-      stepDown(ctx);
-
-      Replica candidate = Replica.fromString(request.getCandidateId());
-      voteGranted = shouldVoteFor(log, request);
-
-      if (voteGranted) {
-        log.lastVotedFor(Optional.of(candidate));
-      }
-
-    }
-
-    return RequestVoteResponse.newBuilder()
-      .setTerm(log.currentTerm())
-      .setVoteGranted(voteGranted)
-      .build();
-
-  }
-
-  @Nonnull
-  @Override
-  public AppendEntriesResponse appendEntries(@Nonnull RaftStateContext ctx, @Nonnull AppendEntries request) {
-
-    boolean success = false;
-
-    if (request.getTerm() > log.currentTerm()) {
-      log.currentTerm(request.getTerm());
-      stepDown(ctx);
-      success = log.append(request);
-    }
-
-    return AppendEntriesResponse.newBuilder()
-      .setTerm(log.currentTerm())
-      .setSuccess(success)
-      .build();
-
   }
 
   void resetTimeout(@Nonnull final RaftStateContext ctx) {
@@ -162,7 +113,7 @@ class Leader extends BaseState {
   @Override
   public ListenableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
     resetTimeout(ctx);
-    ListenableFuture<Object> result = log.append(operation);
+    ListenableFuture<Object> result = getLog().append(operation);
     sendRequests(ctx);
     return result;
 
@@ -185,17 +136,16 @@ class Leader extends BaseState {
 
     final int middle = (int) Math.ceil(sorted.size() / 2.0);
     final long committed = sorted.get(middle).getMatchIndex();
-
     LOGGER.debug("updating commitIndex to {}", committed);
-    log.commitIndex(committed);
+    getLog().commitIndex(committed);
 
   }
 
   private void checkTermOnResponse(RaftStateContext ctx, AppendEntriesResponse response) {
 
-      if (response.getTerm() > log.currentTerm()) {
-        log.currentTerm(response.getTerm());
-        stepDown(ctx);
+      if (response.getTerm() > getLog().currentTerm()) {
+        getLog().currentTerm(response.getTerm());
+        ctx.setState(this, FOLLOWER);
       }
 
   }
@@ -220,7 +170,8 @@ class Leader extends BaseState {
         }
 
         @Override
-        public void onFailure(Throwable t) {}
+        public void onFailure(Throwable t) {
+        }
 
       });
 
