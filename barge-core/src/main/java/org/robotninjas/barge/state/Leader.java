@@ -84,6 +84,11 @@ class Leader extends BaseState {
 
   }
 
+  @Override
+  public void doStop(RaftStateContext ctx) {
+    stepDown(ctx);
+  }
+
   private void stepDown(RaftStateContext ctx) {
     heartbeatTask.cancel(false);
     for (ReplicaManager mgr : managers.values()) {

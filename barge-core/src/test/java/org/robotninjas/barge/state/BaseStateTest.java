@@ -176,6 +176,11 @@ public class BaseStateTest {
       return null;
     }
 
+    @Override
+    public void doStop(RaftStateContext ctx) {
+      
+    }
+
   }
 
 }

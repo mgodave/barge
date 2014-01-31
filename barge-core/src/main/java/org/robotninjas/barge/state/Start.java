@@ -44,4 +44,9 @@ class Start implements State {
     throw new RaftException("Service has not started yet");
   }
 
+  @Override
+  public void doStop(RaftStateContext ctx) {
+    // No complex state
+  }
+
 }

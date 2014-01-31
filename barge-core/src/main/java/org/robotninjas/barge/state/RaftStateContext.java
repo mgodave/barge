@@ -75,11 +75,12 @@ public class RaftStateContext {
 
     LOGGER.info("old state: {}, new state: {}", this.state, state);
     if (stop) {
-      this.state = StateType.STOPPED;
-      LOGGER.info("Service stopping); replaced state with {}", this.state);
-    } else {
-      this.state = checkNotNull(state);
+      state = StateType.STOPPED;
+      LOGGER.info("Service stopping); replaced state with {}", state);
     }
+
+    this.state = checkNotNull(state);
+
     switch (state) {
       case START:
         delegate = stateFactory.start();
@@ -97,7 +98,7 @@ public class RaftStateContext {
         delegate = null;
         break;
     }
-    MDC.put("state", this.state.toString());
+    MDC.put("state", state.toString());
     if (delegate != null) {
       delegate.init(this);
     }
@@ -110,5 +111,8 @@ public class RaftStateContext {
 
   public synchronized void stop() {
     stop = true;
+    if (this.delegate != null) {
+      this.delegate.doStop(this);
+    }
   }
 }

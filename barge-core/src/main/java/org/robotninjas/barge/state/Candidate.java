@@ -211,4 +211,9 @@ class Candidate extends BaseState {
     };
   }
 
+  @Override
+  public void doStop(RaftStateContext ctx) {
+    transition(ctx, STOPPED);
+  }
+
 }
