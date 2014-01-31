@@ -220,24 +220,21 @@ public class RaftLog {
       for (long i = lastApplied + 1; i <= Math.min(commitIndex, lastLogIndex); ++i, ++lastApplied) {
         Entry entry = log.get(i);
         
+        // returnedResult may be null during log replay
         final SettableFuture<Object> returnedResult = operationResults.remove(i);
-        assert returnedResult != null;
 
         if (entry.hasCommand()) {
+          assert !entry.hasMembership();
+
           ByteString command = entry.getCommand();
 //          byte[] rawCommand = command.toByteArray();
 //          final ByteBuffer operation = ByteBuffer.wrap(rawCommand).asReadOnlyBuffer();
           final ByteBuffer operation = command.asReadOnlyByteBuffer();
 
           ListenableFuture<Object> result = stateMachine.dispatchOperation(operation);
-          Futures.addCallback(result, new PromiseBridge<Object>(returnedResult));
-        }
-
-        if (!entry.hasMembership() && !entry.hasCommand()){
           if (returnedResult != null) {
-            Futures.addCallback(returnedResult, new PromiseBridge<Object>(returnedResult));
+            Futures.addCallback(result, new PromiseBridge<Object>(returnedResult));
           }
-          // TODO: If this fails during replay, what should we do?
         } else if (entry.hasMembership()) {
           if (returnedResult != null) {
             returnedResult.set(Boolean.TRUE);
