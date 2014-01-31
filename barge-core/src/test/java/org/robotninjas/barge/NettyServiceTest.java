@@ -58,7 +58,7 @@ public class NettyServiceTest {
   }
 
   @SuppressWarnings({"ConstantConditions", "ResultOfMethodCallIgnored"})
-  private void deleteLogDirectory(File directory) throws IOException {
+  public static void deleteLogDirectory(File directory) throws IOException {
     for (File file : directory.listFiles()) {
       if (file.isFile())
         file.delete();
