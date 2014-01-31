@@ -118,7 +118,13 @@ public class StartStopTest {
   @After
   public void cleanup() throws Exception {
     for (Server server : allServers) {
-      server.stop();
+      switch (server.raftService.state()) {
+      case RUNNING:
+      case STOPPING:
+      case STARTING:
+        server.stop();
+        break;
+      }
     }
     NettyServiceTest.deleteLogDirectory(TEST_TMP_DIR);
   }
