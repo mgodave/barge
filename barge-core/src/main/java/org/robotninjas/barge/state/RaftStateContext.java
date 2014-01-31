@@ -34,7 +34,7 @@ import static org.robotninjas.barge.proto.RaftProto.*;
 @NotThreadSafe
 public class RaftStateContext {
 
-  public enum StateType {START, FOLLOWER, CANDIDATE, LEADER,STOPPED}
+  public enum StateType {START, FOLLOWER, CANDIDATE, LEADER, STOPPED}
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RaftStateContext.class);
 
