@@ -69,7 +69,7 @@ public class StartStopTest {
   Server buildServer(int id) {
     File logDir = new File(TEST_TMP_DIR, "log" + id);
 
-    assertThat(logDir.mkdirs()).isTrue();
+    assertThat(logDir.exists() || logDir.mkdirs()).isTrue();
     
     ServerState state = new ServerState();
 
