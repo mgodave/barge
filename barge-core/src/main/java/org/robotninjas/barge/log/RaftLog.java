@@ -182,7 +182,10 @@ public class RaftLog {
         final ByteBuffer operation = ByteBuffer.wrap(rawCommand).asReadOnlyBuffer();
         ListenableFuture<Object> result = stateMachine.dispatchOperation(operation);
         final SettableFuture<Object> returnedResult = operationResults.remove(i);
-        Futures.addCallback(result, new PromiseBridge<Object>(returnedResult));
+        // returnedResult may be null on log replay
+        if (returnedResult != null) {
+          Futures.addCallback(result, new PromiseBridge<Object>(returnedResult));
+        }
       }
     } catch (Exception e) {
       throw propagate(e);
