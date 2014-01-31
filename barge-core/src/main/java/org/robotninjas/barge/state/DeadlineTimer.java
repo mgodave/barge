@@ -3,6 +3,8 @@ package org.robotninjas.barge.state;
 import com.google.common.base.Optional;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
@@ -11,6 +13,8 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @NotThreadSafe
 class DeadlineTimer {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(DeadlineTimer.class);
 
   private final ScheduledExecutorService scheduler;
   private final Runnable action;
@@ -34,7 +38,10 @@ class DeadlineTimer {
   public void reset() {
     checkState(started);
     if (future.isPresent()) {
-      future.get().cancel(false);
+      boolean cancelled = future.get().cancel(false);
+      if (!cancelled) {
+        LOGGER.error("Unable to cancel execution of task");
+      }
     }
     future = Optional.of(scheduler.schedule(action, timeout, MILLISECONDS));
   }
@@ -42,7 +49,10 @@ class DeadlineTimer {
   public void cancel() {
     checkState(started);
     if (future.isPresent()) {
-      future.get().cancel(false);
+      boolean cancelled = future.get().cancel(false);
+      if (!cancelled) {
+        LOGGER.error("Unable to cancel execution of task");
+      }
     }
   }
 

@@ -66,7 +66,7 @@ class Follower extends BaseState {
     timeoutTask = DeadlineTimer.start(scheduler, new Runnable() {
       @Override
       public void run() {
-        LOGGER.debug("DeadlineTimer expired, starting election");
+        LOGGER.info("DeadlineTimer expired, starting election");
         ctx.setState(Follower.this, CANDIDATE);
       }
     }, timeout * 2);

@@ -120,6 +120,8 @@ class Leader extends BaseState {
   }
 
   private void stepDown(RaftStateContext ctx) {
+    LOGGER.info("Stepping down from leadership");
+
     if (heartbeatTask != null) {
       heartbeatTask.cancel(false);
     }
@@ -138,6 +140,7 @@ class Leader extends BaseState {
     boolean voteGranted = false;
 
     if (request.getTerm() > log.currentTerm()) {
+      LOGGER.info("Got request-for-vote with newer term; stepping down: {}", request);
 
       log.currentTerm(request.getTerm());
       stepDown(ctx);
@@ -172,6 +175,7 @@ class Leader extends BaseState {
     }
     
     if (request.getTerm() > currentTerm) {
+      LOGGER.info("Caller has newer term; stepping down: {}", request);
       log.currentTerm(request.getTerm());
       stepDown(ctx);
       success = log.append(request);
