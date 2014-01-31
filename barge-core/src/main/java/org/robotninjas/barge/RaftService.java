@@ -26,6 +26,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import org.robotninjas.barge.proto.RaftProto;
 import org.robotninjas.barge.rpc.RaftExecutor;
 import org.robotninjas.barge.state.RaftStateContext;
+import org.robotninjas.barge.state.RaftStateContext.StateType;
 import org.robotninjas.protobuf.netty.server.RpcServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -176,5 +177,8 @@ public class RaftService extends AbstractService {
 
   }
 
+  public boolean isLeader() {
+    return ctx.getState() == StateType.LEADER;
+  }
 
 }

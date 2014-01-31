@@ -60,6 +60,10 @@ public class StartStopTest {
       return new String(v, Charsets.UTF_8);
     }
 
+    public boolean isLeader() {
+      return raftService.isLeader();
+    }
+
   }
   
   Server buildServer(int id) {
@@ -87,6 +91,10 @@ public class StartStopTest {
 
       server.start();
 
+      while (!server.isLeader()) {
+        Thread.sleep(50);
+      }
+
       server.setState("A");
 
       server.stop();
@@ -96,6 +104,10 @@ public class StartStopTest {
       Server server = buildServer(1);
 
       server.start();
+
+      while (!server.isLeader()) {
+        Thread.sleep(50);
+      }
 
       assertThat(server.getState()).isEqualTo("A");
       
