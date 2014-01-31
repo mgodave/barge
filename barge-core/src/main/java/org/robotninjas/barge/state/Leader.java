@@ -222,6 +222,12 @@ class Leader extends BaseState {
       });
 
     }
+
+    // Cope if we're the only node in the cluster
+    if (responses.isEmpty()) {
+      updateCommitted();
+    }
+
     return responses;
   }
 
