@@ -241,4 +241,8 @@ public class RaftService extends AbstractService {
 
   }
 
+  public boolean isUninitialized() {
+    return raftLog.isEmpty();
+  }
+
 }
