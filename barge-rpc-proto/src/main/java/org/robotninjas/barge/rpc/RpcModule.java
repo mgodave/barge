@@ -31,7 +31,6 @@ import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator
 
 public class RpcModule extends PrivateModule {
 
-  private static final int NUM_THREADS = 1;
   private final SocketAddress saddr;
   private final NioEventLoopGroup eventLoopGroup;
 
@@ -44,36 +43,36 @@ public class RpcModule extends PrivateModule {
   protected void configure() {
 
     bind(ListeningExecutorService.class)
-      .annotatedWith(RaftExecutor.class)
-      .toInstance(listeningDecorator(eventLoopGroup));
-
-    expose(ListeningExecutorService.class)
-      .annotatedWith(RaftExecutor.class);
+        .annotatedWith(RaftExecutor.class)
+        .toInstance(listeningDecorator(eventLoopGroup));
 
     bind(ScheduledExecutorService.class)
-      .annotatedWith(RaftScheduler.class)
-      .toInstance(listeningDecorator(eventLoopGroup));
+        .annotatedWith(RaftScheduler.class)
+        .toInstance(listeningDecorator(eventLoopGroup));
+
+    expose(ListeningExecutorService.class)
+        .annotatedWith(RaftExecutor.class);
 
     expose(ScheduledExecutorService.class)
-      .annotatedWith(RaftScheduler.class);
+        .annotatedWith(RaftScheduler.class);
 
     bind(NioEventLoopGroup.class)
-      .toInstance(eventLoopGroup);
+        .toInstance(eventLoopGroup);
 
     RpcServer rpcServer = new RpcServer(eventLoopGroup, saddr);
+
     bind(RpcServer.class)
-      .toInstance(rpcServer);
+        .toInstance(rpcServer);
     expose(RpcServer.class);
 
     bind(RaftClientProvider.class)
         .to(ProtoRpcRaftClientProvider.class)
         .asEagerSingleton();
 
+    expose(RaftClientProvider.class);
+    
     bind(RpcClient.class)
-      .toInstance(new RpcClient(eventLoopGroup));
-
-    bind(Client.class).asEagerSingleton();
-    expose(Client.class);
+        .toInstance(new RpcClient(eventLoopGroup));
   }
 
 }

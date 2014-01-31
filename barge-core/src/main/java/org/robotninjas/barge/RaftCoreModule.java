@@ -21,6 +21,7 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.inject.PrivateModule;
 import org.robotninjas.barge.log.LogModule;
+import org.robotninjas.barge.rpc.Client;
 import org.robotninjas.barge.state.RaftStateContext;
 import org.robotninjas.barge.state.StateModule;
 
@@ -50,14 +51,6 @@ class RaftCoreModule extends PrivateModule {
     this.stateMachine = checkNotNull(stateMachine);
   }
 
-  public void setStateMachineExecutor(ListeningExecutorService stateMachineExecutor) {
-    this.stateMachineExecutor = Optional.of(stateMachineExecutor);
-  }
-
-  public void setTimeout(long timeout) {
-    this.timeout = timeout;
-  }
-
   @Override
   protected void configure() {
 
@@ -80,5 +73,12 @@ class RaftCoreModule extends PrivateModule {
     bind(ClusterConfig.class)
       .toInstance(config);
 
+    bind(Client.class).asEagerSingleton();
+    expose(Client.class);
   }
+
+  public void setTimeout(long timeout) {
+    this.timeout = timeout;
+  }
+
 }

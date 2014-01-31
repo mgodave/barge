@@ -4,67 +4,45 @@ import com.google.common.base.Optional;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.inject.PrivateModule;
 import io.netty.channel.nio.NioEventLoopGroup;
+import org.robotninjas.barge.rpc.RaftClientProvider;
+import org.robotninjas.barge.rpc.RaftExecutor;
+import org.robotninjas.barge.rpc.RaftScheduler;
 import org.robotninjas.barge.rpc.RpcModule;
+import org.robotninjas.protobuf.netty.server.RpcServer;
 
-import java.io.File;
+import java.util.concurrent.ScheduledExecutorService;
 
-class RaftProtoRpcModule extends PrivateModule{
+class RaftProtoRpcModule extends PrivateModule {
 
-    private final ClusterConfig config;
-    private final File logDir;
-    private final StateMachine stateMachine;
-    private Optional<NioEventLoopGroup> eventLoopGroup = Optional.absent();
-    private long timeout;
-    private ListeningExecutorService stateMachineExecutor;
+  private final Replica localEndpoint;
+  private Optional<NioEventLoopGroup> eventLoopGroup = Optional.absent();
 
-    public RaftProtoRpcModule(ClusterConfig config, File logDir, StateMachine stateMachine) {
-        this.config = config;
-        this.logDir = logDir;
-        this.stateMachine = stateMachine;
-    }
+  public RaftProtoRpcModule(Replica localEndpoint) {
+    this.localEndpoint = localEndpoint;
+  }
 
-    public void setNioEventLoop(NioEventLoopGroup eventLoopGroup) {
-        this.eventLoopGroup = Optional.of(eventLoopGroup);
-    }
-
-
-    @Override
-    protected void configure() {
-        Replica local = config.local();
-
-        install(new RaftCoreModule(config,logDir,stateMachine));
-        
-        final NioEventLoopGroup eventLoop;
-        if (eventLoopGroup.isPresent()) {
-            eventLoop = eventLoopGroup.get();
-        } else {
-            eventLoop = new NioEventLoopGroup();
-            Runtime.getRuntime().addShutdownHook(new Thread() {
-                public void run() {
-                    eventLoop.shutdownGracefully();
-                }
-            });
+  @Override
+  protected void configure() {
+    final NioEventLoopGroup eventLoop;
+    if (eventLoopGroup.isPresent()) {
+      eventLoop = eventLoopGroup.get();
+    } else {
+      eventLoop = new NioEventLoopGroup();
+      Runtime.getRuntime().addShutdownHook(new Thread() {
+        public void run() {
+          eventLoop.shutdownGracefully();
         }
-        install(new RpcModule(local.address(), eventLoop));
-
-
-        bind(RaftService.class);
-        expose(RaftService.class);
+      });
     }
 
-    public void setTimeout(long timeout) {
-        this.timeout = timeout;
-    }
+    install(new RpcModule(localEndpoint.address(), eventLoop));
 
-    public long getTimeout() {
-        return timeout;
-    }
+    expose(ListeningExecutorService.class)
+        .annotatedWith(RaftExecutor.class);
+    expose(ScheduledExecutorService.class)
+        .annotatedWith(RaftScheduler.class);
+    expose(RpcServer.class);
+    expose(RaftClientProvider.class);
+  }
 
-    public void setStateMachineExecutor(ListeningExecutorService stateMachineExecutor) {
-        this.stateMachineExecutor = stateMachineExecutor;
-    }
-
-    public ListeningExecutorService getStateMachineExecutor() {
-        return stateMachineExecutor;
-    }
 }

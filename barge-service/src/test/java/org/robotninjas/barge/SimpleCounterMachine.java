@@ -12,7 +12,7 @@ public class SimpleCounterMachine implements StateMachine {
 
   private int counter;
   private File logDirectory;
-  private RaftService service;
+  private NettyRaftService service;
 
   public SimpleCounterMachine(int id, Replica[] replicas) {
     this.id = id;
@@ -47,7 +47,7 @@ public class SimpleCounterMachine implements StateMachine {
         replicas[(id + 1) % 3],
         replicas[(id + 2) % 3]);
 
-    RaftService service1 = RaftService.newBuilder(config1)
+    NettyRaftService service1 = NettyRaftService.newBuilder(config1)
         .logDir(logDirectory)
         .timeout(500)
         .build(this);
