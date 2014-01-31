@@ -23,9 +23,11 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.protobuf.Service;
 import io.netty.channel.nio.NioEventLoopGroup;
+import org.robotninjas.barge.log.RaftLog;
+import org.robotninjas.barge.proto.RaftEntry.Membership;
 import org.robotninjas.barge.proto.RaftProto;
-import org.robotninjas.barge.rpc.RaftExecutor;
 import org.robotninjas.barge.state.RaftStateContext;
+import org.robotninjas.barge.state.RaftStateContext.StateType;
 import org.robotninjas.protobuf.netty.server.RpcServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,16 +55,31 @@ public class RaftService extends AbstractService {
   private final ListeningExecutorService executor;
   private final RpcServer rpcServer;
   private final RaftStateContext ctx;
+  private final RaftLog raftLog;
+
+  private final BargeThreadPools bargeThreadPools;
 
   @Inject
-  RaftService(@Nonnull RpcServer rpcServer, @RaftExecutor ListeningExecutorService executor, @Nonnull RaftStateContext ctx) {
+  RaftService(@Nonnull RpcServer rpcServer, @Nonnull BargeThreadPools bargeThreadPools, @Nonnull RaftStateContext ctx, @Nonnull RaftLog raftLog) {
 
-    this.executor = checkNotNull(executor);
+    this.bargeThreadPools = checkNotNull(bargeThreadPools);
+    this.executor = checkNotNull(bargeThreadPools.getRaftExecutor());
     this.rpcServer = checkNotNull(rpcServer);
     this.ctx = checkNotNull(ctx);
+    this.raftLog = raftLog;
 
   }
 
+  public void bootstrap(Membership membership) {
+    
+    LOGGER.info("Bootstrapping log with {}", membership);
+    if (!raftLog.isEmpty()) {
+      LOGGER.warn("Cannot bootstrap, as raft log already contains data");
+      throw new IllegalStateException();
+    }
+    raftLog.append(null, membership);
+  }
+  
   @Override
   protected void doStart() {
 
@@ -89,6 +106,13 @@ public class RaftService extends AbstractService {
 
     try {
       rpcServer.stopAsync().awaitTerminated();
+      ctx.stop();
+      while (!ctx.isStopped()) {
+        Thread.sleep(10);
+      }
+      raftLog.close();
+
+      bargeThreadPools.close();
       notifyStopped();
     } catch (Exception e) {
       notifyFailed(e);
@@ -176,5 +200,49 @@ public class RaftService extends AbstractService {
 
   }
 
+  public ListenableFuture<Boolean> setConfiguration(final RaftMembership oldMembership, final RaftMembership newMembership) {
+
+    // Make sure this happens on the Barge thread
+    ListenableFuture<ListenableFuture<Boolean>> response =
+      executor.submit(new Callable<ListenableFuture<Boolean>>() {
+        @Override
+        public ListenableFuture<Boolean> call() throws Exception {
+          return ctx.setConfiguration(oldMembership, newMembership);
+        }
+      });
+
+    return Futures.dereference(response);
+
+  }
+
+  public RaftMembership getClusterMembership() {
+    return ctx.getConfigurationState().getClusterMembership();
+  }
+
+  public String getServerKey() {
+    return ctx.getConfigurationState().self().getKey();
+  }
+
+  public boolean isLeader() {
+    return ctx.getState() == StateType.LEADER;
+  }
+
+  public RaftClusterHealth getClusterHealth() throws RaftException {
+
+    // Make sure this happens on the Barge thread
+    ListenableFuture<RaftClusterHealth> response = executor.submit(new Callable<RaftClusterHealth>() {
+      @Override
+      public RaftClusterHealth call() throws Exception {
+        return ctx.getClusterHealth();
+      }
+    });
+
+    return Futures.get(response, RaftException.class);
+
+  }
+
+  public boolean isUninitialized() {
+    return raftLog.isEmpty();
+  }
 
 }

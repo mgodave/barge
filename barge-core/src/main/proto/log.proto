@@ -25,12 +25,6 @@ message Append {
 	required Entry entry = 2;
 }
 
-message Membership {
-	required int64 index = 1;
-	required int64 term = 2;
-	repeated string members = 3;
-}
-
 message Vote {
 	optional string voted_for = 2;
 }
@@ -51,7 +45,6 @@ message Snapshot {
 
 message JournalEntry {
 	optional Append append = 2;
-	optional Membership membership = 3;
 	optional Vote vote = 4;
 	optional Term term = 5;
 	optional Commit commit = 6;

@@ -23,6 +23,7 @@ import com.google.protobuf.RpcCallback;
 import com.google.protobuf.RpcController;
 import org.apache.commons.pool.ObjectPool;
 import org.robotninjas.barge.RaftException;
+import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.proto.RaftProto;
 import org.robotninjas.protobuf.netty.client.ClientController;
 import org.robotninjas.protobuf.netty.client.NettyRpcChannel;
@@ -47,9 +48,11 @@ class RaftClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(RaftClient.class);
   private static final long DEFAULT_TIMEOUT = 2000;
 
+  private final Replica replica;
   private final ObjectPool<ListenableFuture<NettyRpcChannel>> channelPool;
 
-  RaftClient(@Nonnull ObjectPool<ListenableFuture<NettyRpcChannel>> channelPool) {
+  RaftClient(@Nonnull Replica replica, @Nonnull ObjectPool<ListenableFuture<NettyRpcChannel>> channelPool) {
+    this.replica = replica;
     this.channelPool = checkNotNull(channelPool);
   }
 
@@ -66,6 +69,8 @@ class RaftClient {
   }
 
   private <T> ListenableFuture<T> call(final RpcCall<T> call) {
+
+    LOGGER.debug("Sending message to {}: {}", replica, call);
 
     ListenableFuture<NettyRpcChannel> channel = null;
     try {
@@ -131,6 +136,11 @@ class RaftClient {
         public void call(RaftService.Stub stub, RpcController controller, RpcCallback<AppendEntriesResponse> callback) {
           stub.appendEntries(controller, request, callback);
         }
+
+        @Override
+        public String toString() {
+          return request.toString();
+        }
       };
     }
 
@@ -139,6 +149,11 @@ class RaftClient {
         @Override
         public void call(RaftService.Stub stub, RpcController controller, RpcCallback<RequestVoteResponse> callback) {
           stub.requestVote(controller, request, callback);
+        }
+
+        @Override
+        public String toString() {
+          return request.toString();
         }
       };
     }

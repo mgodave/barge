@@ -1,10 +1,12 @@
 package org.robotninjas.barge.state;
 
 import com.google.common.base.Optional;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.robotninjas.barge.BargeThreadPools;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.StateMachine;
 import org.robotninjas.barge.log.RaftLog;
@@ -28,7 +30,7 @@ public class CandidateTest {
   private final long term = 2L;
   private final Replica self = Replica.fromString("localhost:1000");
 
-  private @Mock ScheduledExecutorService mockScheduler;
+  private @Mock BargeThreadPools mockThreadPools;
   private @Mock Replica mockReplica;
   private @Mock Client mockRaftClient;
   private @Mock StateFactory mockStateFactory;
@@ -36,20 +38,28 @@ public class CandidateTest {
   private @Mock RaftLog mockRaftLog;
   private @Mock
   RaftStateContext mockRaftStateContext;
+  private @Mock
+  ConfigurationState configurationState;
 
   @Before
   public void initMocks() {
 
     MockitoAnnotations.initMocks(this);
 
+    when(configurationState.self()).thenReturn(self);
+    when(mockRaftStateContext.getConfigurationState()).thenReturn(configurationState);
+    
     when(mockRaftLog.self()).thenReturn(self);
     when(mockRaftLog.lastVotedFor()).thenReturn(Optional.<Replica>absent());
     when(mockRaftLog.lastLogTerm()).thenReturn(0L);
     when(mockRaftLog.lastLogIndex()).thenReturn(0L);
     when(mockRaftLog.currentTerm()).thenReturn(term);
 
+    ScheduledExecutorService mockRaftScheduler = mock(ScheduledExecutorService.class);
+    when(mockThreadPools.getRaftScheduler()).thenReturn(mockRaftScheduler);
+
     ScheduledFuture mockScheduledFuture = mock(ScheduledFuture.class);
-    when(mockScheduler.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class)))
+    when(mockRaftScheduler.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class)))
       .thenReturn(mockScheduledFuture);
 
   }
@@ -57,7 +67,7 @@ public class CandidateTest {
   @Test
   public void testRequestVoteWithNewerTerm() throws Exception {
 
-    Candidate candidate = new Candidate(mockRaftLog, mockScheduler, 150, mockRaftClient);
+    Candidate candidate = new Candidate(mockRaftLog, mockThreadPools, 150, mockRaftClient);
     candidate.init(mockRaftStateContext);
 
     Replica mockCandidate = Replica.fromString("localhost:10001");
@@ -84,6 +94,8 @@ public class CandidateTest {
 
     verify(mockRaftStateContext, times(1)).setState(any(Candidate.class), eq(FOLLOWER));
     verify(mockRaftStateContext, times(1)).setState(any(Candidate.class), eq(LEADER));
+    verify(mockRaftStateContext, times(1)).getConfigurationState();
+    verifyNoMoreInteractions(mockRaftStateContext);
 
     verifyZeroInteractions(mockRaftClient);
 
@@ -91,7 +103,7 @@ public class CandidateTest {
 
   @Test
   public void testRequestVoteWithOlderTerm() throws Exception {
-    Candidate candidate = new Candidate(mockRaftLog, mockScheduler, 150, mockRaftClient);
+    Candidate candidate = new Candidate(mockRaftLog, mockThreadPools, 150, mockRaftClient);
     candidate.init(mockRaftStateContext);
 
     Replica mockCandidate = Replica.fromString("localhost:10001");
@@ -116,13 +128,15 @@ public class CandidateTest {
     verify(mockRaftLog, never()).commitIndex(anyLong());
 
     verify(mockRaftStateContext).setState(any(Candidate.class), eq(LEADER));
+    verify(mockRaftStateContext, times(1)).getConfigurationState();
+    verifyNoMoreInteractions(mockRaftStateContext);
 
     verifyZeroInteractions(mockRaftClient);
   }
 
   @Test
   public void testRequestVoteWithSameTerm() throws Exception {
-    Candidate candidate = new Candidate(mockRaftLog, mockScheduler, 150, mockRaftClient);
+    Candidate candidate = new Candidate(mockRaftLog, mockThreadPools, 150, mockRaftClient);
     candidate.init(mockRaftStateContext);
 
     Replica mockCandidate = Replica.fromString("localhost:10001");
@@ -148,7 +162,8 @@ public class CandidateTest {
 
     verify(mockRaftStateContext).setState(any(State.class), any(RaftStateContext.StateType.class));
 
-    verifyZeroInteractions(mockRaftStateContext);
+    verify(mockRaftStateContext, times(1)).getConfigurationState();
+    verifyNoMoreInteractions(mockRaftStateContext);
 
     verifyZeroInteractions(mockRaftClient);
   }
@@ -156,7 +171,7 @@ public class CandidateTest {
   @Test
   public void testAppendEntriesWithNewerTerm() throws Exception {
 
-    Candidate candidate = new Candidate(mockRaftLog, mockScheduler, 1, mockRaftClient);
+    Candidate candidate = new Candidate(mockRaftLog, mockThreadPools, 1, mockRaftClient);
     candidate.init(mockRaftStateContext);
 
     Replica mockLeader = Replica.fromString("localhost:10001");
@@ -183,6 +198,8 @@ public class CandidateTest {
 
     verify(mockRaftStateContext).setState(any(Candidate.class), eq(FOLLOWER));
     verify(mockRaftStateContext).setState(any(Candidate.class), eq(LEADER));
+    verify(mockRaftStateContext, times(1)).getConfigurationState();
+    verifyNoMoreInteractions(mockRaftStateContext);
 
     verifyZeroInteractions(mockRaftClient);
 
@@ -191,7 +208,7 @@ public class CandidateTest {
   @Test
   public void testAppendEntriesWithOlderTerm() throws Exception {
 
-    Candidate candidate = new Candidate(mockRaftLog, mockScheduler, 1, mockRaftClient);
+    Candidate candidate = new Candidate(mockRaftLog, mockThreadPools, 1, mockRaftClient);
     candidate.init(mockRaftStateContext);
 
     Replica mockLeader = Replica.fromString("localhost:10001");
@@ -216,6 +233,8 @@ public class CandidateTest {
     verify(mockRaftLog, never()).commitIndex(anyLong());
 
     verify(mockRaftStateContext).setState(any(Candidate.class), eq(LEADER));
+    verify(mockRaftStateContext, times(1)).getConfigurationState();
+    verifyNoMoreInteractions(mockRaftStateContext);
 
     verifyZeroInteractions(mockRaftClient);
 
@@ -224,7 +243,7 @@ public class CandidateTest {
   @Test
   public void testAppendEntriesWithSameTerm() throws Exception {
 
-    Candidate candidate = new Candidate(mockRaftLog, mockScheduler, 1, mockRaftClient);
+    Candidate candidate = new Candidate(mockRaftLog, mockThreadPools, 1, mockRaftClient);
     candidate.init(mockRaftStateContext);
 
     AppendEntries request =
@@ -248,6 +267,8 @@ public class CandidateTest {
 
     verify(mockRaftStateContext).setState(any(Candidate.class), eq(FOLLOWER));
     verify(mockRaftStateContext).setState(any(Candidate.class), eq(LEADER));
+    verify(mockRaftStateContext, times(1)).getConfigurationState();
+    verifyNoMoreInteractions(mockRaftStateContext);
 
     verifyZeroInteractions(mockRaftClient);
 

@@ -620,684 +620,6 @@ public final class LogProto {
     // @@protoc_insertion_point(class_scope:Append)
   }
 
-  public interface MembershipOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
-
-    // required int64 index = 1;
-    /**
-     * <code>required int64 index = 1;</code>
-     */
-    boolean hasIndex();
-    /**
-     * <code>required int64 index = 1;</code>
-     */
-    long getIndex();
-
-    // required int64 term = 2;
-    /**
-     * <code>required int64 term = 2;</code>
-     */
-    boolean hasTerm();
-    /**
-     * <code>required int64 term = 2;</code>
-     */
-    long getTerm();
-
-    // repeated string members = 3;
-    /**
-     * <code>repeated string members = 3;</code>
-     */
-    java.util.List<java.lang.String>
-    getMembersList();
-    /**
-     * <code>repeated string members = 3;</code>
-     */
-    int getMembersCount();
-    /**
-     * <code>repeated string members = 3;</code>
-     */
-    java.lang.String getMembers(int index);
-    /**
-     * <code>repeated string members = 3;</code>
-     */
-    com.google.protobuf.ByteString
-        getMembersBytes(int index);
-  }
-  /**
-   * Protobuf type {@code Membership}
-   */
-  public static final class Membership extends
-      com.google.protobuf.GeneratedMessage
-      implements MembershipOrBuilder {
-    // Use Membership.newBuilder() to construct.
-    private Membership(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-      this.unknownFields = builder.getUnknownFields();
-    }
-    private Membership(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
-
-    private static final Membership defaultInstance;
-    public static Membership getDefaultInstance() {
-      return defaultInstance;
-    }
-
-    public Membership getDefaultInstanceForType() {
-      return defaultInstance;
-    }
-
-    private final com.google.protobuf.UnknownFieldSet unknownFields;
-    @java.lang.Override
-    public final com.google.protobuf.UnknownFieldSet
-        getUnknownFields() {
-      return this.unknownFields;
-    }
-    private Membership(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      initFields();
-      int mutable_bitField0_ = 0;
-      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-          com.google.protobuf.UnknownFieldSet.newBuilder();
-      try {
-        boolean done = false;
-        while (!done) {
-          int tag = input.readTag();
-          switch (tag) {
-            case 0:
-              done = true;
-              break;
-            default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
-            case 8: {
-              bitField0_ |= 0x00000001;
-              index_ = input.readInt64();
-              break;
-            }
-            case 16: {
-              bitField0_ |= 0x00000002;
-              term_ = input.readInt64();
-              break;
-            }
-            case 26: {
-              if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
-                members_ = new com.google.protobuf.LazyStringArrayList();
-                mutable_bitField0_ |= 0x00000004;
-              }
-              members_.add(input.readBytes());
-              break;
-            }
-          }
-        }
-      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw e.setUnfinishedMessage(this);
-      } catch (java.io.IOException e) {
-        throw new com.google.protobuf.InvalidProtocolBufferException(
-            e.getMessage()).setUnfinishedMessage(this);
-      } finally {
-        if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
-          members_ = new com.google.protobuf.UnmodifiableLazyStringList(members_);
-        }
-        this.unknownFields = unknownFields.build();
-        makeExtensionsImmutable();
-      }
-    }
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return org.robotninjas.barge.proto.LogProto.internal_static_Membership_descriptor;
-    }
-
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return org.robotninjas.barge.proto.LogProto.internal_static_Membership_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              org.robotninjas.barge.proto.LogProto.Membership.class, org.robotninjas.barge.proto.LogProto.Membership.Builder.class);
-    }
-
-    public static com.google.protobuf.Parser<Membership> PARSER =
-        new com.google.protobuf.AbstractParser<Membership>() {
-      public Membership parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        return new Membership(input, extensionRegistry);
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<Membership> getParserForType() {
-      return PARSER;
-    }
-
-    private int bitField0_;
-    // required int64 index = 1;
-    public static final int INDEX_FIELD_NUMBER = 1;
-    private long index_;
-    /**
-     * <code>required int64 index = 1;</code>
-     */
-    public boolean hasIndex() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
-    }
-    /**
-     * <code>required int64 index = 1;</code>
-     */
-    public long getIndex() {
-      return index_;
-    }
-
-    // required int64 term = 2;
-    public static final int TERM_FIELD_NUMBER = 2;
-    private long term_;
-    /**
-     * <code>required int64 term = 2;</code>
-     */
-    public boolean hasTerm() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
-    }
-    /**
-     * <code>required int64 term = 2;</code>
-     */
-    public long getTerm() {
-      return term_;
-    }
-
-    // repeated string members = 3;
-    public static final int MEMBERS_FIELD_NUMBER = 3;
-    private com.google.protobuf.LazyStringList members_;
-    /**
-     * <code>repeated string members = 3;</code>
-     */
-    public java.util.List<java.lang.String>
-        getMembersList() {
-      return members_;
-    }
-    /**
-     * <code>repeated string members = 3;</code>
-     */
-    public int getMembersCount() {
-      return members_.size();
-    }
-    /**
-     * <code>repeated string members = 3;</code>
-     */
-    public java.lang.String getMembers(int index) {
-      return members_.get(index);
-    }
-    /**
-     * <code>repeated string members = 3;</code>
-     */
-    public com.google.protobuf.ByteString
-        getMembersBytes(int index) {
-      return members_.getByteString(index);
-    }
-
-    private void initFields() {
-      index_ = 0L;
-      term_ = 0L;
-      members_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-    }
-    private byte memoizedIsInitialized = -1;
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
-
-      if (!hasIndex()) {
-        memoizedIsInitialized = 0;
-        return false;
-      }
-      if (!hasTerm()) {
-        memoizedIsInitialized = 0;
-        return false;
-      }
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      getSerializedSize();
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeInt64(1, index_);
-      }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeInt64(2, term_);
-      }
-      for (int i = 0; i < members_.size(); i++) {
-        output.writeBytes(3, members_.getByteString(i));
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    private int memoizedSerializedSize = -1;
-    public int getSerializedSize() {
-      int size = memoizedSerializedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(1, index_);
-      }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(2, term_);
-      }
-      {
-        int dataSize = 0;
-        for (int i = 0; i < members_.size(); i++) {
-          dataSize += com.google.protobuf.CodedOutputStream
-            .computeBytesSizeNoTag(members_.getByteString(i));
-        }
-        size += dataSize;
-        size += 1 * getMembersList().size();
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
-      return size;
-    }
-
-    private static final long serialVersionUID = 0L;
-    @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
-    }
-
-    public static org.robotninjas.barge.proto.LogProto.Membership parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static org.robotninjas.barge.proto.LogProto.Membership parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static org.robotninjas.barge.proto.LogProto.Membership parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static org.robotninjas.barge.proto.LogProto.Membership parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static org.robotninjas.barge.proto.LogProto.Membership parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return PARSER.parseFrom(input);
-    }
-    public static org.robotninjas.barge.proto.LogProto.Membership parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
-    }
-    public static org.robotninjas.barge.proto.LogProto.Membership parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input);
-    }
-    public static org.robotninjas.barge.proto.LogProto.Membership parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input, extensionRegistry);
-    }
-    public static org.robotninjas.barge.proto.LogProto.Membership parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return PARSER.parseFrom(input);
-    }
-    public static org.robotninjas.barge.proto.LogProto.Membership parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
-    }
-
-    public static Builder newBuilder() { return Builder.create(); }
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(org.robotninjas.barge.proto.LogProto.Membership prototype) {
-      return newBuilder().mergeFrom(prototype);
-    }
-    public Builder toBuilder() { return newBuilder(this); }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code Membership}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements org.robotninjas.barge.proto.LogProto.MembershipOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return org.robotninjas.barge.proto.LogProto.internal_static_Membership_descriptor;
-      }
-
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return org.robotninjas.barge.proto.LogProto.internal_static_Membership_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                org.robotninjas.barge.proto.LogProto.Membership.class, org.robotninjas.barge.proto.LogProto.Membership.Builder.class);
-      }
-
-      // Construct using org.robotninjas.barge.proto.LogProto.Membership.newBuilder()
-      private Builder() {
-        maybeForceBuilderInitialization();
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-        maybeForceBuilderInitialization();
-      }
-      private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
-        }
-      }
-      private static Builder create() {
-        return new Builder();
-      }
-
-      public Builder clear() {
-        super.clear();
-        index_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000001);
-        term_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000002);
-        members_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000004);
-        return this;
-      }
-
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
-      }
-
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return org.robotninjas.barge.proto.LogProto.internal_static_Membership_descriptor;
-      }
-
-      public org.robotninjas.barge.proto.LogProto.Membership getDefaultInstanceForType() {
-        return org.robotninjas.barge.proto.LogProto.Membership.getDefaultInstance();
-      }
-
-      public org.robotninjas.barge.proto.LogProto.Membership build() {
-        org.robotninjas.barge.proto.LogProto.Membership result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      public org.robotninjas.barge.proto.LogProto.Membership buildPartial() {
-        org.robotninjas.barge.proto.LogProto.Membership result = new org.robotninjas.barge.proto.LogProto.Membership(this);
-        int from_bitField0_ = bitField0_;
-        int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
-          to_bitField0_ |= 0x00000001;
-        }
-        result.index_ = index_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
-          to_bitField0_ |= 0x00000002;
-        }
-        result.term_ = term_;
-        if (((bitField0_ & 0x00000004) == 0x00000004)) {
-          members_ = new com.google.protobuf.UnmodifiableLazyStringList(
-              members_);
-          bitField0_ = (bitField0_ & ~0x00000004);
-        }
-        result.members_ = members_;
-        result.bitField0_ = to_bitField0_;
-        onBuilt();
-        return result;
-      }
-
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof org.robotninjas.barge.proto.LogProto.Membership) {
-          return mergeFrom((org.robotninjas.barge.proto.LogProto.Membership)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(org.robotninjas.barge.proto.LogProto.Membership other) {
-        if (other == org.robotninjas.barge.proto.LogProto.Membership.getDefaultInstance()) return this;
-        if (other.hasIndex()) {
-          setIndex(other.getIndex());
-        }
-        if (other.hasTerm()) {
-          setTerm(other.getTerm());
-        }
-        if (!other.members_.isEmpty()) {
-          if (members_.isEmpty()) {
-            members_ = other.members_;
-            bitField0_ = (bitField0_ & ~0x00000004);
-          } else {
-            ensureMembersIsMutable();
-            members_.addAll(other.members_);
-          }
-          onChanged();
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        return this;
-      }
-
-      public final boolean isInitialized() {
-        if (!hasIndex()) {
-          
-          return false;
-        }
-        if (!hasTerm()) {
-          
-          return false;
-        }
-        return true;
-      }
-
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        org.robotninjas.barge.proto.LogProto.Membership parsedMessage = null;
-        try {
-          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          parsedMessage = (org.robotninjas.barge.proto.LogProto.Membership) e.getUnfinishedMessage();
-          throw e;
-        } finally {
-          if (parsedMessage != null) {
-            mergeFrom(parsedMessage);
-          }
-        }
-        return this;
-      }
-      private int bitField0_;
-
-      // required int64 index = 1;
-      private long index_ ;
-      /**
-       * <code>required int64 index = 1;</code>
-       */
-      public boolean hasIndex() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
-      }
-      /**
-       * <code>required int64 index = 1;</code>
-       */
-      public long getIndex() {
-        return index_;
-      }
-      /**
-       * <code>required int64 index = 1;</code>
-       */
-      public Builder setIndex(long value) {
-        bitField0_ |= 0x00000001;
-        index_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>required int64 index = 1;</code>
-       */
-      public Builder clearIndex() {
-        bitField0_ = (bitField0_ & ~0x00000001);
-        index_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      // required int64 term = 2;
-      private long term_ ;
-      /**
-       * <code>required int64 term = 2;</code>
-       */
-      public boolean hasTerm() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
-      }
-      /**
-       * <code>required int64 term = 2;</code>
-       */
-      public long getTerm() {
-        return term_;
-      }
-      /**
-       * <code>required int64 term = 2;</code>
-       */
-      public Builder setTerm(long value) {
-        bitField0_ |= 0x00000002;
-        term_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>required int64 term = 2;</code>
-       */
-      public Builder clearTerm() {
-        bitField0_ = (bitField0_ & ~0x00000002);
-        term_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      // repeated string members = 3;
-      private com.google.protobuf.LazyStringList members_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      private void ensureMembersIsMutable() {
-        if (!((bitField0_ & 0x00000004) == 0x00000004)) {
-          members_ = new com.google.protobuf.LazyStringArrayList(members_);
-          bitField0_ |= 0x00000004;
-         }
-      }
-      /**
-       * <code>repeated string members = 3;</code>
-       */
-      public java.util.List<java.lang.String>
-          getMembersList() {
-        return java.util.Collections.unmodifiableList(members_);
-      }
-      /**
-       * <code>repeated string members = 3;</code>
-       */
-      public int getMembersCount() {
-        return members_.size();
-      }
-      /**
-       * <code>repeated string members = 3;</code>
-       */
-      public java.lang.String getMembers(int index) {
-        return members_.get(index);
-      }
-      /**
-       * <code>repeated string members = 3;</code>
-       */
-      public com.google.protobuf.ByteString
-          getMembersBytes(int index) {
-        return members_.getByteString(index);
-      }
-      /**
-       * <code>repeated string members = 3;</code>
-       */
-      public Builder setMembers(
-          int index, java.lang.String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureMembersIsMutable();
-        members_.set(index, value);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>repeated string members = 3;</code>
-       */
-      public Builder addMembers(
-          java.lang.String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureMembersIsMutable();
-        members_.add(value);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>repeated string members = 3;</code>
-       */
-      public Builder addAllMembers(
-          java.lang.Iterable<java.lang.String> values) {
-        ensureMembersIsMutable();
-        super.addAll(values, members_);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>repeated string members = 3;</code>
-       */
-      public Builder clearMembers() {
-        members_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000004);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>repeated string members = 3;</code>
-       */
-      public Builder addMembersBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureMembersIsMutable();
-        members_.add(value);
-        onChanged();
-        return this;
-      }
-
-      // @@protoc_insertion_point(builder_scope:Membership)
-    }
-
-    static {
-      defaultInstance = new Membership(true);
-      defaultInstance.initFields();
-    }
-
-    // @@protoc_insertion_point(class_scope:Membership)
-  }
-
   public interface VoteOrBuilder
       extends com.google.protobuf.MessageOrBuilder {
 
@@ -3251,20 +2573,6 @@ public final class LogProto {
      */
     org.robotninjas.barge.proto.LogProto.AppendOrBuilder getAppendOrBuilder();
 
-    // optional .Membership membership = 3;
-    /**
-     * <code>optional .Membership membership = 3;</code>
-     */
-    boolean hasMembership();
-    /**
-     * <code>optional .Membership membership = 3;</code>
-     */
-    org.robotninjas.barge.proto.LogProto.Membership getMembership();
-    /**
-     * <code>optional .Membership membership = 3;</code>
-     */
-    org.robotninjas.barge.proto.LogProto.MembershipOrBuilder getMembershipOrBuilder();
-
     // optional .Vote vote = 4;
     /**
      * <code>optional .Vote vote = 4;</code>
@@ -3385,22 +2693,9 @@ public final class LogProto {
               bitField0_ |= 0x00000001;
               break;
             }
-            case 26: {
-              org.robotninjas.barge.proto.LogProto.Membership.Builder subBuilder = null;
-              if (((bitField0_ & 0x00000002) == 0x00000002)) {
-                subBuilder = membership_.toBuilder();
-              }
-              membership_ = input.readMessage(org.robotninjas.barge.proto.LogProto.Membership.PARSER, extensionRegistry);
-              if (subBuilder != null) {
-                subBuilder.mergeFrom(membership_);
-                membership_ = subBuilder.buildPartial();
-              }
-              bitField0_ |= 0x00000002;
-              break;
-            }
             case 34: {
               org.robotninjas.barge.proto.LogProto.Vote.Builder subBuilder = null;
-              if (((bitField0_ & 0x00000004) == 0x00000004)) {
+              if (((bitField0_ & 0x00000002) == 0x00000002)) {
                 subBuilder = vote_.toBuilder();
               }
               vote_ = input.readMessage(org.robotninjas.barge.proto.LogProto.Vote.PARSER, extensionRegistry);
@@ -3408,12 +2703,12 @@ public final class LogProto {
                 subBuilder.mergeFrom(vote_);
                 vote_ = subBuilder.buildPartial();
               }
-              bitField0_ |= 0x00000004;
+              bitField0_ |= 0x00000002;
               break;
             }
             case 42: {
               org.robotninjas.barge.proto.LogProto.Term.Builder subBuilder = null;
-              if (((bitField0_ & 0x00000008) == 0x00000008)) {
+              if (((bitField0_ & 0x00000004) == 0x00000004)) {
                 subBuilder = term_.toBuilder();
               }
               term_ = input.readMessage(org.robotninjas.barge.proto.LogProto.Term.PARSER, extensionRegistry);
@@ -3421,12 +2716,12 @@ public final class LogProto {
                 subBuilder.mergeFrom(term_);
                 term_ = subBuilder.buildPartial();
               }
-              bitField0_ |= 0x00000008;
+              bitField0_ |= 0x00000004;
               break;
             }
             case 50: {
               org.robotninjas.barge.proto.LogProto.Commit.Builder subBuilder = null;
-              if (((bitField0_ & 0x00000010) == 0x00000010)) {
+              if (((bitField0_ & 0x00000008) == 0x00000008)) {
                 subBuilder = commit_.toBuilder();
               }
               commit_ = input.readMessage(org.robotninjas.barge.proto.LogProto.Commit.PARSER, extensionRegistry);
@@ -3434,12 +2729,12 @@ public final class LogProto {
                 subBuilder.mergeFrom(commit_);
                 commit_ = subBuilder.buildPartial();
               }
-              bitField0_ |= 0x00000010;
+              bitField0_ |= 0x00000008;
               break;
             }
             case 58: {
               org.robotninjas.barge.proto.LogProto.Snapshot.Builder subBuilder = null;
-              if (((bitField0_ & 0x00000020) == 0x00000020)) {
+              if (((bitField0_ & 0x00000010) == 0x00000010)) {
                 subBuilder = snapshot_.toBuilder();
               }
               snapshot_ = input.readMessage(org.robotninjas.barge.proto.LogProto.Snapshot.PARSER, extensionRegistry);
@@ -3447,7 +2742,7 @@ public final class LogProto {
                 subBuilder.mergeFrom(snapshot_);
                 snapshot_ = subBuilder.buildPartial();
               }
-              bitField0_ |= 0x00000020;
+              bitField0_ |= 0x00000010;
               break;
             }
           }
@@ -3512,28 +2807,6 @@ public final class LogProto {
       return append_;
     }
 
-    // optional .Membership membership = 3;
-    public static final int MEMBERSHIP_FIELD_NUMBER = 3;
-    private org.robotninjas.barge.proto.LogProto.Membership membership_;
-    /**
-     * <code>optional .Membership membership = 3;</code>
-     */
-    public boolean hasMembership() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
-    }
-    /**
-     * <code>optional .Membership membership = 3;</code>
-     */
-    public org.robotninjas.barge.proto.LogProto.Membership getMembership() {
-      return membership_;
-    }
-    /**
-     * <code>optional .Membership membership = 3;</code>
-     */
-    public org.robotninjas.barge.proto.LogProto.MembershipOrBuilder getMembershipOrBuilder() {
-      return membership_;
-    }
-
     // optional .Vote vote = 4;
     public static final int VOTE_FIELD_NUMBER = 4;
     private org.robotninjas.barge.proto.LogProto.Vote vote_;
@@ -3541,7 +2814,7 @@ public final class LogProto {
      * <code>optional .Vote vote = 4;</code>
      */
     public boolean hasVote() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
      * <code>optional .Vote vote = 4;</code>
@@ -3563,7 +2836,7 @@ public final class LogProto {
      * <code>optional .Term term = 5;</code>
      */
     public boolean hasTerm() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
      * <code>optional .Term term = 5;</code>
@@ -3585,7 +2858,7 @@ public final class LogProto {
      * <code>optional .Commit commit = 6;</code>
      */
     public boolean hasCommit() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
+      return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
      * <code>optional .Commit commit = 6;</code>
@@ -3607,7 +2880,7 @@ public final class LogProto {
      * <code>optional .Snapshot snapshot = 7;</code>
      */
     public boolean hasSnapshot() {
-      return ((bitField0_ & 0x00000020) == 0x00000020);
+      return ((bitField0_ & 0x00000010) == 0x00000010);
     }
     /**
      * <code>optional .Snapshot snapshot = 7;</code>
@@ -3624,7 +2897,6 @@ public final class LogProto {
 
     private void initFields() {
       append_ = org.robotninjas.barge.proto.LogProto.Append.getDefaultInstance();
-      membership_ = org.robotninjas.barge.proto.LogProto.Membership.getDefaultInstance();
       vote_ = org.robotninjas.barge.proto.LogProto.Vote.getDefaultInstance();
       term_ = org.robotninjas.barge.proto.LogProto.Term.getDefaultInstance();
       commit_ = org.robotninjas.barge.proto.LogProto.Commit.getDefaultInstance();
@@ -3637,12 +2909,6 @@ public final class LogProto {
 
       if (hasAppend()) {
         if (!getAppend().isInitialized()) {
-          memoizedIsInitialized = 0;
-          return false;
-        }
-      }
-      if (hasMembership()) {
-        if (!getMembership().isInitialized()) {
           memoizedIsInitialized = 0;
           return false;
         }
@@ -3676,18 +2942,15 @@ public final class LogProto {
         output.writeMessage(2, append_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeMessage(3, membership_);
-      }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
         output.writeMessage(4, vote_);
       }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
         output.writeMessage(5, term_);
       }
-      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
         output.writeMessage(6, commit_);
       }
-      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
         output.writeMessage(7, snapshot_);
       }
       getUnknownFields().writeTo(output);
@@ -3705,21 +2968,17 @@ public final class LogProto {
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(3, membership_);
+          .computeMessageSize(4, vote_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(4, vote_);
+          .computeMessageSize(5, term_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(5, term_);
-      }
-      if (((bitField0_ & 0x00000010) == 0x00000010)) {
-        size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(6, commit_);
       }
-      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(7, snapshot_);
       }
@@ -3832,7 +3091,6 @@ public final class LogProto {
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
           getAppendFieldBuilder();
-          getMembershipFieldBuilder();
           getVoteFieldBuilder();
           getTermFieldBuilder();
           getCommitFieldBuilder();
@@ -3851,36 +3109,30 @@ public final class LogProto {
           appendBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00000001);
-        if (membershipBuilder_ == null) {
-          membership_ = org.robotninjas.barge.proto.LogProto.Membership.getDefaultInstance();
-        } else {
-          membershipBuilder_.clear();
-        }
-        bitField0_ = (bitField0_ & ~0x00000002);
         if (voteBuilder_ == null) {
           vote_ = org.robotninjas.barge.proto.LogProto.Vote.getDefaultInstance();
         } else {
           voteBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000002);
         if (termBuilder_ == null) {
           term_ = org.robotninjas.barge.proto.LogProto.Term.getDefaultInstance();
         } else {
           termBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00000008);
+        bitField0_ = (bitField0_ & ~0x00000004);
         if (commitBuilder_ == null) {
           commit_ = org.robotninjas.barge.proto.LogProto.Commit.getDefaultInstance();
         } else {
           commitBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00000010);
+        bitField0_ = (bitField0_ & ~0x00000008);
         if (snapshotBuilder_ == null) {
           snapshot_ = org.robotninjas.barge.proto.LogProto.Snapshot.getDefaultInstance();
         } else {
           snapshotBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00000020);
+        bitField0_ = (bitField0_ & ~0x00000010);
         return this;
       }
 
@@ -3920,37 +3172,29 @@ public final class LogProto {
         if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
           to_bitField0_ |= 0x00000002;
         }
-        if (membershipBuilder_ == null) {
-          result.membership_ = membership_;
-        } else {
-          result.membership_ = membershipBuilder_.build();
-        }
-        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
-          to_bitField0_ |= 0x00000004;
-        }
         if (voteBuilder_ == null) {
           result.vote_ = vote_;
         } else {
           result.vote_ = voteBuilder_.build();
         }
-        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
-          to_bitField0_ |= 0x00000008;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
         }
         if (termBuilder_ == null) {
           result.term_ = term_;
         } else {
           result.term_ = termBuilder_.build();
         }
-        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
-          to_bitField0_ |= 0x00000010;
+        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+          to_bitField0_ |= 0x00000008;
         }
         if (commitBuilder_ == null) {
           result.commit_ = commit_;
         } else {
           result.commit_ = commitBuilder_.build();
         }
-        if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
-          to_bitField0_ |= 0x00000020;
+        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+          to_bitField0_ |= 0x00000010;
         }
         if (snapshotBuilder_ == null) {
           result.snapshot_ = snapshot_;
@@ -3976,9 +3220,6 @@ public final class LogProto {
         if (other.hasAppend()) {
           mergeAppend(other.getAppend());
         }
-        if (other.hasMembership()) {
-          mergeMembership(other.getMembership());
-        }
         if (other.hasVote()) {
           mergeVote(other.getVote());
         }
@@ -3998,12 +3239,6 @@ public final class LogProto {
       public final boolean isInitialized() {
         if (hasAppend()) {
           if (!getAppend().isInitialized()) {
-            
-            return false;
-          }
-        }
-        if (hasMembership()) {
-          if (!getMembership().isInitialized()) {
             
             return false;
           }
@@ -4165,123 +3400,6 @@ public final class LogProto {
         return appendBuilder_;
       }
 
-      // optional .Membership membership = 3;
-      private org.robotninjas.barge.proto.LogProto.Membership membership_ = org.robotninjas.barge.proto.LogProto.Membership.getDefaultInstance();
-      private com.google.protobuf.SingleFieldBuilder<
-          org.robotninjas.barge.proto.LogProto.Membership, org.robotninjas.barge.proto.LogProto.Membership.Builder, org.robotninjas.barge.proto.LogProto.MembershipOrBuilder> membershipBuilder_;
-      /**
-       * <code>optional .Membership membership = 3;</code>
-       */
-      public boolean hasMembership() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
-      }
-      /**
-       * <code>optional .Membership membership = 3;</code>
-       */
-      public org.robotninjas.barge.proto.LogProto.Membership getMembership() {
-        if (membershipBuilder_ == null) {
-          return membership_;
-        } else {
-          return membershipBuilder_.getMessage();
-        }
-      }
-      /**
-       * <code>optional .Membership membership = 3;</code>
-       */
-      public Builder setMembership(org.robotninjas.barge.proto.LogProto.Membership value) {
-        if (membershipBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          membership_ = value;
-          onChanged();
-        } else {
-          membershipBuilder_.setMessage(value);
-        }
-        bitField0_ |= 0x00000002;
-        return this;
-      }
-      /**
-       * <code>optional .Membership membership = 3;</code>
-       */
-      public Builder setMembership(
-          org.robotninjas.barge.proto.LogProto.Membership.Builder builderForValue) {
-        if (membershipBuilder_ == null) {
-          membership_ = builderForValue.build();
-          onChanged();
-        } else {
-          membershipBuilder_.setMessage(builderForValue.build());
-        }
-        bitField0_ |= 0x00000002;
-        return this;
-      }
-      /**
-       * <code>optional .Membership membership = 3;</code>
-       */
-      public Builder mergeMembership(org.robotninjas.barge.proto.LogProto.Membership value) {
-        if (membershipBuilder_ == null) {
-          if (((bitField0_ & 0x00000002) == 0x00000002) &&
-              membership_ != org.robotninjas.barge.proto.LogProto.Membership.getDefaultInstance()) {
-            membership_ =
-              org.robotninjas.barge.proto.LogProto.Membership.newBuilder(membership_).mergeFrom(value).buildPartial();
-          } else {
-            membership_ = value;
-          }
-          onChanged();
-        } else {
-          membershipBuilder_.mergeFrom(value);
-        }
-        bitField0_ |= 0x00000002;
-        return this;
-      }
-      /**
-       * <code>optional .Membership membership = 3;</code>
-       */
-      public Builder clearMembership() {
-        if (membershipBuilder_ == null) {
-          membership_ = org.robotninjas.barge.proto.LogProto.Membership.getDefaultInstance();
-          onChanged();
-        } else {
-          membershipBuilder_.clear();
-        }
-        bitField0_ = (bitField0_ & ~0x00000002);
-        return this;
-      }
-      /**
-       * <code>optional .Membership membership = 3;</code>
-       */
-      public org.robotninjas.barge.proto.LogProto.Membership.Builder getMembershipBuilder() {
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return getMembershipFieldBuilder().getBuilder();
-      }
-      /**
-       * <code>optional .Membership membership = 3;</code>
-       */
-      public org.robotninjas.barge.proto.LogProto.MembershipOrBuilder getMembershipOrBuilder() {
-        if (membershipBuilder_ != null) {
-          return membershipBuilder_.getMessageOrBuilder();
-        } else {
-          return membership_;
-        }
-      }
-      /**
-       * <code>optional .Membership membership = 3;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilder<
-          org.robotninjas.barge.proto.LogProto.Membership, org.robotninjas.barge.proto.LogProto.Membership.Builder, org.robotninjas.barge.proto.LogProto.MembershipOrBuilder> 
-          getMembershipFieldBuilder() {
-        if (membershipBuilder_ == null) {
-          membershipBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              org.robotninjas.barge.proto.LogProto.Membership, org.robotninjas.barge.proto.LogProto.Membership.Builder, org.robotninjas.barge.proto.LogProto.MembershipOrBuilder>(
-                  membership_,
-                  getParentForChildren(),
-                  isClean());
-          membership_ = null;
-        }
-        return membershipBuilder_;
-      }
-
       // optional .Vote vote = 4;
       private org.robotninjas.barge.proto.LogProto.Vote vote_ = org.robotninjas.barge.proto.LogProto.Vote.getDefaultInstance();
       private com.google.protobuf.SingleFieldBuilder<
@@ -4290,7 +3408,7 @@ public final class LogProto {
        * <code>optional .Vote vote = 4;</code>
        */
       public boolean hasVote() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
+        return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
        * <code>optional .Vote vote = 4;</code>
@@ -4315,7 +3433,7 @@ public final class LogProto {
         } else {
           voteBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000002;
         return this;
       }
       /**
@@ -4329,7 +3447,7 @@ public final class LogProto {
         } else {
           voteBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000002;
         return this;
       }
       /**
@@ -4337,7 +3455,7 @@ public final class LogProto {
        */
       public Builder mergeVote(org.robotninjas.barge.proto.LogProto.Vote value) {
         if (voteBuilder_ == null) {
-          if (((bitField0_ & 0x00000004) == 0x00000004) &&
+          if (((bitField0_ & 0x00000002) == 0x00000002) &&
               vote_ != org.robotninjas.barge.proto.LogProto.Vote.getDefaultInstance()) {
             vote_ =
               org.robotninjas.barge.proto.LogProto.Vote.newBuilder(vote_).mergeFrom(value).buildPartial();
@@ -4348,7 +3466,7 @@ public final class LogProto {
         } else {
           voteBuilder_.mergeFrom(value);
         }
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000002;
         return this;
       }
       /**
@@ -4361,14 +3479,14 @@ public final class LogProto {
         } else {
           voteBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000002);
         return this;
       }
       /**
        * <code>optional .Vote vote = 4;</code>
        */
       public org.robotninjas.barge.proto.LogProto.Vote.Builder getVoteBuilder() {
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000002;
         onChanged();
         return getVoteFieldBuilder().getBuilder();
       }
@@ -4407,7 +3525,7 @@ public final class LogProto {
        * <code>optional .Term term = 5;</code>
        */
       public boolean hasTerm() {
-        return ((bitField0_ & 0x00000008) == 0x00000008);
+        return ((bitField0_ & 0x00000004) == 0x00000004);
       }
       /**
        * <code>optional .Term term = 5;</code>
@@ -4432,7 +3550,7 @@ public final class LogProto {
         } else {
           termBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000004;
         return this;
       }
       /**
@@ -4446,7 +3564,7 @@ public final class LogProto {
         } else {
           termBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000004;
         return this;
       }
       /**
@@ -4454,7 +3572,7 @@ public final class LogProto {
        */
       public Builder mergeTerm(org.robotninjas.barge.proto.LogProto.Term value) {
         if (termBuilder_ == null) {
-          if (((bitField0_ & 0x00000008) == 0x00000008) &&
+          if (((bitField0_ & 0x00000004) == 0x00000004) &&
               term_ != org.robotninjas.barge.proto.LogProto.Term.getDefaultInstance()) {
             term_ =
               org.robotninjas.barge.proto.LogProto.Term.newBuilder(term_).mergeFrom(value).buildPartial();
@@ -4465,7 +3583,7 @@ public final class LogProto {
         } else {
           termBuilder_.mergeFrom(value);
         }
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000004;
         return this;
       }
       /**
@@ -4478,14 +3596,14 @@ public final class LogProto {
         } else {
           termBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00000008);
+        bitField0_ = (bitField0_ & ~0x00000004);
         return this;
       }
       /**
        * <code>optional .Term term = 5;</code>
        */
       public org.robotninjas.barge.proto.LogProto.Term.Builder getTermBuilder() {
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000004;
         onChanged();
         return getTermFieldBuilder().getBuilder();
       }
@@ -4524,7 +3642,7 @@ public final class LogProto {
        * <code>optional .Commit commit = 6;</code>
        */
       public boolean hasCommit() {
-        return ((bitField0_ & 0x00000010) == 0x00000010);
+        return ((bitField0_ & 0x00000008) == 0x00000008);
       }
       /**
        * <code>optional .Commit commit = 6;</code>
@@ -4549,7 +3667,7 @@ public final class LogProto {
         } else {
           commitBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00000010;
+        bitField0_ |= 0x00000008;
         return this;
       }
       /**
@@ -4563,7 +3681,7 @@ public final class LogProto {
         } else {
           commitBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00000010;
+        bitField0_ |= 0x00000008;
         return this;
       }
       /**
@@ -4571,7 +3689,7 @@ public final class LogProto {
        */
       public Builder mergeCommit(org.robotninjas.barge.proto.LogProto.Commit value) {
         if (commitBuilder_ == null) {
-          if (((bitField0_ & 0x00000010) == 0x00000010) &&
+          if (((bitField0_ & 0x00000008) == 0x00000008) &&
               commit_ != org.robotninjas.barge.proto.LogProto.Commit.getDefaultInstance()) {
             commit_ =
               org.robotninjas.barge.proto.LogProto.Commit.newBuilder(commit_).mergeFrom(value).buildPartial();
@@ -4582,7 +3700,7 @@ public final class LogProto {
         } else {
           commitBuilder_.mergeFrom(value);
         }
-        bitField0_ |= 0x00000010;
+        bitField0_ |= 0x00000008;
         return this;
       }
       /**
@@ -4595,14 +3713,14 @@ public final class LogProto {
         } else {
           commitBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00000010);
+        bitField0_ = (bitField0_ & ~0x00000008);
         return this;
       }
       /**
        * <code>optional .Commit commit = 6;</code>
        */
       public org.robotninjas.barge.proto.LogProto.Commit.Builder getCommitBuilder() {
-        bitField0_ |= 0x00000010;
+        bitField0_ |= 0x00000008;
         onChanged();
         return getCommitFieldBuilder().getBuilder();
       }
@@ -4641,7 +3759,7 @@ public final class LogProto {
        * <code>optional .Snapshot snapshot = 7;</code>
        */
       public boolean hasSnapshot() {
-        return ((bitField0_ & 0x00000020) == 0x00000020);
+        return ((bitField0_ & 0x00000010) == 0x00000010);
       }
       /**
        * <code>optional .Snapshot snapshot = 7;</code>
@@ -4666,7 +3784,7 @@ public final class LogProto {
         } else {
           snapshotBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000010;
         return this;
       }
       /**
@@ -4680,7 +3798,7 @@ public final class LogProto {
         } else {
           snapshotBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000010;
         return this;
       }
       /**
@@ -4688,7 +3806,7 @@ public final class LogProto {
        */
       public Builder mergeSnapshot(org.robotninjas.barge.proto.LogProto.Snapshot value) {
         if (snapshotBuilder_ == null) {
-          if (((bitField0_ & 0x00000020) == 0x00000020) &&
+          if (((bitField0_ & 0x00000010) == 0x00000010) &&
               snapshot_ != org.robotninjas.barge.proto.LogProto.Snapshot.getDefaultInstance()) {
             snapshot_ =
               org.robotninjas.barge.proto.LogProto.Snapshot.newBuilder(snapshot_).mergeFrom(value).buildPartial();
@@ -4699,7 +3817,7 @@ public final class LogProto {
         } else {
           snapshotBuilder_.mergeFrom(value);
         }
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000010;
         return this;
       }
       /**
@@ -4712,14 +3830,14 @@ public final class LogProto {
         } else {
           snapshotBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00000020);
+        bitField0_ = (bitField0_ & ~0x00000010);
         return this;
       }
       /**
        * <code>optional .Snapshot snapshot = 7;</code>
        */
       public org.robotninjas.barge.proto.LogProto.Snapshot.Builder getSnapshotBuilder() {
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000010;
         onChanged();
         return getSnapshotFieldBuilder().getBuilder();
       }
@@ -4767,11 +3885,6 @@ public final class LogProto {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_Append_fieldAccessorTable;
   private static com.google.protobuf.Descriptors.Descriptor
-    internal_static_Membership_descriptor;
-  private static
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_Membership_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_Vote_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -4806,18 +3919,16 @@ public final class LogProto {
   static {
     java.lang.String[] descriptorData = {
       "\n\tlog.proto\032\013entry.proto\".\n\006Append\022\r\n\005in" +
-      "dex\030\001 \002(\003\022\025\n\005entry\030\002 \002(\0132\006.Entry\":\n\nMemb" +
-      "ership\022\r\n\005index\030\001 \002(\003\022\014\n\004term\030\002 \002(\003\022\017\n\007m" +
-      "embers\030\003 \003(\t\"\031\n\004Vote\022\021\n\tvoted_for\030\002 \001(\t\"" +
-      "\024\n\004Term\022\014\n\004term\030\001 \002(\003\"\027\n\006Commit\022\r\n\005index" +
-      "\030\001 \002(\003\"Z\n\010Snapshot\022\033\n\023last_included_inde" +
-      "x\030\001 \002(\003\022\032\n\022last_included_term\030\002 \002(\003\022\025\n\rs" +
-      "napshot_file\030\003 \002(\t\"\250\001\n\014JournalEntry\022\027\n\006a" +
-      "ppend\030\002 \001(\0132\007.Append\022\037\n\nmembership\030\003 \001(\013" +
-      "2\013.Membership\022\023\n\004vote\030\004 \001(\0132\005.Vote\022\023\n\004te",
-      "rm\030\005 \001(\0132\005.Term\022\027\n\006commit\030\006 \001(\0132\007.Commit" +
-      "\022\033\n\010snapshot\030\007 \001(\0132\t.SnapshotB\'\n\033org.rob" +
-      "otninjas.barge.protoB\010LogProto"
+      "dex\030\001 \002(\003\022\025\n\005entry\030\002 \002(\0132\006.Entry\"\031\n\004Vote" +
+      "\022\021\n\tvoted_for\030\002 \001(\t\"\024\n\004Term\022\014\n\004term\030\001 \002(" +
+      "\003\"\027\n\006Commit\022\r\n\005index\030\001 \002(\003\"Z\n\010Snapshot\022\033" +
+      "\n\023last_included_index\030\001 \002(\003\022\032\n\022last_incl" +
+      "uded_term\030\002 \002(\003\022\025\n\rsnapshot_file\030\003 \002(\t\"\207" +
+      "\001\n\014JournalEntry\022\027\n\006append\030\002 \001(\0132\007.Append" +
+      "\022\023\n\004vote\030\004 \001(\0132\005.Vote\022\023\n\004term\030\005 \001(\0132\005.Te" +
+      "rm\022\027\n\006commit\030\006 \001(\0132\007.Commit\022\033\n\010snapshot\030" +
+      "\007 \001(\0132\t.SnapshotB\'\n\033org.robotninjas.barg",
+      "e.protoB\010LogProto"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -4830,42 +3941,36 @@ public final class LogProto {
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_Append_descriptor,
               new java.lang.String[] { "Index", "Entry", });
-          internal_static_Membership_descriptor =
-            getDescriptor().getMessageTypes().get(1);
-          internal_static_Membership_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_Membership_descriptor,
-              new java.lang.String[] { "Index", "Term", "Members", });
           internal_static_Vote_descriptor =
-            getDescriptor().getMessageTypes().get(2);
+            getDescriptor().getMessageTypes().get(1);
           internal_static_Vote_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_Vote_descriptor,
               new java.lang.String[] { "VotedFor", });
           internal_static_Term_descriptor =
-            getDescriptor().getMessageTypes().get(3);
+            getDescriptor().getMessageTypes().get(2);
           internal_static_Term_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_Term_descriptor,
               new java.lang.String[] { "Term", });
           internal_static_Commit_descriptor =
-            getDescriptor().getMessageTypes().get(4);
+            getDescriptor().getMessageTypes().get(3);
           internal_static_Commit_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_Commit_descriptor,
               new java.lang.String[] { "Index", });
           internal_static_Snapshot_descriptor =
-            getDescriptor().getMessageTypes().get(5);
+            getDescriptor().getMessageTypes().get(4);
           internal_static_Snapshot_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_Snapshot_descriptor,
               new java.lang.String[] { "LastIncludedIndex", "LastIncludedTerm", "SnapshotFile", });
           internal_static_JournalEntry_descriptor =
-            getDescriptor().getMessageTypes().get(6);
+            getDescriptor().getMessageTypes().get(5);
           internal_static_JournalEntry_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_JournalEntry_descriptor,
-              new java.lang.String[] { "Append", "Membership", "Vote", "Term", "Commit", "Snapshot", });
+              new java.lang.String[] { "Append", "Vote", "Term", "Commit", "Snapshot", });
           return null;
         }
       };

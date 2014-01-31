@@ -8,6 +8,688 @@ public final class RaftEntry {
   public static void registerAllExtensions(
       com.google.protobuf.ExtensionRegistry registry) {
   }
+  public interface MembershipOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+
+    // repeated string members = 1;
+    /**
+     * <code>repeated string members = 1;</code>
+     */
+    java.util.List<java.lang.String>
+    getMembersList();
+    /**
+     * <code>repeated string members = 1;</code>
+     */
+    int getMembersCount();
+    /**
+     * <code>repeated string members = 1;</code>
+     */
+    java.lang.String getMembers(int index);
+    /**
+     * <code>repeated string members = 1;</code>
+     */
+    com.google.protobuf.ByteString
+        getMembersBytes(int index);
+
+    // repeated string proposed_members = 2;
+    /**
+     * <code>repeated string proposed_members = 2;</code>
+     */
+    java.util.List<java.lang.String>
+    getProposedMembersList();
+    /**
+     * <code>repeated string proposed_members = 2;</code>
+     */
+    int getProposedMembersCount();
+    /**
+     * <code>repeated string proposed_members = 2;</code>
+     */
+    java.lang.String getProposedMembers(int index);
+    /**
+     * <code>repeated string proposed_members = 2;</code>
+     */
+    com.google.protobuf.ByteString
+        getProposedMembersBytes(int index);
+  }
+  /**
+   * Protobuf type {@code Membership}
+   */
+  public static final class Membership extends
+      com.google.protobuf.GeneratedMessage
+      implements MembershipOrBuilder {
+    // Use Membership.newBuilder() to construct.
+    private Membership(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private Membership(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final Membership defaultInstance;
+    public static Membership getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public Membership getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private Membership(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+                members_ = new com.google.protobuf.LazyStringArrayList();
+                mutable_bitField0_ |= 0x00000001;
+              }
+              members_.add(input.readBytes());
+              break;
+            }
+            case 18: {
+              if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+                proposedMembers_ = new com.google.protobuf.LazyStringArrayList();
+                mutable_bitField0_ |= 0x00000002;
+              }
+              proposedMembers_.add(input.readBytes());
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+          members_ = new com.google.protobuf.UnmodifiableLazyStringList(members_);
+        }
+        if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+          proposedMembers_ = new com.google.protobuf.UnmodifiableLazyStringList(proposedMembers_);
+        }
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return org.robotninjas.barge.proto.RaftEntry.internal_static_Membership_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return org.robotninjas.barge.proto.RaftEntry.internal_static_Membership_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              org.robotninjas.barge.proto.RaftEntry.Membership.class, org.robotninjas.barge.proto.RaftEntry.Membership.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<Membership> PARSER =
+        new com.google.protobuf.AbstractParser<Membership>() {
+      public Membership parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new Membership(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<Membership> getParserForType() {
+      return PARSER;
+    }
+
+    // repeated string members = 1;
+    public static final int MEMBERS_FIELD_NUMBER = 1;
+    private com.google.protobuf.LazyStringList members_;
+    /**
+     * <code>repeated string members = 1;</code>
+     */
+    public java.util.List<java.lang.String>
+        getMembersList() {
+      return members_;
+    }
+    /**
+     * <code>repeated string members = 1;</code>
+     */
+    public int getMembersCount() {
+      return members_.size();
+    }
+    /**
+     * <code>repeated string members = 1;</code>
+     */
+    public java.lang.String getMembers(int index) {
+      return members_.get(index);
+    }
+    /**
+     * <code>repeated string members = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getMembersBytes(int index) {
+      return members_.getByteString(index);
+    }
+
+    // repeated string proposed_members = 2;
+    public static final int PROPOSED_MEMBERS_FIELD_NUMBER = 2;
+    private com.google.protobuf.LazyStringList proposedMembers_;
+    /**
+     * <code>repeated string proposed_members = 2;</code>
+     */
+    public java.util.List<java.lang.String>
+        getProposedMembersList() {
+      return proposedMembers_;
+    }
+    /**
+     * <code>repeated string proposed_members = 2;</code>
+     */
+    public int getProposedMembersCount() {
+      return proposedMembers_.size();
+    }
+    /**
+     * <code>repeated string proposed_members = 2;</code>
+     */
+    public java.lang.String getProposedMembers(int index) {
+      return proposedMembers_.get(index);
+    }
+    /**
+     * <code>repeated string proposed_members = 2;</code>
+     */
+    public com.google.protobuf.ByteString
+        getProposedMembersBytes(int index) {
+      return proposedMembers_.getByteString(index);
+    }
+
+    private void initFields() {
+      members_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      proposedMembers_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      for (int i = 0; i < members_.size(); i++) {
+        output.writeBytes(1, members_.getByteString(i));
+      }
+      for (int i = 0; i < proposedMembers_.size(); i++) {
+        output.writeBytes(2, proposedMembers_.getByteString(i));
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      {
+        int dataSize = 0;
+        for (int i = 0; i < members_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeBytesSizeNoTag(members_.getByteString(i));
+        }
+        size += dataSize;
+        size += 1 * getMembersList().size();
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < proposedMembers_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeBytesSizeNoTag(proposedMembers_.getByteString(i));
+        }
+        size += dataSize;
+        size += 1 * getProposedMembersList().size();
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static org.robotninjas.barge.proto.RaftEntry.Membership parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.robotninjas.barge.proto.RaftEntry.Membership parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.robotninjas.barge.proto.RaftEntry.Membership parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.robotninjas.barge.proto.RaftEntry.Membership parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.robotninjas.barge.proto.RaftEntry.Membership parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static org.robotninjas.barge.proto.RaftEntry.Membership parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static org.robotninjas.barge.proto.RaftEntry.Membership parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static org.robotninjas.barge.proto.RaftEntry.Membership parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static org.robotninjas.barge.proto.RaftEntry.Membership parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static org.robotninjas.barge.proto.RaftEntry.Membership parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(org.robotninjas.barge.proto.RaftEntry.Membership prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code Membership}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements org.robotninjas.barge.proto.RaftEntry.MembershipOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return org.robotninjas.barge.proto.RaftEntry.internal_static_Membership_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return org.robotninjas.barge.proto.RaftEntry.internal_static_Membership_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                org.robotninjas.barge.proto.RaftEntry.Membership.class, org.robotninjas.barge.proto.RaftEntry.Membership.Builder.class);
+      }
+
+      // Construct using org.robotninjas.barge.proto.RaftEntry.Membership.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        members_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        proposedMembers_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return org.robotninjas.barge.proto.RaftEntry.internal_static_Membership_descriptor;
+      }
+
+      public org.robotninjas.barge.proto.RaftEntry.Membership getDefaultInstanceForType() {
+        return org.robotninjas.barge.proto.RaftEntry.Membership.getDefaultInstance();
+      }
+
+      public org.robotninjas.barge.proto.RaftEntry.Membership build() {
+        org.robotninjas.barge.proto.RaftEntry.Membership result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public org.robotninjas.barge.proto.RaftEntry.Membership buildPartial() {
+        org.robotninjas.barge.proto.RaftEntry.Membership result = new org.robotninjas.barge.proto.RaftEntry.Membership(this);
+        int from_bitField0_ = bitField0_;
+        if (((bitField0_ & 0x00000001) == 0x00000001)) {
+          members_ = new com.google.protobuf.UnmodifiableLazyStringList(
+              members_);
+          bitField0_ = (bitField0_ & ~0x00000001);
+        }
+        result.members_ = members_;
+        if (((bitField0_ & 0x00000002) == 0x00000002)) {
+          proposedMembers_ = new com.google.protobuf.UnmodifiableLazyStringList(
+              proposedMembers_);
+          bitField0_ = (bitField0_ & ~0x00000002);
+        }
+        result.proposedMembers_ = proposedMembers_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof org.robotninjas.barge.proto.RaftEntry.Membership) {
+          return mergeFrom((org.robotninjas.barge.proto.RaftEntry.Membership)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(org.robotninjas.barge.proto.RaftEntry.Membership other) {
+        if (other == org.robotninjas.barge.proto.RaftEntry.Membership.getDefaultInstance()) return this;
+        if (!other.members_.isEmpty()) {
+          if (members_.isEmpty()) {
+            members_ = other.members_;
+            bitField0_ = (bitField0_ & ~0x00000001);
+          } else {
+            ensureMembersIsMutable();
+            members_.addAll(other.members_);
+          }
+          onChanged();
+        }
+        if (!other.proposedMembers_.isEmpty()) {
+          if (proposedMembers_.isEmpty()) {
+            proposedMembers_ = other.proposedMembers_;
+            bitField0_ = (bitField0_ & ~0x00000002);
+          } else {
+            ensureProposedMembersIsMutable();
+            proposedMembers_.addAll(other.proposedMembers_);
+          }
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        org.robotninjas.barge.proto.RaftEntry.Membership parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (org.robotninjas.barge.proto.RaftEntry.Membership) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      // repeated string members = 1;
+      private com.google.protobuf.LazyStringList members_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      private void ensureMembersIsMutable() {
+        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+          members_ = new com.google.protobuf.LazyStringArrayList(members_);
+          bitField0_ |= 0x00000001;
+         }
+      }
+      /**
+       * <code>repeated string members = 1;</code>
+       */
+      public java.util.List<java.lang.String>
+          getMembersList() {
+        return java.util.Collections.unmodifiableList(members_);
+      }
+      /**
+       * <code>repeated string members = 1;</code>
+       */
+      public int getMembersCount() {
+        return members_.size();
+      }
+      /**
+       * <code>repeated string members = 1;</code>
+       */
+      public java.lang.String getMembers(int index) {
+        return members_.get(index);
+      }
+      /**
+       * <code>repeated string members = 1;</code>
+       */
+      public com.google.protobuf.ByteString
+          getMembersBytes(int index) {
+        return members_.getByteString(index);
+      }
+      /**
+       * <code>repeated string members = 1;</code>
+       */
+      public Builder setMembers(
+          int index, java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureMembersIsMutable();
+        members_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string members = 1;</code>
+       */
+      public Builder addMembers(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureMembersIsMutable();
+        members_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string members = 1;</code>
+       */
+      public Builder addAllMembers(
+          java.lang.Iterable<java.lang.String> values) {
+        ensureMembersIsMutable();
+        super.addAll(values, members_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string members = 1;</code>
+       */
+      public Builder clearMembers() {
+        members_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string members = 1;</code>
+       */
+      public Builder addMembersBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureMembersIsMutable();
+        members_.add(value);
+        onChanged();
+        return this;
+      }
+
+      // repeated string proposed_members = 2;
+      private com.google.protobuf.LazyStringList proposedMembers_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      private void ensureProposedMembersIsMutable() {
+        if (!((bitField0_ & 0x00000002) == 0x00000002)) {
+          proposedMembers_ = new com.google.protobuf.LazyStringArrayList(proposedMembers_);
+          bitField0_ |= 0x00000002;
+         }
+      }
+      /**
+       * <code>repeated string proposed_members = 2;</code>
+       */
+      public java.util.List<java.lang.String>
+          getProposedMembersList() {
+        return java.util.Collections.unmodifiableList(proposedMembers_);
+      }
+      /**
+       * <code>repeated string proposed_members = 2;</code>
+       */
+      public int getProposedMembersCount() {
+        return proposedMembers_.size();
+      }
+      /**
+       * <code>repeated string proposed_members = 2;</code>
+       */
+      public java.lang.String getProposedMembers(int index) {
+        return proposedMembers_.get(index);
+      }
+      /**
+       * <code>repeated string proposed_members = 2;</code>
+       */
+      public com.google.protobuf.ByteString
+          getProposedMembersBytes(int index) {
+        return proposedMembers_.getByteString(index);
+      }
+      /**
+       * <code>repeated string proposed_members = 2;</code>
+       */
+      public Builder setProposedMembers(
+          int index, java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureProposedMembersIsMutable();
+        proposedMembers_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string proposed_members = 2;</code>
+       */
+      public Builder addProposedMembers(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureProposedMembersIsMutable();
+        proposedMembers_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string proposed_members = 2;</code>
+       */
+      public Builder addAllProposedMembers(
+          java.lang.Iterable<java.lang.String> values) {
+        ensureProposedMembersIsMutable();
+        super.addAll(values, proposedMembers_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string proposed_members = 2;</code>
+       */
+      public Builder clearProposedMembers() {
+        proposedMembers_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string proposed_members = 2;</code>
+       */
+      public Builder addProposedMembersBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureProposedMembersIsMutable();
+        proposedMembers_.add(value);
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:Membership)
+    }
+
+    static {
+      defaultInstance = new Membership(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:Membership)
+  }
+
   public interface EntryOrBuilder
       extends com.google.protobuf.MessageOrBuilder {
 
@@ -21,15 +703,29 @@ public final class RaftEntry {
      */
     long getTerm();
 
-    // required bytes command = 2;
+    // optional bytes command = 2;
     /**
-     * <code>required bytes command = 2;</code>
+     * <code>optional bytes command = 2;</code>
      */
     boolean hasCommand();
     /**
-     * <code>required bytes command = 2;</code>
+     * <code>optional bytes command = 2;</code>
      */
     com.google.protobuf.ByteString getCommand();
+
+    // optional .Membership membership = 3;
+    /**
+     * <code>optional .Membership membership = 3;</code>
+     */
+    boolean hasMembership();
+    /**
+     * <code>optional .Membership membership = 3;</code>
+     */
+    org.robotninjas.barge.proto.RaftEntry.Membership getMembership();
+    /**
+     * <code>optional .Membership membership = 3;</code>
+     */
+    org.robotninjas.barge.proto.RaftEntry.MembershipOrBuilder getMembershipOrBuilder();
   }
   /**
    * Protobuf type {@code Entry}
@@ -92,6 +788,19 @@ public final class RaftEntry {
               command_ = input.readBytes();
               break;
             }
+            case 26: {
+              org.robotninjas.barge.proto.RaftEntry.Membership.Builder subBuilder = null;
+              if (((bitField0_ & 0x00000004) == 0x00000004)) {
+                subBuilder = membership_.toBuilder();
+              }
+              membership_ = input.readMessage(org.robotninjas.barge.proto.RaftEntry.Membership.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(membership_);
+                membership_ = subBuilder.buildPartial();
+              }
+              bitField0_ |= 0x00000004;
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -148,25 +857,48 @@ public final class RaftEntry {
       return term_;
     }
 
-    // required bytes command = 2;
+    // optional bytes command = 2;
     public static final int COMMAND_FIELD_NUMBER = 2;
     private com.google.protobuf.ByteString command_;
     /**
-     * <code>required bytes command = 2;</code>
+     * <code>optional bytes command = 2;</code>
      */
     public boolean hasCommand() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>required bytes command = 2;</code>
+     * <code>optional bytes command = 2;</code>
      */
     public com.google.protobuf.ByteString getCommand() {
       return command_;
     }
 
+    // optional .Membership membership = 3;
+    public static final int MEMBERSHIP_FIELD_NUMBER = 3;
+    private org.robotninjas.barge.proto.RaftEntry.Membership membership_;
+    /**
+     * <code>optional .Membership membership = 3;</code>
+     */
+    public boolean hasMembership() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional .Membership membership = 3;</code>
+     */
+    public org.robotninjas.barge.proto.RaftEntry.Membership getMembership() {
+      return membership_;
+    }
+    /**
+     * <code>optional .Membership membership = 3;</code>
+     */
+    public org.robotninjas.barge.proto.RaftEntry.MembershipOrBuilder getMembershipOrBuilder() {
+      return membership_;
+    }
+
     private void initFields() {
       term_ = 0L;
       command_ = com.google.protobuf.ByteString.EMPTY;
+      membership_ = org.robotninjas.barge.proto.RaftEntry.Membership.getDefaultInstance();
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -174,10 +906,6 @@ public final class RaftEntry {
       if (isInitialized != -1) return isInitialized == 1;
 
       if (!hasTerm()) {
-        memoizedIsInitialized = 0;
-        return false;
-      }
-      if (!hasCommand()) {
         memoizedIsInitialized = 0;
         return false;
       }
@@ -193,6 +921,9 @@ public final class RaftEntry {
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         output.writeBytes(2, command_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeMessage(3, membership_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -210,6 +941,10 @@ public final class RaftEntry {
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(2, command_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(3, membership_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -319,6 +1054,7 @@ public final class RaftEntry {
       }
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+          getMembershipFieldBuilder();
         }
       }
       private static Builder create() {
@@ -331,6 +1067,12 @@ public final class RaftEntry {
         bitField0_ = (bitField0_ & ~0x00000001);
         command_ = com.google.protobuf.ByteString.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000002);
+        if (membershipBuilder_ == null) {
+          membership_ = org.robotninjas.barge.proto.RaftEntry.Membership.getDefaultInstance();
+        } else {
+          membershipBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000004);
         return this;
       }
 
@@ -367,6 +1109,14 @@ public final class RaftEntry {
           to_bitField0_ |= 0x00000002;
         }
         result.command_ = command_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        if (membershipBuilder_ == null) {
+          result.membership_ = membership_;
+        } else {
+          result.membership_ = membershipBuilder_.build();
+        }
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -389,16 +1139,15 @@ public final class RaftEntry {
         if (other.hasCommand()) {
           setCommand(other.getCommand());
         }
+        if (other.hasMembership()) {
+          mergeMembership(other.getMembership());
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
 
       public final boolean isInitialized() {
         if (!hasTerm()) {
-          
-          return false;
-        }
-        if (!hasCommand()) {
           
           return false;
         }
@@ -457,22 +1206,22 @@ public final class RaftEntry {
         return this;
       }
 
-      // required bytes command = 2;
+      // optional bytes command = 2;
       private com.google.protobuf.ByteString command_ = com.google.protobuf.ByteString.EMPTY;
       /**
-       * <code>required bytes command = 2;</code>
+       * <code>optional bytes command = 2;</code>
        */
       public boolean hasCommand() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
-       * <code>required bytes command = 2;</code>
+       * <code>optional bytes command = 2;</code>
        */
       public com.google.protobuf.ByteString getCommand() {
         return command_;
       }
       /**
-       * <code>required bytes command = 2;</code>
+       * <code>optional bytes command = 2;</code>
        */
       public Builder setCommand(com.google.protobuf.ByteString value) {
         if (value == null) {
@@ -484,13 +1233,130 @@ public final class RaftEntry {
         return this;
       }
       /**
-       * <code>required bytes command = 2;</code>
+       * <code>optional bytes command = 2;</code>
        */
       public Builder clearCommand() {
         bitField0_ = (bitField0_ & ~0x00000002);
         command_ = getDefaultInstance().getCommand();
         onChanged();
         return this;
+      }
+
+      // optional .Membership membership = 3;
+      private org.robotninjas.barge.proto.RaftEntry.Membership membership_ = org.robotninjas.barge.proto.RaftEntry.Membership.getDefaultInstance();
+      private com.google.protobuf.SingleFieldBuilder<
+          org.robotninjas.barge.proto.RaftEntry.Membership, org.robotninjas.barge.proto.RaftEntry.Membership.Builder, org.robotninjas.barge.proto.RaftEntry.MembershipOrBuilder> membershipBuilder_;
+      /**
+       * <code>optional .Membership membership = 3;</code>
+       */
+      public boolean hasMembership() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>optional .Membership membership = 3;</code>
+       */
+      public org.robotninjas.barge.proto.RaftEntry.Membership getMembership() {
+        if (membershipBuilder_ == null) {
+          return membership_;
+        } else {
+          return membershipBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .Membership membership = 3;</code>
+       */
+      public Builder setMembership(org.robotninjas.barge.proto.RaftEntry.Membership value) {
+        if (membershipBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          membership_ = value;
+          onChanged();
+        } else {
+          membershipBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000004;
+        return this;
+      }
+      /**
+       * <code>optional .Membership membership = 3;</code>
+       */
+      public Builder setMembership(
+          org.robotninjas.barge.proto.RaftEntry.Membership.Builder builderForValue) {
+        if (membershipBuilder_ == null) {
+          membership_ = builderForValue.build();
+          onChanged();
+        } else {
+          membershipBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000004;
+        return this;
+      }
+      /**
+       * <code>optional .Membership membership = 3;</code>
+       */
+      public Builder mergeMembership(org.robotninjas.barge.proto.RaftEntry.Membership value) {
+        if (membershipBuilder_ == null) {
+          if (((bitField0_ & 0x00000004) == 0x00000004) &&
+              membership_ != org.robotninjas.barge.proto.RaftEntry.Membership.getDefaultInstance()) {
+            membership_ =
+              org.robotninjas.barge.proto.RaftEntry.Membership.newBuilder(membership_).mergeFrom(value).buildPartial();
+          } else {
+            membership_ = value;
+          }
+          onChanged();
+        } else {
+          membershipBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000004;
+        return this;
+      }
+      /**
+       * <code>optional .Membership membership = 3;</code>
+       */
+      public Builder clearMembership() {
+        if (membershipBuilder_ == null) {
+          membership_ = org.robotninjas.barge.proto.RaftEntry.Membership.getDefaultInstance();
+          onChanged();
+        } else {
+          membershipBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000004);
+        return this;
+      }
+      /**
+       * <code>optional .Membership membership = 3;</code>
+       */
+      public org.robotninjas.barge.proto.RaftEntry.Membership.Builder getMembershipBuilder() {
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return getMembershipFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .Membership membership = 3;</code>
+       */
+      public org.robotninjas.barge.proto.RaftEntry.MembershipOrBuilder getMembershipOrBuilder() {
+        if (membershipBuilder_ != null) {
+          return membershipBuilder_.getMessageOrBuilder();
+        } else {
+          return membership_;
+        }
+      }
+      /**
+       * <code>optional .Membership membership = 3;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          org.robotninjas.barge.proto.RaftEntry.Membership, org.robotninjas.barge.proto.RaftEntry.Membership.Builder, org.robotninjas.barge.proto.RaftEntry.MembershipOrBuilder> 
+          getMembershipFieldBuilder() {
+        if (membershipBuilder_ == null) {
+          membershipBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              org.robotninjas.barge.proto.RaftEntry.Membership, org.robotninjas.barge.proto.RaftEntry.Membership.Builder, org.robotninjas.barge.proto.RaftEntry.MembershipOrBuilder>(
+                  membership_,
+                  getParentForChildren(),
+                  isClean());
+          membership_ = null;
+        }
+        return membershipBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:Entry)
@@ -505,6 +1371,11 @@ public final class RaftEntry {
   }
 
   private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_Membership_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_Membership_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_Entry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -518,21 +1389,29 @@ public final class RaftEntry {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\013entry.proto\"&\n\005Entry\022\014\n\004term\030\001 \002(\003\022\017\n\007" +
-      "command\030\002 \002(\014B(\n\033org.robotninjas.barge.p" +
-      "rotoB\tRaftEntry"
+      "\n\013entry.proto\"7\n\nMembership\022\017\n\007members\030\001" +
+      " \003(\t\022\030\n\020proposed_members\030\002 \003(\t\"G\n\005Entry\022" +
+      "\014\n\004term\030\001 \002(\003\022\017\n\007command\030\002 \001(\014\022\037\n\nmember" +
+      "ship\030\003 \001(\0132\013.MembershipB(\n\033org.robotninj" +
+      "as.barge.protoB\tRaftEntry"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
         public com.google.protobuf.ExtensionRegistry assignDescriptors(
             com.google.protobuf.Descriptors.FileDescriptor root) {
           descriptor = root;
-          internal_static_Entry_descriptor =
+          internal_static_Membership_descriptor =
             getDescriptor().getMessageTypes().get(0);
+          internal_static_Membership_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_Membership_descriptor,
+              new java.lang.String[] { "Members", "ProposedMembers", });
+          internal_static_Entry_descriptor =
+            getDescriptor().getMessageTypes().get(1);
           internal_static_Entry_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_Entry_descriptor,
-              new java.lang.String[] { "Term", "Command", });
+              new java.lang.String[] { "Term", "Command", "Membership", });
           return null;
         }
       };

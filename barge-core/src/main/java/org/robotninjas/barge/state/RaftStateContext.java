@@ -17,7 +17,9 @@
 package org.robotninjas.barge.state;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.robotninjas.barge.RaftClusterHealth;
 import org.robotninjas.barge.RaftException;
+import org.robotninjas.barge.RaftMembership;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -32,17 +34,21 @@ import static org.robotninjas.barge.proto.RaftProto.*;
 @NotThreadSafe
 public class RaftStateContext {
 
-  public enum StateType {START, FOLLOWER, CANDIDATE, LEADER}
+  public enum StateType {START, FOLLOWER, CANDIDATE, LEADER, STOPPED}
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RaftStateContext.class);
 
   private final StateFactory stateFactory;
   private volatile StateType state;
   private volatile State delegate;
+  private final ConfigurationState configurationState;
+
+  private boolean stop;
 
   @Inject
-  RaftStateContext(StateFactory stateFactory) {
+  RaftStateContext(StateFactory stateFactory, ConfigurationState configurationState) {
     this.stateFactory = stateFactory;
+    this.configurationState = configurationState;
   }
 
   @Nonnull
@@ -62,6 +68,13 @@ public class RaftStateContext {
     checkNotNull(op);
     return delegate.commitOperation(this, op);
   }
+  
+  @Nonnull
+  public ListenableFuture<Boolean> setConfiguration(@Nonnull RaftMembership oldMembership, @Nonnull RaftMembership newMembership) throws RaftException {
+    checkNotNull(oldMembership);
+    checkNotNull(newMembership);
+    return delegate.setConfiguration(this, oldMembership, newMembership);
+  }
 
   public synchronized void setState(@Nonnull State oldState, @Nonnull StateType state) {
     if (this.delegate != oldState) {
@@ -72,8 +85,13 @@ public class RaftStateContext {
     }
 
     LOGGER.info("old state: {}, new state: {}", this.state, state);
-    this.state = checkNotNull(state);
-    switch (state) {
+    if (stop) {
+      this.state = StateType.STOPPED;
+      LOGGER.info("Service stopped; replaced state with: {}", this.state);
+    } else {
+      this.state = checkNotNull(state);
+    }
+    switch (this.state) {
       case START:
         delegate = stateFactory.start();
         break;
@@ -86,13 +104,39 @@ public class RaftStateContext {
       case CANDIDATE:
         delegate = stateFactory.candidate();
         break;
+      case STOPPED:
+        delegate = null;
+        break;
     }
     MDC.put("state", this.state.toString());
-    delegate.init(this);
+    if (delegate != null) {
+      delegate.init(this);
+    }
   }
 
   @Nonnull
   public StateType getState() {
     return state;
+  }
+
+  @Nonnull
+  public ConfigurationState getConfigurationState() {
+    return configurationState;
+  }
+
+  public synchronized boolean shouldStop() {
+    return stop;
+  }
+
+  public synchronized void stop() {
+    stop = true;
+  }
+
+  public synchronized boolean isStopped() {
+    return this.state == StateType.STOPPED;
+  }
+
+  public RaftClusterHealth getClusterHealth() throws RaftException {
+    return delegate.getClusterHealth(this);
   }
 }

@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
 import com.google.common.util.concurrent.*;
 import com.google.inject.Inject;
+import org.robotninjas.barge.BargeThreadPools;
 import org.robotninjas.barge.StateMachine;
 
 import javax.annotation.Nonnull;
@@ -29,8 +30,8 @@ class StateMachineProxy {
   private final AtomicBoolean running;
 
   @Inject
-  StateMachineProxy(@Nonnull @StateMachineExecutor ListeningExecutorService executor, @Nonnull StateMachine stateMachine) {
-    this.executor = checkNotNull(executor);
+  StateMachineProxy(@Nonnull BargeThreadPools bargeThreadPools, @Nonnull StateMachine stateMachine) {
+    this.executor = checkNotNull(bargeThreadPools.getStateMachineExecutor());
     this.stateMachine = checkNotNull(stateMachine);
     this.operations = Queues.newLinkedBlockingQueue();
     this.running = new AtomicBoolean(false);

@@ -16,14 +16,18 @@
 
 package org.robotninjas.barge.state;
 
+import org.robotninjas.barge.Replica;
+
 import com.google.inject.PrivateModule;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 public class StateModule extends PrivateModule {
 
   private final long electionTimeout;
+  private final Replica self;
 
-  public StateModule(long electionTimeout) {
+  public StateModule(Replica self, long electionTimeout) {
+    this.self = self;
     this.electionTimeout = electionTimeout;
   }
 
@@ -44,6 +48,9 @@ public class StateModule extends PrivateModule {
       .asEagerSingleton();
     expose(RaftStateContext.class);
 
+    bind(ConfigurationState.class)
+    .toInstance(new ConfigurationState(self));
+    expose(ConfigurationState.class);
   }
 
 }

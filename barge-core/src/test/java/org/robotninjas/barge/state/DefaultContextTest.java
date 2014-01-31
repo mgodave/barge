@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.robotninjas.barge.RaftException;
+import org.robotninjas.barge.Replica;
 
 import static junit.framework.Assert.assertEquals;
 import static org.mockito.Mockito.*;
@@ -15,6 +16,7 @@ import static org.robotninjas.barge.state.RaftStateContext.StateType;
 public class DefaultContextTest {
 
   private @Mock StateFactory mockStateFactory;
+  private @Mock ConfigurationState configurationState;
   private @Mock Leader mockLeader;
   private @Mock Follower mockFollower;
   private @Mock Candidate mockCandidate;
@@ -35,7 +37,7 @@ public class DefaultContextTest {
   @Test
   public void testDefaultContext() throws RaftException {
 
-    RaftStateContext ctx = new RaftStateContext(mockStateFactory);
+    RaftStateContext ctx = new RaftStateContext(mockStateFactory, configurationState);
 
     ctx.setState(null, StateType.FOLLOWER);
       

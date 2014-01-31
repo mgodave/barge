@@ -59,6 +59,7 @@ class ReplicaManager {
   private boolean forwards = false;
   private boolean shutdown = false;
   private SettableFuture<AppendEntriesResponse> nextResponse = SettableFuture.create();
+  private volatile long lastResponse;
 
   @Inject
   ReplicaManager(Client client, RaftLog log, @Assisted Replica remote) {
@@ -106,6 +107,7 @@ class ReplicaManager {
         if (result.getSuccess()) {
           previousResponse.set(result);
         }
+        updateLastResponse();
       }
 
       @Override
@@ -121,6 +123,14 @@ class ReplicaManager {
 
     return response;
 
+  }
+
+  protected void updateLastResponse() {
+    lastResponse = System.nanoTime();
+  }
+
+  public long getLastProofOfLife() {
+    return lastResponse;
   }
 
   private void updateNextIndex(@Nonnull AppendEntries request, @Nonnull AppendEntriesResponse response) {
