@@ -174,16 +174,24 @@ class Leader extends BaseState {
    */
   private void updateCommitted() {
 
-    List<ReplicaManager> sorted = newArrayList(managers.values());
-    Collections.sort(sorted, new Comparator<ReplicaManager>() {
-      @Override
-      public int compare(ReplicaManager o, ReplicaManager o2) {
-        return Longs.compare(o.getMatchIndex(), o2.getMatchIndex());
-      }
-    });
+    List<Long> sorted = newArrayList();
+    for (ReplicaManager manager : managers.values()) {
+      sorted.add(manager.getMatchIndex());
+    }
+    sorted.add(log.lastLogIndex());
+    Collections.sort(sorted);
 
-    final int middle = (int) Math.ceil(sorted.size() / 2.0);
-    final long committed = sorted.get(middle).getMatchIndex();
+    int n = sorted.size();
+    int quorumSize;
+    if ((n & 1) == 1) {
+      // Odd
+      quorumSize = (n + 1) / 2;
+    } else {
+      // Even
+      quorumSize = (n / 2) + 1;
+    }
+    int middle = quorumSize - 1;
+    final long committed = sorted.get(middle);
     log.commitIndex(committed);
 
   }
@@ -223,7 +231,7 @@ class Leader extends BaseState {
 
     }
 
-    // Cope if we're the only node in the cluster
+    // Cope if we're the only node in the cluster.
     if (responses.isEmpty()) {
       updateCommitted();
     }
