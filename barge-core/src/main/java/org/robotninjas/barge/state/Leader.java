@@ -187,14 +187,7 @@ class Leader extends BaseState {
     Collections.sort(sorted);
 
     int n = sorted.size();
-    int quorumSize;
-    if ((n & 1) == 1) {
-      // Odd
-      quorumSize = (n + 1) / 2;
-    } else {
-      // Even
-      quorumSize = (n / 2) + 1;
-    }
+    int quorumSize = (n / 2) + 1;
     int middle = quorumSize - 1;
     final long committed = sorted.get(middle);
     log.commitIndex(committed);
