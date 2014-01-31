@@ -32,13 +32,15 @@ import static org.robotninjas.barge.proto.RaftProto.*;
 @NotThreadSafe
 public class RaftStateContext {
 
-  public enum StateType {START, FOLLOWER, CANDIDATE, LEADER}
+  public enum StateType {START, FOLLOWER, CANDIDATE, LEADER, STOPPED}
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RaftStateContext.class);
 
   private final StateFactory stateFactory;
   private volatile StateType state;
   private volatile State delegate;
+
+  private boolean stop;
 
   @Inject
   RaftStateContext(StateFactory stateFactory) {
@@ -72,7 +74,12 @@ public class RaftStateContext {
     }
 
     LOGGER.info("old state: {}, new state: {}", this.state, state);
-    this.state = checkNotNull(state);
+    if (stop) {
+      this.state = StateType.STOPPED;
+      LOGGER.info("Service stopping); replaced state with {}", this.state);
+    } else {
+      this.state = checkNotNull(state);
+    }
     switch (state) {
       case START:
         delegate = stateFactory.start();
@@ -86,13 +93,22 @@ public class RaftStateContext {
       case CANDIDATE:
         delegate = stateFactory.candidate();
         break;
+      case STOPPED:
+        delegate = null;
+        break;
     }
     MDC.put("state", this.state.toString());
-    delegate.init(this);
+    if (delegate != null) {
+      delegate.init(this);
+    }
   }
 
   @Nonnull
   public StateType getState() {
     return state;
+  }
+
+  public synchronized void stop() {
+    stop = true;
   }
 }

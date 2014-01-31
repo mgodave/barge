@@ -90,6 +90,9 @@ public class RaftService extends AbstractService {
 
     try {
       rpcServer.stopAsync().awaitTerminated();
+
+      ctx.stop();
+
       notifyStopped();
     } catch (Exception e) {
       notifyFailed(e);
