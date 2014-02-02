@@ -16,7 +16,7 @@
 
     <dependency>
       <groupId>org.robotninjas.barge</groupId>
-      <artifactId>barge-api</artifactId>
+      <artifactId>barge-core</artifactId>
     </dependency>
 
     <dependency>

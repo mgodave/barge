@@ -26,8 +26,6 @@ import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.proto.RaftProto;
 import org.robotninjas.protobuf.netty.client.ClientController;
 import org.robotninjas.protobuf.netty.client.NettyRpcChannel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -42,9 +40,8 @@ import static org.robotninjas.barge.proto.RaftProto.*;
 
 //TODO write a protoc code generator for this bullshit
 @Immutable
-class ProtoRpcRaftClient implements AsynchronousRaftClient {
+class ProtoRpcRaftClient implements RaftClient {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(AsynchronousRaftClient.class);
   private static final long DEFAULT_TIMEOUT = 2000;
 
   private final ObjectPool<ListenableFuture<NettyRpcChannel>> channelPool;
@@ -91,7 +88,7 @@ class ProtoRpcRaftClient implements AsynchronousRaftClient {
 
       try {
         channelPool.invalidateObject(channel);
-      } catch (Exception e1) {
+      } catch (Exception ignored) {
       }
       channel = null;
       return immediateFailedFuture(e);
@@ -102,8 +99,7 @@ class ProtoRpcRaftClient implements AsynchronousRaftClient {
         if (null != channel) {
           channelPool.returnObject(channel);
         }
-      } catch (Exception e) {
-        // ignored
+      } catch (Exception ignored) {
       }
 
     }
@@ -115,7 +111,7 @@ class ProtoRpcRaftClient implements AsynchronousRaftClient {
       public void run() {
         try {
           channelPool.returnObject(channel);
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
       }
     };

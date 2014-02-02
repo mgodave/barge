@@ -23,8 +23,6 @@ import org.apache.commons.pool.impl.GenericKeyedObjectPool;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.protobuf.netty.client.NettyRpcChannel;
 import org.robotninjas.protobuf.netty.client.RpcClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
@@ -35,7 +33,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Immutable
 class ProtoRpcRaftClientProvider implements RaftClientProvider {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ProtoRpcRaftClientProvider.class);
   private static final GenericKeyedObjectPool.Config config;
 
   static {
@@ -56,7 +53,7 @@ class ProtoRpcRaftClientProvider implements RaftClientProvider {
   }
 
   @Nonnull
-  public AsynchronousRaftClient get(@Nonnull Replica replica) {
+  public RaftClient get(@Nonnull Replica replica) {
     checkNotNull(replica);
     return new ProtoRpcRaftClient(PoolUtils.adapt(connectionPools, replica));
   }

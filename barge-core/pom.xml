@@ -14,12 +14,7 @@
   <packaging>jar</packaging>
 
   <dependencies>
-    
-    <dependency>
-      <groupId>org.robotninjas.barge</groupId>
-      <artifactId>barge-api</artifactId>
-    </dependency>
-    
+
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
@@ -48,6 +43,11 @@
     <dependency>
       <groupId>com.github.sbtourist</groupId>
       <artifactId>journalio</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
     </dependency>
 
     <!-- Optional Dependencies -->
@@ -91,6 +91,11 @@
 
   <build>
     <plugins>
+
+      <plugin>
+        <groupId>de.softwareforge.mojo</groupId>
+        <artifactId>maven-protoc-plugin</artifactId>
+      </plugin>
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

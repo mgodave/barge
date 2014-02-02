@@ -41,9 +41,9 @@ public class NettyRaftServiceTest {
     }
 
     assertThat(new int[]{
-        counters[0].getCounter(),
-        counters[1].getCounter(),
-        counters[2].getCounter()}).isEqualTo(new int[]{10, 10, 10});
+      counters[0].getCounter(),
+      counters[1].getCounter(),
+      counters[2].getCounter()}).isEqualTo(new int[]{10, 10, 10});
   }
 
   @After
