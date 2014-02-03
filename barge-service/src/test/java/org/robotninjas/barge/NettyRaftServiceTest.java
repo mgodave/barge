@@ -14,8 +14,7 @@ public class NettyRaftServiceTest {
 
   @Test(timeout = 30000)
   public void canRun3RaftInstancesReachingCommonState() throws Exception {
-    // TODO replace sleep with observation of leader election transition
-    Thread.sleep(3000);
+    counters.waitForLeaderElection();
 
     int increments = 10;
 
