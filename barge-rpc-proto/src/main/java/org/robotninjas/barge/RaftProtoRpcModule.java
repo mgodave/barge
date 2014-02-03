@@ -23,17 +23,7 @@ class RaftProtoRpcModule extends PrivateModule {
 
   @Override
   protected void configure() {
-    final NioEventLoopGroup eventLoop;
-    if (eventLoopGroup.isPresent()) {
-      eventLoop = eventLoopGroup.get();
-    } else {
-      eventLoop = new NioEventLoopGroup();
-      Runtime.getRuntime().addShutdownHook(new Thread() {
-        public void run() {
-          eventLoop.shutdownGracefully();
-        }
-      });
-    }
+    final NioEventLoopGroup eventLoop  = initializeEventLoop();
 
     install(new RpcModule(localEndpoint.address(), eventLoop));
 
@@ -43,6 +33,22 @@ class RaftProtoRpcModule extends PrivateModule {
         .annotatedWith(RaftScheduler.class);
     expose(RpcServer.class);
     expose(RaftClientProvider.class);
+  }
+
+  private NioEventLoopGroup initializeEventLoop() {
+    final NioEventLoopGroup eventLoop;
+
+    if (eventLoopGroup.isPresent()) {
+      eventLoop = eventLoopGroup.get();
+    } else {
+      eventLoop = new NioEventLoopGroup(1);
+      Runtime.getRuntime().addShutdownHook(new Thread() {
+        public void run() {
+          eventLoop.shutdownGracefully();
+        }
+      });
+    }
+    return eventLoop;
   }
 
 }

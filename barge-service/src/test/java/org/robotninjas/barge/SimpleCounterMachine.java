@@ -4,17 +4,22 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 public class SimpleCounterMachine implements StateMachine {
 
   private final int id;
-  private final Replica[] replicas;
+  private final List<Replica> replicas;
 
   private int counter;
   private File logDirectory;
   private NettyRaftService service;
 
-  public SimpleCounterMachine(int id, Replica[] replicas) {
+  public SimpleCounterMachine(int id, List<Replica> replicas) {
+    checkArgument(id >= 0 && id < replicas.size(), "replica id " + id + " should be between 0 and " + replicas.size());
+
     this.id = id;
     this.replicas = replicas;
   }
@@ -33,24 +38,22 @@ public class SimpleCounterMachine implements StateMachine {
 
   @Override
   public Object applyOperation(@Nonnull ByteBuffer entry) {
-    this.counter++;
-    System.err.println("incrementing counter of " + id + " to " + counter);
-    return 0;
-  }
-
-  public int getCounter() {
-    return counter;
+    return this.counter++;
   }
 
   public void startRaft() {
-    ClusterConfig config1 = ClusterConfig.from(replicas[id % 3],
-        replicas[(id + 1) % 3],
-        replicas[(id + 2) % 3]);
+    int clusterSize = replicas.size();
+    Replica[] configuration = new Replica[clusterSize - 1];
+    for (int i = 0; i < clusterSize - 1; i++) {
+      configuration[i] = replicas.get((id + i + 1) % clusterSize);
+    }
+
+    ClusterConfig config1 = ClusterConfig.from(replicas.get(id % clusterSize), configuration);
 
     NettyRaftService service1 = NettyRaftService.newBuilder(config1)
-        .logDir(logDirectory)
-        .timeout(500)
-        .build(this);
+      .logDir(logDirectory)
+      .timeout(500)
+      .build(this);
 
     service1.startAsync().awaitRunning();
     this.service = service1;
@@ -77,6 +80,31 @@ public class SimpleCounterMachine implements StateMachine {
 
   public void stop() {
     service.stopAsync().awaitTerminated();
+  }
+
+  public void deleteLogDirectory() {
     delete(logDirectory);
+  }
+
+  /**
+   * Wait at most {@code timeout} for this counter to reach value {@code increments}.
+   *
+   * @param increments value expected for counter.
+   * @param timeout    timeout in ms.
+   * @throws IllegalStateException if {@code expected} is not reached at end of timeout.
+   */
+  public void waitForValue(int increments, long timeout) {
+    long start = System.nanoTime();
+    while (counter != increments && (elapsedMs(start) < timeout)) {
+      Thread.yield();
+    }
+
+    if (counter != increments) {
+      throw new IllegalStateException("counter' value " + counter + " is not equal to expected " + increments + " within " + timeout + "ms");
+    }
+  }
+
+  private long elapsedMs(long start) {
+    return (System.nanoTime() - start) / 1000000;
   }
 }
