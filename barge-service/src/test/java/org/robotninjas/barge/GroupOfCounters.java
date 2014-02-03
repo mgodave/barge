@@ -78,6 +78,6 @@ public class GroupOfCounters extends ExternalResource {
 
   void waitForLeaderElection() throws InterruptedException {
     // TODO replace sleep with observation of leader election transition
-    Thread.sleep(60000);
+    Thread.sleep(10000);
   }
 }
