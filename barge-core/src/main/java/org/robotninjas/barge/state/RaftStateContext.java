@@ -63,7 +63,7 @@ public class RaftStateContext {
     return delegate.commitOperation(this, op);
   }
 
-  public synchronized void setState(@Nonnull State oldState, @Nonnull StateType state) {
+  public synchronized void setState(State oldState, @Nonnull StateType state) {
     if (this.delegate != oldState) {
       LOGGER.warn("State transition from incorrect previous state.  Expected {}, was {}",
               this.delegate,

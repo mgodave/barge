@@ -13,15 +13,20 @@
         <dependency>
             <groupId>org.robotninjas.barge</groupId>
             <artifactId>barge-core</artifactId>
-            <version>0.1.0-alpha2-SNAPSHOT</version>
         </dependency>
+
+      <!-- Test Dependencies -->
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+      </dependency>
+
     </dependencies>
 
     <build>
         <plugins>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.2-beta-2</version>
                 <configuration>
                     <descriptors>
                         <descriptor>src/main/assembly/assembly.xml</descriptor>

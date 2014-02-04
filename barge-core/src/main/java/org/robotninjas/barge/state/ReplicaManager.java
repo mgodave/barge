@@ -102,6 +102,7 @@ class ReplicaManager {
       @Override
       public void onSuccess(@Nullable AppendEntriesResponse result) {
         running--;
+        // TODO fix inconsistency. result flag as Nullable here but NonNull in updateNextIndex
         updateNextIndex(request, result);
         if (result.getSuccess()) {
           previousResponse.set(result);
@@ -139,6 +140,7 @@ class ReplicaManager {
     }
 
     if (runAgain && !shutdown) {
+      LOGGER.debug("continue sending update");
       sendUpdate();
     }
 

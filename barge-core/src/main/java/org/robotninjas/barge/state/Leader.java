@@ -159,7 +159,6 @@ class Leader extends BaseState {
   @Nonnull
   @Override
   public ListenableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
-
     resetTimeout(ctx);
     ListenableFuture<Object> result = log.append(operation);
     sendRequests(ctx);
@@ -184,6 +183,8 @@ class Leader extends BaseState {
 
     final int middle = (int) Math.ceil(sorted.size() / 2.0);
     final long committed = sorted.get(middle).getMatchIndex();
+
+    LOGGER.debug("updating commitIndex to {}", committed);
     log.commitIndex(committed);
 
   }
