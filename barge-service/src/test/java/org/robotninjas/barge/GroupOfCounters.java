@@ -16,21 +16,26 @@
 package org.robotninjas.barge;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.junit.rules.ExternalResource;
+import org.robotninjas.barge.state.RaftStateContext;
+import org.robotninjas.barge.state.StateTransitionListener;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
 
-/**
- * User: arnaud
- * Date: 03/02/14
- * Time: 08:58
- */
-public class GroupOfCounters extends ExternalResource {
+import static org.robotninjas.barge.state.RaftStateContext.StateType;
+
+public class GroupOfCounters extends ExternalResource implements StateTransitionListener {
 
   private final List<Replica> replicas;
   private final List<SimpleCounterMachine> counters;
   private final File target;
+  private final Map<RaftStateContext, StateType> states = Maps.newConcurrentMap();
 
   public GroupOfCounters(int numberOfReplicas, File target) {
     this.target = target;
@@ -40,7 +45,7 @@ public class GroupOfCounters extends ExternalResource {
 
     for (int i = 10001; i <= (10000 + numberOfReplicas); i++) {
       replicas.add(Replica.fromString("localhost:" + i));
-      counters.add(new SimpleCounterMachine(i - 10001, replicas));
+      counters.add(new SimpleCounterMachine(i - 10001, replicas, this));
     }
   }
 
@@ -67,17 +72,48 @@ public class GroupOfCounters extends ExternalResource {
   /**
    * Wait for all {@link SimpleCounterMachine} in the cluster to reach a consensus value.
    *
-   * @param target expected value for each machine' counter.
+   * @param target  expected value for each machine' counter.
    * @param timeout timeout in ms. Timeout is evaluated per instance of counter within the cluster.
    */
   public void waitAllToReachValue(int target, long timeout) {
     for (SimpleCounterMachine counter : counters) {
-       counter.waitForValue(target,timeout);
+      counter.waitForValue(target, timeout);
     }
   }
 
   void waitForLeaderElection() throws InterruptedException {
-    // TODO replace sleep with observation of leader election transition
-    Thread.sleep(10000);
+    new Prober(new Callable<Boolean>() {
+      @Override
+      public Boolean call() throws Exception {
+        return thereIsOneLeader();
+      }
+    }).probe(10000);
+  }
+
+  private Boolean thereIsOneLeader() {
+    int numberOfLeaders = 0;
+    int numberOfFollowers = 0;
+    for (StateType stateType : states.values()) {
+      switch (stateType) {
+        case LEADER:
+          numberOfLeaders++;
+          break;
+        case FOLLOWER:
+          numberOfFollowers++;
+          break;
+      }
+    }
+
+    return numberOfLeaders == 1 && (numberOfFollowers + numberOfLeaders == replicas.size());
+  }
+
+  @Override
+  public void changeState(@Nonnull RaftStateContext context, @Nullable StateType from, @Nonnull StateType to) {
+    states.put(context, to);
+  }
+
+  @Override
+  public void invalidTransition(@Nonnull RaftStateContext context, @Nonnull StateType actual, @Nullable StateType expected) {
+    // IGNORED
   }
 }

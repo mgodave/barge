@@ -10,6 +10,7 @@ import javax.annotation.Nonnull;
 import static com.google.inject.internal.util.$Preconditions.checkNotNull;
 import static org.robotninjas.barge.proto.RaftProto.*;
 import static org.robotninjas.barge.state.RaftStateContext.StateType.FOLLOWER;
+import static org.robotninjas.barge.state.RaftStateContext.StateType.START;
 
 class Start implements State {
 
@@ -42,6 +43,11 @@ class Start implements State {
   @Override
   public ListenableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
     throw new RaftException("Service has not started yet");
+  }
+
+  @Override
+  public RaftStateContext.StateType type() {
+    return START;
   }
 
 }

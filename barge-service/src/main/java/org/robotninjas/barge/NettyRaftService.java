@@ -27,6 +27,7 @@ import org.robotninjas.barge.proto.RaftProto;
 import org.robotninjas.barge.rpc.RaftExecutor;
 import org.robotninjas.barge.service.RaftService;
 import org.robotninjas.barge.state.RaftStateContext;
+import org.robotninjas.barge.state.StateTransitionListener;
 import org.robotninjas.protobuf.netty.server.RpcServer;
 
 import javax.annotation.Nonnull;
@@ -97,12 +98,12 @@ public class NettyRaftService extends AbstractService implements RaftService {
 
     // Make sure this happens on the Barge thread
     ListenableFuture<ListenableFuture<Object>> response =
-        executor.submit(new Callable<ListenableFuture<Object>>() {
-          @Override
-          public ListenableFuture<Object> call() throws Exception {
-            return ctx.commitOperation(operation);
-          }
-        });
+      executor.submit(new Callable<ListenableFuture<Object>>() {
+        @Override
+        public ListenableFuture<Object> call() throws Exception {
+          return ctx.commitOperation(operation);
+        }
+      });
 
     return Futures.dereference(response);
 
@@ -123,6 +124,10 @@ public class NettyRaftService extends AbstractService implements RaftService {
     return new Builder(config);
   }
 
+  private void addTransitionListener(StateTransitionListener listener) {
+    ctx.addTransitionListener(listener);
+  }
+
   public static class Builder {
 
     private static long TIMEOUT = 150;
@@ -130,6 +135,7 @@ public class NettyRaftService extends AbstractService implements RaftService {
     private final ClusterConfig config;
     private File logDir = Files.createTempDir();
     private long timeout = TIMEOUT;
+    private StateTransitionListener listener;
 
     protected Builder(ClusterConfig config) {
       this.config = config;
@@ -146,11 +152,19 @@ public class NettyRaftService extends AbstractService implements RaftService {
     }
 
     public NettyRaftService build(StateMachine stateMachine) {
-      return Guice.createInjector(
-          new NettyRaftModule(config, logDir, stateMachine, timeout))
-          .getInstance(NettyRaftService.class);
+      NettyRaftService nettyRaftService = Guice.createInjector(
+        new NettyRaftModule(config, logDir, stateMachine, timeout))
+        .getInstance(NettyRaftService.class);
+
+      nettyRaftService.addTransitionListener(listener);
+
+      return nettyRaftService;
     }
 
+    public Builder transitionListener(StateTransitionListener listener) {
+      this.listener = listener;
+      return this;
+    }
   }
 
 }

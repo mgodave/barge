@@ -48,6 +48,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.robotninjas.barge.proto.RaftProto.*;
 import static org.robotninjas.barge.state.RaftStateContext.StateType.FOLLOWER;
+import static org.robotninjas.barge.state.RaftStateContext.StateType.LEADER;
 
 @NotThreadSafe
 class Leader extends BaseState {
@@ -64,6 +65,7 @@ class Leader extends BaseState {
   @Inject
   Leader(RaftLog log, @RaftScheduler ScheduledExecutorService scheduler,
          @ElectionTimeout @Nonnegative long timeout, ReplicaManagerFactory replicaManagerFactory) {
+    super(LEADER);
 
     this.log = checkNotNull(log);
     this.scheduler = checkNotNull(scheduler);
