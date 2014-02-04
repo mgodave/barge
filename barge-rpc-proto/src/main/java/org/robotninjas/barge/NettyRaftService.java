@@ -17,12 +17,10 @@
 package org.robotninjas.barge;
 
 import com.google.common.io.Files;
-import com.google.common.util.concurrent.AbstractService;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.*;
 import com.google.inject.Guice;
 import com.google.protobuf.Service;
+import org.jetlang.fibers.Fiber;
 import org.robotninjas.barge.proto.RaftProto;
 import org.robotninjas.barge.service.RaftService;
 import org.robotninjas.barge.state.Raft;
@@ -47,12 +45,12 @@ import static org.robotninjas.barge.state.Raft.StateType.*;
 @Immutable
 public class NettyRaftService extends AbstractService implements RaftService {
 
-  private final ListeningExecutorService executor;
+  private final Fiber executor;
   private final RpcServer rpcServer;
   private final Raft ctx;
 
   @Inject
-  NettyRaftService(@Nonnull RpcServer rpcServer, @RaftExecutor ListeningExecutorService executor, @Nonnull Raft ctx) {
+  NettyRaftService(@Nonnull RpcServer rpcServer, @RaftFiber Fiber executor, @Nonnull Raft ctx) {
 
     this.executor = checkNotNull(executor);
     this.rpcServer = checkNotNull(rpcServer);
@@ -79,7 +77,7 @@ public class NettyRaftService extends AbstractService implements RaftService {
   }
 
   private void configureRpcServer() {
-    RaftServiceEndpoint endpoint = new RaftServiceEndpoint(ctx);
+    RaftServiceEndpoint endpoint = new RaftServiceEndpoint(executor, ctx);
     Service replicaService = RaftProto.RaftService.newReflectiveService(endpoint);
     rpcServer.registerService(replicaService);
   }
@@ -100,13 +98,15 @@ public class NettyRaftService extends AbstractService implements RaftService {
   public ListenableFuture<Object> commitAsync(final byte[] operation) throws RaftException {
 
     // Make sure this happens on the Barge thread
-    ListenableFuture<ListenableFuture<Object>> response =
-      executor.submit(new Callable<ListenableFuture<Object>>() {
-        @Override
-        public ListenableFuture<Object> call() throws Exception {
-          return ctx.commitOperation(operation);
-        }
-      });
+    ListenableFutureTask<ListenableFuture<Object>> response =
+        ListenableFutureTask.create(new Callable<ListenableFuture<Object>>() {
+          @Override
+          public ListenableFuture<Object> call() throws Exception {
+            return ctx.commitOperation(operation);
+          }
+        });
+
+    executor.execute(response);
 
     return Futures.dereference(response);
 

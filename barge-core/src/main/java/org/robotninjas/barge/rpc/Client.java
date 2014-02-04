@@ -16,8 +16,12 @@
 
 package org.robotninjas.barge.rpc;
 
+import com.google.common.base.Functions;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Inject;
+import org.jetlang.fibers.Fiber;
+import org.robotninjas.barge.RaftFiber;
 import org.robotninjas.barge.Replica;
 
 import javax.annotation.Nonnull;
@@ -31,10 +35,13 @@ public class Client {
 
   @Nonnull
   private final RaftClientProvider clientProvider;
+  @Nonnull
+  private final Fiber executor;
 
   @Inject
-  public Client(@Nonnull RaftClientProvider clientProvider) {
+  public Client(@Nonnull RaftClientProvider clientProvider, @Nonnull @RaftFiber Fiber executor) {
     this.clientProvider = clientProvider;
+    this.executor = executor;
   }
 
   @Nonnull
@@ -43,7 +50,8 @@ public class Client {
     checkNotNull(replica);
     checkNotNull(request);
 
-    return clientProvider.get(replica).requestVote(request);
+    ListenableFuture<RequestVoteResponse> response = clientProvider.get(replica).requestVote(request);
+    return Futures.transform(response, Functions.<RequestVoteResponse>identity(), executor);
   }
 
   @Nonnull
@@ -52,7 +60,8 @@ public class Client {
     checkNotNull(replica);
     checkNotNull(request);
 
-    return clientProvider.get(replica).appendEntries(request);
+    ListenableFuture<AppendEntriesResponse> response = clientProvider.get(replica).appendEntries(request);
+    return Futures.transform(response, Functions.<AppendEntriesResponse>identity(), executor);
   }
 
 }

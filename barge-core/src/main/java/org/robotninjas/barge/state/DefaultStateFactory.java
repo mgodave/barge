@@ -15,25 +15,25 @@
  */
 package org.robotninjas.barge.state;
 
+import org.jetlang.fibers.Fiber;
+import org.robotninjas.barge.RaftFiber;
 import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.rpc.Client;
-import org.robotninjas.barge.rpc.RaftScheduler;
 
 import javax.annotation.Nonnegative;
 import javax.inject.Inject;
-import java.util.concurrent.ScheduledExecutorService;
 
 class DefaultStateFactory implements StateFactory {
 
 
   private final RaftLog log;
-  private final ScheduledExecutorService scheduler;
+  private final Fiber scheduler;
   private final long timeout;
   private final ReplicaManagerFactory replicaManagerFactory;
   private final Client client;
 
   @Inject
-  public DefaultStateFactory(RaftLog log, @RaftScheduler ScheduledExecutorService scheduler,
+  public DefaultStateFactory(RaftLog log, @RaftFiber Fiber scheduler,
                              @ElectionTimeout @Nonnegative long timeout, ReplicaManagerFactory replicaManagerFactory,
                              Client client) {
     this.log = log;

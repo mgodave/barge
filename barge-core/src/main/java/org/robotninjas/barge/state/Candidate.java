@@ -22,12 +22,13 @@ import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import org.jetlang.fibers.Fiber;
 import org.robotninjas.barge.NoLeaderException;
 import org.robotninjas.barge.RaftException;
+import org.robotninjas.barge.RaftFiber;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.rpc.Client;
-import org.robotninjas.barge.RaftScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +38,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.ScheduledExecutorService;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.util.concurrent.Futures.addCallback;
@@ -53,14 +53,14 @@ class Candidate extends BaseState {
   private static final Random RAND = new Random(System.nanoTime());
 
   private final RaftLog log;
-  private final ScheduledExecutorService scheduler;
+  private final Fiber scheduler;
   private final long electionTimeout;
   private final Client client;
   private DeadlineTimer electionTimer;
   private ListenableFuture<Boolean> electionResult;
 
   @Inject
-  Candidate(RaftLog log, @RaftScheduler ScheduledExecutorService scheduler,
+  Candidate(RaftLog log, @RaftFiber Fiber scheduler,
             @ElectionTimeout long electionTimeout, Client client) {
     super(CANDIDATE);
     this.log = log;

@@ -17,38 +17,40 @@
 package org.robotninjas.barge;
 
 import com.google.common.base.Optional;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.inject.PrivateModule;
+import org.jetlang.fibers.Fiber;
+import org.jetlang.fibers.PoolFiberFactory;
 import org.robotninjas.barge.log.LogModule;
+import org.robotninjas.barge.log.StateMachineFiber;
 import org.robotninjas.barge.rpc.Client;
 import org.robotninjas.barge.state.Raft;
 import org.robotninjas.barge.state.StateModule;
 
-import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 import java.io.File;
-import java.util.concurrent.Executors;
+import java.util.concurrent.Executor;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
 @Immutable
 class RaftCoreModule extends PrivateModule {
 
   private static final long DEFAULT_TIMEOUT = 225;
 
-  private long timeout = DEFAULT_TIMEOUT;
+  private final long timeout;
   private final ClusterConfig config;
   private final File logDir;
   private final StateMachine stateMachine;
-  private Optional<ListeningExecutorService> stateMachineExecutor = Optional.absent();
+  private final Executor executor;
 
-  public RaftCoreModule(@Nonnull ClusterConfig config, @Nonnull File logDir, @Nonnull StateMachine stateMachine) {
-    this.config = checkNotNull(config);
-    checkArgument(timeout > 0);
-    this.logDir = checkNotNull(logDir);
-    this.stateMachine = checkNotNull(stateMachine);
+  private RaftCoreModule(Builder builder) {
+    this.config = builder.config.get();
+    this.timeout = builder.timeout;
+    this.logDir = builder.logDir.get();
+    this.stateMachine = builder.stateMachine.get();
+    this.executor = builder.executor.or(newSingleThreadExecutor());
   }
 
   @Override
@@ -57,18 +59,23 @@ class RaftCoreModule extends PrivateModule {
     install(new StateModule(timeout));
     expose(Raft.class);
 
-    final ListeningExecutorService executor;
-    if (stateMachineExecutor.isPresent()) {
-      executor = stateMachineExecutor.get();
-    } else {
-      executor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
-      Runtime.getRuntime().addShutdownHook(new Thread() {
-        public void run() {
-          executor.shutdownNow();
-        }
-      });
-    }
-    install(new LogModule(logDir, stateMachine, executor));
+    PoolFiberFactory fiberFactory = new PoolFiberFactory(executor);
+
+    Fiber raftFiber = fiberFactory.create();
+    raftFiber.start();
+    bind(Fiber.class)
+        .annotatedWith(RaftFiber.class)
+        .toInstance(raftFiber);
+    expose(Fiber.class).annotatedWith(RaftFiber.class);
+
+    Fiber stateMachineFiber = fiberFactory.create();
+    stateMachineFiber.start();
+    bind(Fiber.class)
+        .annotatedWith(StateMachineFiber.class)
+        .toInstance(stateMachineFiber);
+    expose(Fiber.class).annotatedWith(StateMachineFiber.class);
+
+    install(new LogModule(logDir, stateMachine));
 
     bind(ClusterConfig.class)
       .toInstance(config);
@@ -77,8 +84,55 @@ class RaftCoreModule extends PrivateModule {
     expose(Client.class);
   }
 
-  public void setTimeout(long timeout) {
-    this.timeout = timeout;
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  public static class Builder {
+
+    private long timeout = DEFAULT_TIMEOUT;
+    private Optional<Executor> executor = Optional.absent();
+    private Optional<ClusterConfig> config = Optional.absent();
+    private Optional<StateMachine> stateMachine = Optional.absent();
+    private Optional<File> logDir = Optional.absent();
+
+    private Builder() {
+
+    }
+
+    public Builder withTimeout(long timeout) {
+      this.timeout = timeout;
+      return this;
+    }
+
+    public Builder withExecutor(Executor executor) {
+      this.executor = Optional.of(executor);
+      return this;
+    }
+
+    public Builder withConfig(ClusterConfig config) {
+      this.config = Optional.of(config);
+      return this;
+    }
+
+    public Builder withStateMachine(StateMachine stateMachine) {
+      this.stateMachine = Optional.of(stateMachine);
+      return this;
+    }
+
+    public Builder withLogDir(File logDir) {
+      this.logDir = Optional.of(logDir);
+      return this;
+    }
+
+    public RaftCoreModule build() {
+      checkState(config.isPresent());
+      checkState(stateMachine.isPresent());
+      checkState(logDir.isPresent());
+      checkArgument(timeout > 0);
+      return new RaftCoreModule(this);
+    }
+
   }
 
 }

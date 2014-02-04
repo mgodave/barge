@@ -1,9 +1,11 @@
 package org.robotninjas.barge.log;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
-import com.google.common.util.concurrent.*;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListenableFutureTask;
 import com.google.inject.Inject;
+import org.jetlang.fibers.Fiber;
 import org.robotninjas.barge.StateMachine;
 
 import javax.annotation.Nonnull;
@@ -11,7 +13,6 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -23,40 +24,17 @@ class StateMachineProxy {
 
   private final int BATCH_SIZE = 10;
 
-  private final ListeningExecutorService executor;
+  private final Fiber executor;
   private final StateMachine stateMachine;
   private final LinkedBlockingQueue<Runnable> operations;
   private final AtomicBoolean running;
 
   @Inject
-  StateMachineProxy(@Nonnull @StateMachineExecutor ListeningExecutorService executor, @Nonnull StateMachine stateMachine) {
+  StateMachineProxy(@Nonnull @StateMachineFiber Fiber executor, @Nonnull StateMachine stateMachine) {
     this.executor = checkNotNull(executor);
     this.stateMachine = checkNotNull(stateMachine);
     this.operations = Queues.newLinkedBlockingQueue();
     this.running = new AtomicBoolean(false);
-  }
-
-  private void dispatch() {
-
-    if (!running.get() && !operations.isEmpty()) {
-      if (running.compareAndSet(false, true)) {
-
-        final List<Runnable> ops = Lists.newArrayList();
-        operations.drainTo(ops, BATCH_SIZE);
-
-        executor.submit(new Runnable() {
-          @Override
-          public void run() {
-            for (Runnable op : ops) {
-              op.run();
-            }
-          }
-        });
-        running.set(false);
-        dispatch();
-      }
-    }
-
   }
 
   private <V> ListenableFuture<V> submit(Callable<V> runnable) {
@@ -64,8 +42,7 @@ class StateMachineProxy {
     ListenableFutureTask<V> operation =
         ListenableFutureTask.create(runnable);
 
-    operations.offer(operation);
-    dispatch();
+    executor.execute(operation);
 
     return operation;
 

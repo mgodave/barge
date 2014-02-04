@@ -20,14 +20,18 @@ public class NettyRaftModule extends PrivateModule {
 
   @Override
   protected void configure() {
-    RaftCoreModule coreModule = new RaftCoreModule(config, logDir, stateMachine);
-    coreModule.setTimeout(timeout);
-    
-    install(coreModule);
+
+    install(RaftCoreModule.builder()
+        .withTimeout(timeout)
+        .withConfig(config)
+        .withLogDir(logDir)
+        .withStateMachine(stateMachine)
+        .build());
+
     install(new RaftProtoRpcModule(config.local()));
 
     bind(NettyRaftService.class);
     expose(NettyRaftService.class);
   }
-  
+
 }
