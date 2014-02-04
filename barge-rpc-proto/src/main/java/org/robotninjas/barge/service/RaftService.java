@@ -23,7 +23,7 @@ public interface RaftService {
    * @param operation an arbitrary operation to be sent to the <em>state machine</em> managed by Raft.
    * @return the result of executing the operation, wrapped in a {@link ListenableFuture}, that can be retrieved
    *         at a later point in time.
-   * @throws RaftException
+   * @throws org.robotninjas.barge.RaftException
    */
   ListenableFuture<Object> commitAsync(byte[] operation) throws RaftException;
 
