@@ -17,29 +17,27 @@ package org.robotninjas.barge.state;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.robotninjas.barge.proto.RaftProto;
 
 import static org.mockito.Mockito.*;
 import static org.robotninjas.barge.state.RaftStateContext.StateType.*;
 
 public class RaftStateContextTest {
 
-  private StateFactory factory = mock(StateFactory.class);
-  private Start start = mock(Start.class);
-  private Follower follower = mock(Follower.class);
-  private Candidate candidate = mock(Candidate.class);
+  private final StateFactory factory = mock(StateFactory.class);
 
-  private StateTransitionListener transitionListener = mock(StateTransitionListener.class);
-  private RaftStateContext context = new RaftStateContext(factory);
+  private final State start = mock(State.class);
+  private final State follower = mock(State.class);
+  private final State candidate = mock(State.class);
+
+  private final StateTransitionListener transitionListener = mock(StateTransitionListener.class);
+
+  private final RaftStateContext context = new RaftStateContext(factory);
 
   @Before
   public void setup() {
-    when(factory.start()).thenReturn(start);
-    when(start.type()).thenReturn(START);
-
-    when(factory.follower()).thenReturn(follower);
-    when(follower.type()).thenReturn(FOLLOWER);
-
-    when(candidate.type()).thenReturn(CANDIDATE);
+    when(factory.makeState(START)).thenReturn(start);
+    when(factory.makeState(FOLLOWER)).thenReturn(follower);
   }
 
   @Test
@@ -53,14 +51,15 @@ public class RaftStateContextTest {
 
   @Test
   public void throwsExceptionAndNotifiesInvalidTransitionToRegisteredListenerGivenUnexpectedPreviousState() throws Exception {
+    when(candidate.type()).thenReturn(CANDIDATE);
     context.addTransitionListener(transitionListener);
 
     context.setState(null, START);
 
-    try  {
+    try {
       context.setState(candidate, LEADER);
-    } catch(IllegalStateException e) {
-      verify(transitionListener).invalidTransition(context,START,CANDIDATE);
+    } catch (IllegalStateException e) {
+      verify(transitionListener).invalidTransition(context, START, CANDIDATE);
     }
   }
 
@@ -71,5 +70,33 @@ public class RaftStateContextTest {
     verify(start).init(context);
   }
 
+  @Test
+  public void delegatesAppendEntriesRequestToCurrentState() throws Exception {
+    RaftProto.AppendEntries appendEntries = RaftProto.AppendEntries.getDefaultInstance();
+    context.setState(null, FOLLOWER);
 
+    context.appendEntries(appendEntries);
+
+    verify(follower).appendEntries(context, appendEntries);
+  }
+
+  @Test
+  public void delegateRequestVoteToCurrentState() throws Exception {
+    RaftProto.RequestVote requestVote = RaftProto.RequestVote.getDefaultInstance();
+    context.setState(null, FOLLOWER);
+
+    context.requestVote(requestVote);
+
+    verify(follower).requestVote(context, requestVote);
+  }
+
+  @Test
+  public void delegateCommitOperationToCurrentState() throws Exception {
+    byte[] bytes = new byte[]{1};
+    context.setState(null, FOLLOWER);
+
+    context.commitOperation(bytes);
+
+    verify(follower).commitOperation(context, bytes);
+  }
 }

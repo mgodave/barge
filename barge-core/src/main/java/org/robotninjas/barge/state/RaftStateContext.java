@@ -76,20 +76,9 @@ public class RaftStateContext {
     }
 
     this.state = checkNotNull(state);
-    switch (state) {
-      case START:
-        delegate = stateFactory.start();
-        break;
-      case FOLLOWER:
-        delegate = stateFactory.follower();
-        break;
-      case LEADER:
-        delegate = stateFactory.leader();
-        break;
-      case CANDIDATE:
-        delegate = stateFactory.candidate();
-        break;
-    }
+
+    delegate = stateFactory.makeState(state);
+
     MDC.put("state", this.state.toString());
 
     notifiesChangeState(oldState);
@@ -114,7 +103,7 @@ public class RaftStateContext {
   }
 
   @Nonnull
-  public StateType getState() {
+  public StateType type() {
     return state;
   }
 
