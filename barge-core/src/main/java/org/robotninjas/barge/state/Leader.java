@@ -166,6 +166,11 @@ class Leader extends BaseState {
 
   }
 
+  @Override
+  public RaftStateContext.StateType type() {
+    return FOLLOWER;
+  }
+
   /**
    * Find the median value of the list of matchIndex, this value is the committedIndex since, by definition, half of the
    * matchIndex values are greater and half are less than this value. So, at least half of the replicas have stored the

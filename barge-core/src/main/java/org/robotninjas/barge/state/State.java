@@ -22,6 +22,7 @@ import org.robotninjas.barge.RaftException;
 import javax.annotation.Nonnull;
 
 import static org.robotninjas.barge.proto.RaftProto.*;
+import static org.robotninjas.barge.state.RaftStateContext.StateType;
 
 interface State {
 
@@ -36,4 +37,5 @@ interface State {
   @Nonnull
   ListenableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException;
 
+  StateType type();
 }

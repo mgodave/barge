@@ -37,6 +37,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.robotninjas.barge.proto.RaftProto.*;
 import static org.robotninjas.barge.state.RaftStateContext.StateType.CANDIDATE;
+import static org.robotninjas.barge.state.RaftStateContext.StateType.FOLLOWER;
 
 @NotThreadSafe
 class Follower extends BaseState {
@@ -141,6 +142,11 @@ class Follower extends BaseState {
     } else {
       throw new NoLeaderException();
     }
+  }
+
+  @Override
+  public RaftStateContext.StateType type() {
+    return FOLLOWER;
   }
 
 }

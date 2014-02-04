@@ -174,6 +174,11 @@ class Candidate extends BaseState {
     throw new NoLeaderException();
   }
 
+  @Override
+  public RaftStateContext.StateType type() {
+    return CANDIDATE;
+  }
+
 
   @VisibleForTesting
   List<ListenableFuture<RequestVoteResponse>> sendRequests(RaftStateContext ctx) {
