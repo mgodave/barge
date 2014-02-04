@@ -33,7 +33,7 @@ public interface StateTransitionListener {
    * @param from    previous state of replica.
    * @param to      current state of replica.
    */
-  void changeState(@Nonnull RaftStateContext context, @Nullable StateType from, @Nonnull StateType to);
+  void changeState(@Nonnull Raft context, @Nullable StateType from, @Nonnull StateType to);
 
   /**
    * Called when a transition is requested from an invalid state.
@@ -43,5 +43,5 @@ public interface StateTransitionListener {
    * @param actual   the actual state registered in context.
    * @param expected the expected state as requested by transition.
    */
-  void invalidTransition(@Nonnull RaftStateContext context, @Nonnull StateType actual, @Nullable StateType expected);
+  void invalidTransition(@Nonnull Raft context, @Nonnull StateType actual, @Nullable StateType expected);
 }

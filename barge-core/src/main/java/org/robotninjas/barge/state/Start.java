@@ -9,8 +9,8 @@ import javax.annotation.Nonnull;
 
 import static com.google.inject.internal.util.$Preconditions.checkNotNull;
 import static org.robotninjas.barge.proto.RaftProto.*;
-import static org.robotninjas.barge.state.RaftStateContext.StateType.FOLLOWER;
-import static org.robotninjas.barge.state.RaftStateContext.StateType.START;
+import static org.robotninjas.barge.state.Raft.StateType.FOLLOWER;
+import static org.robotninjas.barge.state.Raft.StateType.START;
 
 class Start implements State {
 

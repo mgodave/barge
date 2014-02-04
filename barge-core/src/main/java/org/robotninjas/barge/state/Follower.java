@@ -36,8 +36,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.robotninjas.barge.proto.RaftProto.*;
-import static org.robotninjas.barge.state.RaftStateContext.StateType.CANDIDATE;
-import static org.robotninjas.barge.state.RaftStateContext.StateType.FOLLOWER;
+import static org.robotninjas.barge.state.Raft.StateType.CANDIDATE;
+import static org.robotninjas.barge.state.Raft.StateType.FOLLOWER;
 
 @NotThreadSafe
 class Follower extends BaseState {

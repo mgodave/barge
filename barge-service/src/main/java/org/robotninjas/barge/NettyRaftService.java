@@ -26,7 +26,7 @@ import com.google.protobuf.Service;
 import org.robotninjas.barge.proto.RaftProto;
 import org.robotninjas.barge.rpc.RaftExecutor;
 import org.robotninjas.barge.service.RaftService;
-import org.robotninjas.barge.state.RaftStateContext;
+import org.robotninjas.barge.state.Raft;
 import org.robotninjas.barge.state.StateTransitionListener;
 import org.robotninjas.protobuf.netty.server.RpcServer;
 
@@ -41,7 +41,8 @@ import java.util.concurrent.ExecutionException;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Throwables.propagate;
 import static com.google.common.base.Throwables.propagateIfInstanceOf;
-import static org.robotninjas.barge.state.RaftStateContext.StateType.START;
+
+import static org.robotninjas.barge.state.Raft.StateType.*;
 
 @ThreadSafe
 @Immutable
@@ -49,10 +50,10 @@ public class NettyRaftService extends AbstractService implements RaftService {
 
   private final ListeningExecutorService executor;
   private final RpcServer rpcServer;
-  private final RaftStateContext ctx;
+  private final Raft ctx;
 
   @Inject
-  NettyRaftService(@Nonnull RpcServer rpcServer, @RaftExecutor ListeningExecutorService executor, @Nonnull RaftStateContext ctx) {
+  NettyRaftService(@Nonnull RpcServer rpcServer, @RaftExecutor ListeningExecutorService executor, @Nonnull Raft ctx) {
 
     this.executor = checkNotNull(executor);
     this.rpcServer = checkNotNull(rpcServer);
@@ -67,10 +68,7 @@ public class NettyRaftService extends AbstractService implements RaftService {
 
       ctx.setState(null, START);
 
-      RaftServiceEndpoint endpoint = new RaftServiceEndpoint(ctx);
-      Service replicaService = RaftProto.RaftService.newReflectiveService(endpoint);
-      rpcServer.registerService(replicaService);
-
+      configureRpcServer();
       rpcServer.startAsync().awaitRunning();
 
       notifyStarted();
@@ -79,6 +77,12 @@ public class NettyRaftService extends AbstractService implements RaftService {
       notifyFailed(e);
     }
 
+  }
+
+  private void configureRpcServer() {
+    RaftServiceEndpoint endpoint = new RaftServiceEndpoint(ctx);
+    Service replicaService = RaftProto.RaftService.newReflectiveService(endpoint);
+    rpcServer.registerService(replicaService);
   }
 
   @Override
