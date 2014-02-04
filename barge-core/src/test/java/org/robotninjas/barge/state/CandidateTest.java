@@ -31,7 +31,6 @@ public class CandidateTest {
   private @Mock ScheduledExecutorService mockScheduler;
   private @Mock Replica mockReplica;
   private @Mock Client mockRaftClient;
-  private @Mock StateFactory mockStateFactory;
   private @Mock StateMachine mockStateMachine;
   private @Mock RaftLog mockRaftLog;
   private @Mock

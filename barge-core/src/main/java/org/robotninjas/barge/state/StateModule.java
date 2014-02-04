@@ -30,8 +30,7 @@ public class StateModule extends PrivateModule {
   @Override
   protected void configure() {
 
-    install(new FactoryModuleBuilder()
-      .build(StateFactory.class));
+    bind(StateFactory.class).to(DefaultStateFactory.class);
 
     install(new FactoryModuleBuilder()
       .build(ReplicaManagerFactory.class));
