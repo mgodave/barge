@@ -40,7 +40,7 @@ public class DefaultContextTest {
     ctx.setState(null, StateType.FOLLOWER);
       
     verify(mockFollower).init(ctx);
-    assertEquals(StateType.FOLLOWER, ctx.getState());
+    assertEquals(StateType.FOLLOWER, ctx.type());
 
     ctx.appendEntries(appendEntries);
     verify(mockFollower).appendEntries(ctx, appendEntries);
@@ -53,7 +53,7 @@ public class DefaultContextTest {
 
     ctx.setState(mockFollower, StateType.LEADER);
     verify(mockLeader).init(ctx);
-    assertEquals(StateType.LEADER, ctx.getState());
+    assertEquals(StateType.LEADER, ctx.type());
 
     ctx.appendEntries(appendEntries);
     verify(mockLeader).appendEntries(ctx, appendEntries);
@@ -66,7 +66,7 @@ public class DefaultContextTest {
 
     ctx.setState(mockLeader, StateType.CANDIDATE);
     verify(mockCandidate).init(ctx);
-    assertEquals(StateType.CANDIDATE, ctx.getState());
+    assertEquals(StateType.CANDIDATE, ctx.type());
 
     ctx.appendEntries(appendEntries);
     verify(mockCandidate).appendEntries(ctx, appendEntries);

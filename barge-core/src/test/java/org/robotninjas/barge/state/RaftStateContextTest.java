@@ -19,7 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.mockito.Mockito.*;
-import static org.robotninjas.barge.state.RaftStateContext.StateType.*;
+import static org.robotninjas.barge.state.Raft.StateType.*;
 
 public class RaftStateContextTest {
 
