@@ -24,7 +24,6 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.inject.Guice;
 import com.google.protobuf.Service;
 import org.robotninjas.barge.proto.RaftProto;
-import org.robotninjas.barge.rpc.RaftExecutor;
 import org.robotninjas.barge.service.RaftService;
 import org.robotninjas.barge.state.Raft;
 import org.robotninjas.barge.state.StateTransitionListener;

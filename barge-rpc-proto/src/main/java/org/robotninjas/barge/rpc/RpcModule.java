@@ -19,6 +19,8 @@ package org.robotninjas.barge.rpc;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.inject.PrivateModule;
 import io.netty.channel.nio.NioEventLoopGroup;
+import org.robotninjas.barge.RaftExecutor;
+import org.robotninjas.barge.RaftScheduler;
 import org.robotninjas.protobuf.netty.client.RpcClient;
 import org.robotninjas.protobuf.netty.server.RpcServer;
 
