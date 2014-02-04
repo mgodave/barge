@@ -62,6 +62,7 @@ class Candidate extends BaseState {
   @Inject
   Candidate(RaftLog log, @RaftScheduler ScheduledExecutorService scheduler,
             @ElectionTimeout long electionTimeout, Client client) {
+    super(CANDIDATE);
     this.log = log;
     this.scheduler = scheduler;
     this.electionTimeout = electionTimeout;
@@ -173,12 +174,6 @@ class Candidate extends BaseState {
   public ListenableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
     throw new NoLeaderException();
   }
-
-  @Override
-  public RaftStateContext.StateType type() {
-    return CANDIDATE;
-  }
-
 
   @VisibleForTesting
   List<ListenableFuture<RequestVoteResponse>> sendRequests(RaftStateContext ctx) {

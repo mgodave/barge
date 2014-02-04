@@ -153,6 +153,10 @@ public class BaseStateTest {
   }
 
   static class EmptyState extends BaseState {
+    EmptyState() {
+      super(null);
+    }
+
     @Override
     public void init(@Nonnull RaftStateContext ctx) {
 

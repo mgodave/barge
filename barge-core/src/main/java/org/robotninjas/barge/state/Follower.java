@@ -52,6 +52,7 @@ class Follower extends BaseState {
 
   @Inject
   Follower(RaftLog log, @RaftScheduler ScheduledExecutorService scheduler, @ElectionTimeout @Nonnegative long timeout) {
+    super(FOLLOWER);
 
     this.log = checkNotNull(log);
     this.scheduler = checkNotNull(scheduler);
@@ -142,11 +143,6 @@ class Follower extends BaseState {
     } else {
       throw new NoLeaderException();
     }
-  }
-
-  @Override
-  public RaftStateContext.StateType type() {
-    return FOLLOWER;
   }
 
 }
