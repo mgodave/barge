@@ -18,7 +18,7 @@ package org.robotninjas.barge;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.junit.rules.ExternalResource;
-import org.robotninjas.barge.state.RaftStateContext;
+import org.robotninjas.barge.state.Raft;
 import org.robotninjas.barge.state.StateTransitionListener;
 
 import javax.annotation.Nonnull;
@@ -28,14 +28,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-import static org.robotninjas.barge.state.RaftStateContext.StateType;
+import static org.robotninjas.barge.state.Raft.StateType;
 
 public class GroupOfCounters extends ExternalResource implements StateTransitionListener {
 
   private final List<Replica> replicas;
   private final List<SimpleCounterMachine> counters;
   private final File target;
-  private final Map<RaftStateContext, StateType> states = Maps.newConcurrentMap();
+  private final Map<Raft, StateType> states = Maps.newConcurrentMap();
 
   public GroupOfCounters(int numberOfReplicas, File target) {
     this.target = target;
@@ -107,13 +107,14 @@ public class GroupOfCounters extends ExternalResource implements StateTransition
     return numberOfLeaders == 1 && (numberOfFollowers + numberOfLeaders == replicas.size());
   }
 
+
   @Override
-  public void changeState(@Nonnull RaftStateContext context, @Nullable StateType from, @Nonnull StateType to) {
+  public void changeState(@Nonnull Raft context, @Nullable StateType from, @Nonnull StateType to) {
     states.put(context, to);
   }
 
   @Override
-  public void invalidTransition(@Nonnull RaftStateContext context, @Nonnull StateType actual, @Nullable StateType expected) {
+  public void invalidTransition(@Nonnull Raft context, @Nonnull StateType actual, @Nullable StateType expected) {
     // IGNORED
   }
 }

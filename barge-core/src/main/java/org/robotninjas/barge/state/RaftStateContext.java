@@ -33,9 +33,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.robotninjas.barge.proto.RaftProto.*;
 
 @NotThreadSafe
-public class RaftStateContext {
-
-  public enum StateType {START, FOLLOWER, CANDIDATE, LEADER}
+class RaftStateContext implements Raft {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RaftStateContext.class);
 
@@ -51,24 +49,28 @@ public class RaftStateContext {
     this.listeners.add(new LogListener());
   }
 
+  @Override
   @Nonnull
   public RequestVoteResponse requestVote(@Nonnull RequestVote request) {
     checkNotNull(request);
     return delegate.requestVote(this, request);
   }
 
+  @Override
   @Nonnull
   public AppendEntriesResponse appendEntries(@Nonnull AppendEntries request) {
     checkNotNull(request);
     return delegate.appendEntries(this, request);
   }
 
+  @Override
   @Nonnull
   public ListenableFuture<Object> commitOperation(@Nonnull byte[] op) throws RaftException {
     checkNotNull(op);
     return delegate.commitOperation(this, op);
   }
 
+  @Override
   public synchronized void setState(State oldState, @Nonnull StateType state) {
     if (this.delegate != oldState) {
       notifiesInvalidTransition(oldState);
@@ -98,10 +100,12 @@ public class RaftStateContext {
     }
   }
 
+  @Override
   public void addTransitionListener(@Nonnull StateTransitionListener transitionListener) {
     listeners.add(transitionListener);
   }
 
+  @Override
   @Nonnull
   public StateType type() {
     return state;
@@ -109,12 +113,12 @@ public class RaftStateContext {
 
   private class LogListener implements StateTransitionListener {
     @Override
-    public void changeState(@Nonnull RaftStateContext context, @Nullable StateType from, @Nonnull StateType to) {
+    public void changeState(@Nonnull Raft context, @Nullable StateType from, @Nonnull StateType to) {
       LOGGER.info("old state: {}, new state: {}", from, to);
     }
 
     @Override
-    public void invalidTransition(@Nonnull RaftStateContext context, @Nonnull StateType actual, @Nullable StateType expected) {
+    public void invalidTransition(@Nonnull Raft context, @Nonnull StateType actual, @Nullable StateType expected) {
       LOGGER.warn("State transition from incorrect previous state.  Expected {}, was {}", actual, expected);
     }
   }

@@ -39,9 +39,11 @@ public class StateModule extends PrivateModule {
       .annotatedWith(ElectionTimeout.class)
       .toInstance(electionTimeout);
 
-    bind(RaftStateContext.class)
+    bind(Raft.class)
+      .to(RaftStateContext.class)
       .asEagerSingleton();
-    expose(RaftStateContext.class);
+
+    expose(Raft.class);
 
   }
 

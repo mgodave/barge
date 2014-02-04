@@ -44,7 +44,7 @@ import static com.google.common.util.concurrent.Futures.addCallback;
 import static org.robotninjas.barge.proto.RaftProto.*;
 import static org.robotninjas.barge.state.MajorityCollector.majorityResponse;
 import static org.robotninjas.barge.state.RaftPredicates.voteGranted;
-import static org.robotninjas.barge.state.RaftStateContext.StateType.*;
+import static org.robotninjas.barge.state.Raft.StateType.*;
 
 @NotThreadSafe
 class Candidate extends BaseState {

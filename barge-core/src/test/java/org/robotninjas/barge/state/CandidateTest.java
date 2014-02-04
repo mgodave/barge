@@ -20,8 +20,6 @@ import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.*;
 import static org.robotninjas.barge.proto.RaftProto.AppendEntries;
 import static org.robotninjas.barge.proto.RaftProto.RequestVote;
-import static org.robotninjas.barge.state.RaftStateContext.StateType.FOLLOWER;
-import static org.robotninjas.barge.state.RaftStateContext.StateType.LEADER;
 
 public class CandidateTest {
 
@@ -81,8 +79,8 @@ public class CandidateTest {
 
     verify(mockRaftLog, never()).commitIndex(anyLong());
 
-    verify(mockRaftStateContext, times(1)).setState(any(Candidate.class), eq(FOLLOWER));
-    verify(mockRaftStateContext, times(1)).setState(any(Candidate.class), eq(LEADER));
+    verify(mockRaftStateContext, times(1)).setState(any(Candidate.class), eq(Raft.StateType.FOLLOWER));
+    verify(mockRaftStateContext, times(1)).setState(any(Candidate.class), eq(Raft.StateType.LEADER));
 
     verifyZeroInteractions(mockRaftClient);
 
@@ -114,7 +112,7 @@ public class CandidateTest {
 
     verify(mockRaftLog, never()).commitIndex(anyLong());
 
-    verify(mockRaftStateContext).setState(any(Candidate.class), eq(LEADER));
+    verify(mockRaftStateContext).setState(any(Candidate.class), eq(Raft.StateType.LEADER));
 
     verifyZeroInteractions(mockRaftClient);
   }
@@ -180,8 +178,8 @@ public class CandidateTest {
 
     verify(mockRaftLog, never()).commitIndex(anyLong());
 
-    verify(mockRaftStateContext).setState(any(Candidate.class), eq(FOLLOWER));
-    verify(mockRaftStateContext).setState(any(Candidate.class), eq(LEADER));
+    verify(mockRaftStateContext).setState(any(Candidate.class), eq(Raft.StateType.FOLLOWER));
+    verify(mockRaftStateContext).setState(any(Candidate.class), eq(Raft.StateType.LEADER));
 
     verifyZeroInteractions(mockRaftClient);
 
@@ -214,7 +212,7 @@ public class CandidateTest {
 
     verify(mockRaftLog, never()).commitIndex(anyLong());
 
-    verify(mockRaftStateContext).setState(any(Candidate.class), eq(LEADER));
+    verify(mockRaftStateContext).setState(any(Candidate.class), eq(Raft.StateType.LEADER));
 
     verifyZeroInteractions(mockRaftClient);
 
@@ -245,8 +243,8 @@ public class CandidateTest {
 
     verify(mockRaftLog, never()).commitIndex(anyLong());
 
-    verify(mockRaftStateContext).setState(any(Candidate.class), eq(FOLLOWER));
-    verify(mockRaftStateContext).setState(any(Candidate.class), eq(LEADER));
+    verify(mockRaftStateContext).setState(any(Candidate.class), eq(Raft.StateType.FOLLOWER));
+    verify(mockRaftStateContext).setState(any(Candidate.class), eq(Raft.StateType.LEADER));
 
     verifyZeroInteractions(mockRaftClient);
 
