@@ -19,10 +19,7 @@ package org.robotninjas.barge.state;
 import com.google.common.base.Optional;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Inject;
-import org.robotninjas.barge.NoLeaderException;
-import org.robotninjas.barge.NotLeaderException;
-import org.robotninjas.barge.RaftException;
-import org.robotninjas.barge.Replica;
+import org.robotninjas.barge.*;
 import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.rpc.RaftScheduler;
 import org.slf4j.Logger;
@@ -86,7 +83,7 @@ class Follower extends BaseState {
         log.currentTerm(request.getTerm());
       }
 
-      Replica candidate = Replica.fromString(request.getCandidateId());
+      Replica candidate = log.config().getReplica(request.getCandidateId());
       voteGranted = shouldVoteFor(log, request);
 
       if (voteGranted) {
@@ -117,7 +114,7 @@ class Follower extends BaseState {
         log.currentTerm(request.getTerm());
       }
 
-      leader = Optional.of(Replica.fromString(request.getLeaderId()));
+      leader = Optional.of(log.config().getReplica(request.getLeaderId()));
       timeoutTask.reset();
       success = log.append(request);
 

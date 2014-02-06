@@ -73,7 +73,7 @@ public class RaftLog {
   @Inject
   RaftLog(@Nonnull Journal journal, @Nonnull ClusterConfig config,
           @Nonnull StateMachineProxy stateMachine) {
-    this.journal = new RaftJournal(checkNotNull(journal));
+    this.journal = new RaftJournal(checkNotNull(journal), config);
     this.config = checkNotNull(config);
     this.stateMachine = checkNotNull(stateMachine);
   }
@@ -202,6 +202,10 @@ public class RaftLog {
 
   public long commitIndex() {
     return commitIndex;
+  }
+
+  public ClusterConfig config() {
+    return config;
   }
 
   public void commitIndex(long index) {

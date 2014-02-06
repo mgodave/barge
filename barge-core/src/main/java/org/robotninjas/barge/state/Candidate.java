@@ -43,8 +43,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.util.concurrent.Futures.addCallback;
 import static org.robotninjas.barge.proto.RaftProto.*;
 import static org.robotninjas.barge.state.MajorityCollector.majorityResponse;
-import static org.robotninjas.barge.state.RaftPredicates.voteGranted;
 import static org.robotninjas.barge.state.Raft.StateType.*;
+import static org.robotninjas.barge.state.RaftPredicates.voteGranted;
 
 @NotThreadSafe
 class Candidate extends BaseState {
@@ -122,7 +122,7 @@ class Candidate extends BaseState {
 
     LOGGER.debug("RequestVote received for term {}", request.getTerm());
 
-    Replica candidate = Replica.fromString(request.getCandidateId());
+    Replica candidate = log.config().getReplica(request.getCandidateId());
 
     boolean voteGranted = false;
 

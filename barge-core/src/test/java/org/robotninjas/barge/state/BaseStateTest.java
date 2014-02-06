@@ -7,6 +7,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.robotninjas.barge.ClusterConfig;
+import org.robotninjas.barge.ClusterConfigStub;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.log.RaftLog;
@@ -14,17 +16,17 @@ import org.robotninjas.barge.proto.RaftProto;
 
 import javax.annotation.Nonnull;
 
-import static junit.framework.Assert.*;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 import static org.robotninjas.barge.proto.RaftProto.RequestVote;
 
 public class BaseStateTest {
 
-  private final Replica self = Replica.fromString("localhost:8001");
-  private final Replica candidate = Replica.fromString("localhost:8000");
-  private
-  @Mock
-  RaftLog mockRaftLog;
+  private final ClusterConfig config = ClusterConfigStub.getStub();
+  private final Replica self = config.local();
+  private final Replica candidate = config.getReplica("candidate");
+  private @Mock RaftLog mockRaftLog;
 
   @Before
   public void initMocks() {
@@ -35,6 +37,7 @@ public class BaseStateTest {
     when(mockRaftLog.lastLogIndex()).thenReturn(2l);
     when(mockRaftLog.lastLogTerm()).thenReturn(2l);
     when(mockRaftLog.self()).thenReturn(self);
+    when(mockRaftLog.config()).thenReturn(config);
 
   }
 
@@ -87,7 +90,7 @@ public class BaseStateTest {
       .setTerm(2)
       .build();
 
-    Replica otherCandidate = Replica.fromString("localhost:8002");
+    Replica otherCandidate = config.getReplica("other");
     when(mockRaftLog.lastVotedFor()).thenReturn(Optional.of(otherCandidate));
     boolean shouldVote = state.shouldVoteFor(mockRaftLog, requestVote);
 
@@ -106,7 +109,7 @@ public class BaseStateTest {
       .setTerm(2)
       .build();
 
-    Replica otherCandidate = Replica.fromString("localhost:8002");
+    Replica otherCandidate = config.getReplica("other");
     when(mockRaftLog.lastVotedFor()).thenReturn(Optional.of(otherCandidate));
     boolean shouldVote = state.shouldVoteFor(mockRaftLog, requestVote);
 
@@ -125,7 +128,7 @@ public class BaseStateTest {
       .setTerm(2)
       .build();
 
-    Replica otherCandidate = Replica.fromString("localhost:8002");
+    Replica otherCandidate = config.getReplica("other");
     when(mockRaftLog.lastVotedFor()).thenReturn(Optional.of(otherCandidate));
     boolean shouldVote = state.shouldVoteFor(mockRaftLog, requestVote);
 
@@ -145,7 +148,7 @@ public class BaseStateTest {
       .setTerm(2)
       .build();
 
-    Replica otherCandidate = Replica.fromString("localhost:8002");
+    Replica otherCandidate = config.getReplica("other");
     when(mockRaftLog.lastVotedFor()).thenReturn(Optional.of(otherCandidate));
     boolean shouldVote = state.shouldVoteFor(mockRaftLog, requestVote);
 
