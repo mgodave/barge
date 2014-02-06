@@ -16,7 +16,7 @@
 package org.robotninjas.barge.state;
 
 import org.jetlang.fibers.Fiber;
-import org.robotninjas.barge.RaftFiber;
+import org.robotninjas.barge.RaftExecutor;
 import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.rpc.Client;
 
@@ -33,7 +33,7 @@ class DefaultStateFactory implements StateFactory {
   private final Client client;
 
   @Inject
-  public DefaultStateFactory(RaftLog log, @RaftFiber Fiber scheduler,
+  public DefaultStateFactory(RaftLog log, @RaftExecutor Fiber scheduler,
                              @ElectionTimeout @Nonnegative long timeout, ReplicaManagerFactory replicaManagerFactory,
                              Client client) {
     this.log = log;

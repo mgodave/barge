@@ -21,11 +21,13 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Inject;
 import org.jetlang.fibers.Fiber;
-import org.robotninjas.barge.RaftFiber;
+import org.robotninjas.barge.RaftExecutor;
 import org.robotninjas.barge.Replica;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
+
+import java.util.concurrent.Executor;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.robotninjas.barge.proto.RaftProto.*;
@@ -36,10 +38,10 @@ public class Client {
   @Nonnull
   private final RaftClientProvider clientProvider;
   @Nonnull
-  private final Fiber executor;
+  private final Executor executor;
 
   @Inject
-  public Client(@Nonnull RaftClientProvider clientProvider, @Nonnull @RaftFiber Fiber executor) {
+  public Client(@Nonnull RaftClientProvider clientProvider, @Nonnull @RaftExecutor Fiber executor) {
     this.clientProvider = clientProvider;
     this.executor = executor;
   }

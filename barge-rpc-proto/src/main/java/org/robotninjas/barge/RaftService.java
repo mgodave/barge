@@ -1,7 +1,6 @@
-package org.robotninjas.barge.service;
+package org.robotninjas.barge;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.robotninjas.barge.RaftException;
 
 /**
  * An instance of a set of replica managed through Raft protocol.

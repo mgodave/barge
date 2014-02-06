@@ -47,7 +47,7 @@ class Follower extends BaseState {
   private DeadlineTimer timeoutTask;
 
   @Inject
-  Follower(RaftLog log, @RaftFiber Fiber scheduler, @ElectionTimeout @Nonnegative long timeout) {
+  Follower(RaftLog log, @RaftExecutor Fiber scheduler, @ElectionTimeout @Nonnegative long timeout) {
     super(FOLLOWER);
 
     this.log = checkNotNull(log);

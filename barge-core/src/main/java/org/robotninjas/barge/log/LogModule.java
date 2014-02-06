@@ -26,6 +26,7 @@ import org.robotninjas.barge.StateMachine;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.Executor;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Throwables.propagate;
@@ -34,10 +35,12 @@ public class LogModule extends PrivateModule {
 
   private final File logDirectory;
   private final StateMachine stateMachine;
+  private final Executor executor;
 
-  public LogModule(@Nonnull File logDirectory, @Nonnull StateMachine stateMachine) {
+  public LogModule(@Nonnull File logDirectory, @Nonnull StateMachine stateMachine, @Nonnull Executor executor) {
     this.logDirectory = checkNotNull(logDirectory);
     this.stateMachine = checkNotNull(stateMachine);
+    this.executor = checkNotNull(executor);
   }
 
   @Override
@@ -45,6 +48,9 @@ public class LogModule extends PrivateModule {
 
     bind(StateMachine.class).toInstance(stateMachine);
     bind(StateMachineProxy.class);
+    bind(Executor.class)
+        .annotatedWith(StateExecutor.class)
+        .toInstance(executor);
     bind(RaftLog.class).asEagerSingleton();
     expose(RaftLog.class);
 

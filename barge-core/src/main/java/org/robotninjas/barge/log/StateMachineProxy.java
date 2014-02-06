@@ -5,7 +5,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
 import com.google.inject.Inject;
-import org.jetlang.fibers.Fiber;
 import org.robotninjas.barge.StateMachine;
 
 import javax.annotation.Nonnull;
@@ -14,6 +13,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -24,13 +24,13 @@ class StateMachineProxy {
 
   private final int BATCH_SIZE = 10;
 
-  private final Fiber executor;
+  private final Executor executor;
   private final StateMachine stateMachine;
   private final LinkedBlockingQueue<Runnable> operations;
   private final AtomicBoolean running;
 
   @Inject
-  StateMachineProxy(@Nonnull @StateMachineFiber Fiber executor, @Nonnull StateMachine stateMachine) {
+  StateMachineProxy(@Nonnull @StateExecutor Executor executor, @Nonnull StateMachine stateMachine) {
     this.executor = checkNotNull(executor);
     this.stateMachine = checkNotNull(stateMachine);
     this.operations = Queues.newLinkedBlockingQueue();

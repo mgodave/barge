@@ -25,7 +25,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.jetlang.fibers.Fiber;
 import org.robotninjas.barge.NoLeaderException;
 import org.robotninjas.barge.RaftException;
-import org.robotninjas.barge.RaftFiber;
+import org.robotninjas.barge.RaftExecutor;
+import org.robotninjas.barge.RaftExecutor;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.rpc.Client;
@@ -60,7 +61,7 @@ class Candidate extends BaseState {
   private ListenableFuture<Boolean> electionResult;
 
   @Inject
-  Candidate(RaftLog log, @RaftFiber Fiber scheduler,
+  Candidate(RaftLog log, @RaftExecutor Fiber scheduler,
             @ElectionTimeout long electionTimeout, Client client) {
     super(CANDIDATE);
     this.log = log;

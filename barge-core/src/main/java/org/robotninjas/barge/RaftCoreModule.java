@@ -21,7 +21,6 @@ import com.google.inject.PrivateModule;
 import org.jetlang.fibers.Fiber;
 import org.jetlang.fibers.PoolFiberFactory;
 import org.robotninjas.barge.log.LogModule;
-import org.robotninjas.barge.log.StateMachineFiber;
 import org.robotninjas.barge.rpc.Client;
 import org.robotninjas.barge.state.Raft;
 import org.robotninjas.barge.state.StateModule;
@@ -32,7 +31,7 @@ import java.util.concurrent.Executor;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static java.util.concurrent.Executors.newCachedThreadPool;
 
 @Immutable
 class RaftCoreModule extends PrivateModule {
@@ -50,38 +49,35 @@ class RaftCoreModule extends PrivateModule {
     this.timeout = builder.timeout;
     this.logDir = builder.logDir.get();
     this.stateMachine = builder.stateMachine.get();
-    this.executor = builder.executor.or(newSingleThreadExecutor());
+    this.executor = builder.executor.or(newCachedThreadPool());
   }
 
   @Override
   protected void configure() {
 
     install(new StateModule(timeout));
-    expose(Raft.class);
 
     PoolFiberFactory fiberFactory = new PoolFiberFactory(executor);
 
     Fiber raftFiber = fiberFactory.create();
     raftFiber.start();
     bind(Fiber.class)
-        .annotatedWith(RaftFiber.class)
+        .annotatedWith(RaftExecutor.class)
         .toInstance(raftFiber);
-    expose(Fiber.class).annotatedWith(RaftFiber.class);
 
     Fiber stateMachineFiber = fiberFactory.create();
     stateMachineFiber.start();
-    bind(Fiber.class)
-        .annotatedWith(StateMachineFiber.class)
-        .toInstance(stateMachineFiber);
-    expose(Fiber.class).annotatedWith(StateMachineFiber.class);
 
-    install(new LogModule(logDir, stateMachine));
+    install(new LogModule(logDir, stateMachine, stateMachineFiber));
 
     bind(ClusterConfig.class)
-      .toInstance(config);
+        .toInstance(config);
 
-    bind(Client.class).asEagerSingleton();
-    expose(Client.class);
+    bind(Client.class)
+        .asEagerSingleton();
+
+    expose(Raft.class);
+
   }
 
   public static Builder builder() {

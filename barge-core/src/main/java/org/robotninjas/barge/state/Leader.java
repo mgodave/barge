@@ -26,7 +26,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.jetlang.core.Disposable;
 import org.jetlang.fibers.Fiber;
 import org.robotninjas.barge.RaftException;
-import org.robotninjas.barge.RaftFiber;
+import org.robotninjas.barge.RaftExecutor;
+import org.robotninjas.barge.RaftExecutor;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.log.RaftLog;
 import org.slf4j.Logger;
@@ -63,7 +64,7 @@ class Leader extends BaseState {
   private Disposable heartbeatTask;
 
   @Inject
-  Leader(RaftLog log, @RaftFiber Fiber scheduler,
+  Leader(RaftLog log, @RaftExecutor Fiber scheduler,
          @ElectionTimeout @Nonnegative long timeout, ReplicaManagerFactory replicaManagerFactory) {
     super(LEADER);
 
