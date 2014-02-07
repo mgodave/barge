@@ -3,6 +3,7 @@ package org.robotninjas.barge;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.robotninjas.barge.state.Raft;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.common.base.Charsets;
@@ -26,11 +27,11 @@ public class StartStopTest {
 
   class Server {
 
-    final RaftService raftService;
+    final NettyRaftService raftService;
     final File logDirectory;
     final ServerState state;
 
-    public Server(RaftService raftService, File logDirectory, ServerState state) {
+    public Server(NettyRaftService raftService, File logDirectory, ServerState state) {
       this.raftService = raftService;
       this.logDirectory = logDirectory;
       this.state = state;
@@ -72,7 +73,7 @@ public class StartStopTest {
 
     ClusterConfig clusterConfig = ClusterConfig.from(replicas[0]);
 
-    RaftService raftService = RaftService.newBuilder(clusterConfig).logDir(logDir).timeout(500).build(state);
+    NettyRaftService raftService = NettyRaftService.newBuilder(clusterConfig).logDir(logDir).timeout(500).build(state);
 
     Server server = new Server(raftService, logDir, state);
     allServers.add(server);
@@ -126,7 +127,7 @@ public class StartStopTest {
         break;
       }
     }
-    NettyServiceTest.deleteLogDirectory(TEST_TMP_DIR);
+    SimpleCounterMachine.delete(TEST_TMP_DIR);
   }
 
   public static class ServerState implements StateMachine {

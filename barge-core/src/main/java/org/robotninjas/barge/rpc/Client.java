@@ -29,7 +29,8 @@ import static org.robotninjas.barge.proto.RaftProto.*;
 @Immutable
 public class Client {
 
-  @Nonnull private final RaftClientProvider clientProvider;
+  @Nonnull
+  private final RaftClientProvider clientProvider;
 
   @Inject
   public Client(@Nonnull RaftClientProvider clientProvider) {
@@ -42,9 +43,7 @@ public class Client {
     checkNotNull(replica);
     checkNotNull(request);
 
-    RaftClient client = clientProvider.get(replica);
-    return client.requestVote(request);
-
+    return clientProvider.get(replica).requestVote(request);
   }
 
   @Nonnull
@@ -53,9 +52,7 @@ public class Client {
     checkNotNull(replica);
     checkNotNull(request);
 
-    RaftClient client = clientProvider.get(replica);
-    return client.appendEntries(request);
-
+    return clientProvider.get(replica).appendEntries(request);
   }
 
 }

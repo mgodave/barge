@@ -16,20 +16,8 @@
 
 package org.robotninjas.barge.state;
 
-import javax.annotation.Nonnull;
-
 interface StateFactory {
 
-  @Nonnull
-  Start start();
-
-  @Nonnull
-  Candidate candidate();
-
-  @Nonnull
-  Leader leader();
-
-  @Nonnull
-  Follower follower();
+  State makeState(RaftStateContext.StateType state);
 
 }

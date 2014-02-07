@@ -36,8 +36,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.robotninjas.barge.proto.RaftProto.*;
-import static org.robotninjas.barge.state.RaftStateContext.StateType.CANDIDATE;
-import static org.robotninjas.barge.state.RaftStateContext.StateType.STOPPED;
+import static org.robotninjas.barge.state.Raft.StateType.CANDIDATE;
+import static org.robotninjas.barge.state.Raft.StateType.FOLLOWER;
 
 @NotThreadSafe
 class Follower extends BaseState {
@@ -52,6 +52,7 @@ class Follower extends BaseState {
 
   @Inject
   Follower(RaftLog log, @RaftScheduler ScheduledExecutorService scheduler, @ElectionTimeout @Nonnegative long timeout) {
+    super(FOLLOWER);
 
     this.log = checkNotNull(log);
     this.scheduler = checkNotNull(scheduler);

@@ -153,6 +153,10 @@ public class BaseStateTest {
   }
 
   static class EmptyState extends BaseState {
+    EmptyState() {
+      super(null);
+    }
+
     @Override
     public void init(@Nonnull RaftStateContext ctx) {
 
@@ -178,7 +182,10 @@ public class BaseStateTest {
 
     @Override
     public void doStop(RaftStateContext ctx) {
-      
+    }
+    
+    public RaftStateContext.StateType type() {
+      return null;
     }
 
   }

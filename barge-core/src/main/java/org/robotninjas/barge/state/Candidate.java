@@ -44,7 +44,7 @@ import static com.google.common.util.concurrent.Futures.addCallback;
 import static org.robotninjas.barge.proto.RaftProto.*;
 import static org.robotninjas.barge.state.MajorityCollector.majorityResponse;
 import static org.robotninjas.barge.state.RaftPredicates.voteGranted;
-import static org.robotninjas.barge.state.RaftStateContext.StateType.*;
+import static org.robotninjas.barge.state.Raft.StateType.*;
 
 @NotThreadSafe
 class Candidate extends BaseState {
@@ -62,6 +62,7 @@ class Candidate extends BaseState {
   @Inject
   Candidate(RaftLog log, @RaftScheduler ScheduledExecutorService scheduler,
             @ElectionTimeout long electionTimeout, Client client) {
+    super(CANDIDATE);
     this.log = log;
     this.scheduler = scheduler;
     this.electionTimeout = electionTimeout;
@@ -173,7 +174,6 @@ class Candidate extends BaseState {
   public ListenableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
     throw new NoLeaderException();
   }
-
 
   @VisibleForTesting
   List<ListenableFuture<RequestVoteResponse>> sendRequests(RaftStateContext ctx) {

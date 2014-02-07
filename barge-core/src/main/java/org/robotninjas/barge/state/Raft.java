@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 David Rusek <dave dot rusek at gmail dot com>
+ * Copyright 2013-2014 David Rusek <dave dot rusek at gmail dot com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.robotninjas.barge.state;
 
 import com.google.common.util.concurrent.ListenableFuture;
@@ -22,22 +21,29 @@ import org.robotninjas.barge.RaftException;
 import javax.annotation.Nonnull;
 
 import static org.robotninjas.barge.proto.RaftProto.*;
-import static org.robotninjas.barge.state.RaftStateContext.StateType;
 
-interface State {
-
-  void init(@Nonnull RaftStateContext ctx);
-
-  @Nonnull
-  RequestVoteResponse requestVote(@Nonnull RaftStateContext ctx, @Nonnull RequestVote request);
+/**
+ * Main interface to a Raft protocol instance.
+ */
+public interface Raft {
 
   @Nonnull
-  AppendEntriesResponse appendEntries(@Nonnull RaftStateContext ctx, @Nonnull AppendEntries request);
+  RequestVoteResponse requestVote(@Nonnull RequestVote request);
 
   @Nonnull
-  ListenableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException;
+  AppendEntriesResponse appendEntries(@Nonnull AppendEntries request);
 
-  void doStop(RaftStateContext ctx);
+  @Nonnull
+  ListenableFuture<Object> commitOperation(@Nonnull byte[] op) throws RaftException;
 
+  void setState(State oldState, @Nonnull StateType state);
+
+  void addTransitionListener(@Nonnull StateTransitionListener transitionListener);
+
+  @Nonnull
   StateType type();
+
+  public static enum StateType {START, FOLLOWER, CANDIDATE, LEADER, STOPPED}
+
+  void stop();
 }

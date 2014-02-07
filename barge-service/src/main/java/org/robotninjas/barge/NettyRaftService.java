@@ -16,20 +16,19 @@
 
 package org.robotninjas.barge;
 
-import com.google.common.base.Optional;
 import com.google.common.io.Files;
-import com.google.common.util.concurrent.*;
+import com.google.common.util.concurrent.AbstractService;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.google.protobuf.Service;
-import io.netty.channel.nio.NioEventLoopGroup;
 import org.robotninjas.barge.proto.RaftProto;
 import org.robotninjas.barge.rpc.RaftExecutor;
-import org.robotninjas.barge.state.RaftStateContext;
-import org.robotninjas.barge.state.RaftStateContext.StateType;
+import org.robotninjas.barge.service.RaftService;
+import org.robotninjas.barge.state.Raft;
+import org.robotninjas.barge.state.StateTransitionListener;
 import org.robotninjas.protobuf.netty.server.RpcServer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
@@ -38,25 +37,23 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Throwables.propagate;
 import static com.google.common.base.Throwables.propagateIfInstanceOf;
-import static org.robotninjas.barge.state.RaftStateContext.StateType.START;
+
+import static org.robotninjas.barge.state.Raft.StateType.*;
 
 @ThreadSafe
 @Immutable
-public class RaftService extends AbstractService {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(RaftService.class);
+public class NettyRaftService extends AbstractService implements RaftService {
 
   private final ListeningExecutorService executor;
   private final RpcServer rpcServer;
-  private final RaftStateContext ctx;
+  private final Raft ctx;
 
   @Inject
-  RaftService(@Nonnull RpcServer rpcServer, @RaftExecutor ListeningExecutorService executor, @Nonnull RaftStateContext ctx) {
+  NettyRaftService(@Nonnull RpcServer rpcServer, @RaftExecutor ListeningExecutorService executor, @Nonnull Raft ctx) {
 
     this.executor = checkNotNull(executor);
     this.rpcServer = checkNotNull(rpcServer);
@@ -71,10 +68,7 @@ public class RaftService extends AbstractService {
 
       ctx.setState(null, START);
 
-      RaftServiceEndpoint endpoint = new RaftServiceEndpoint(ctx);
-      Service replicaService = RaftProto.RaftService.newReflectiveService(endpoint);
-      rpcServer.registerService(replicaService);
-
+      configureRpcServer();
       rpcServer.startAsync().awaitRunning();
 
       notifyStarted();
@@ -83,6 +77,12 @@ public class RaftService extends AbstractService {
       notifyFailed(e);
     }
 
+  }
+
+  private void configureRpcServer() {
+    RaftServiceEndpoint endpoint = new RaftServiceEndpoint(ctx);
+    Service replicaService = RaftProto.RaftService.newReflectiveService(endpoint);
+    rpcServer.registerService(replicaService);
   }
 
   @Override
@@ -100,6 +100,7 @@ public class RaftService extends AbstractService {
 
   }
 
+  @Override
   public ListenableFuture<Object> commitAsync(final byte[] operation) throws RaftException {
 
     // Make sure this happens on the Barge thread
@@ -115,6 +116,7 @@ public class RaftService extends AbstractService {
 
   }
 
+  @Override
   public Object commit(final byte[] operation) throws RaftException, InterruptedException {
     try {
       return commitAsync(operation).get();
@@ -129,6 +131,10 @@ public class RaftService extends AbstractService {
     return new Builder(config);
   }
 
+  private void addTransitionListener(StateTransitionListener listener) {
+    ctx.addTransitionListener(listener);
+  }
+
   public static class Builder {
 
     private static long TIMEOUT = 150;
@@ -136,8 +142,7 @@ public class RaftService extends AbstractService {
     private final ClusterConfig config;
     private File logDir = Files.createTempDir();
     private long timeout = TIMEOUT;
-    private Optional<NioEventLoopGroup> eventLoop = Optional.absent();
-    private Optional<ListeningExecutorService> stateExecutor = Optional.absent();
+    private StateTransitionListener listener;
 
     protected Builder(ClusterConfig config) {
       this.config = config;
@@ -153,35 +158,26 @@ public class RaftService extends AbstractService {
       return this;
     }
 
-    public Builder eventLoop(NioEventLoopGroup eventLoop) {
-      this.eventLoop = Optional.of(eventLoop);
-      return this;
-    }
+    public NettyRaftService build(StateMachine stateMachine) {
+      NettyRaftService nettyRaftService = Guice.createInjector(
+        new NettyRaftModule(config, logDir, stateMachine, timeout))
+        .getInstance(NettyRaftService.class);
 
-    public Builder stateExecutor(ExecutorService executor) {
-      this.stateExecutor = Optional.of(MoreExecutors.listeningDecorator(executor));
-      return this;
-    }
-
-    public RaftService build(StateMachine stateMachine) {
-
-      RaftModule raftModule = new RaftModule(config, logDir, stateMachine);
-      raftModule.setTimeout(timeout);
-      if (eventLoop.isPresent()) {
-        raftModule.setNioEventLoop(eventLoop.get());
-      }
-      if (stateExecutor.isPresent()) {
-        raftModule.setStateMachineExecutor(stateExecutor.get());
+      if (listener != null) {
+        nettyRaftService.addTransitionListener(listener);
       }
 
-      Injector injector = Guice.createInjector(raftModule);
-      return injector.getInstance(RaftService.class);
+      return nettyRaftService;
     }
 
+    public Builder transitionListener(StateTransitionListener listener) {
+      this.listener = listener;
+      return this;
+    }
   }
 
   public boolean isLeader() {
-    return ctx.getState() == StateType.LEADER;
+    return ctx.type() == Raft.StateType.LEADER;
   }
 
 }

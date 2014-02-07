@@ -6,10 +6,24 @@ import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.log.RaftLog;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import static org.robotninjas.barge.proto.RaftProto.RequestVote;
+import static org.robotninjas.barge.state.RaftStateContext.StateType;
 
 public abstract class BaseState implements State {
+
+  private final StateType type;
+
+  protected BaseState(@Nullable StateType type) {
+    this.type = type;
+  }
+
+  @Nullable
+  @Override
+  public StateType type() {
+    return type;
+  }
 
   @VisibleForTesting
   boolean shouldVoteFor(@Nonnull RaftLog log, @Nonnull RequestVote request) {

@@ -47,7 +47,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.robotninjas.barge.proto.RaftProto.*;
-import static org.robotninjas.barge.state.RaftStateContext.StateType.FOLLOWER;
+import static org.robotninjas.barge.state.Raft.StateType.FOLLOWER;
+import static org.robotninjas.barge.state.Raft.StateType.LEADER;
 
 @NotThreadSafe
 class Leader extends BaseState {
@@ -64,6 +65,7 @@ class Leader extends BaseState {
   @Inject
   Leader(RaftLog log, @RaftScheduler ScheduledExecutorService scheduler,
          @ElectionTimeout @Nonnegative long timeout, ReplicaManagerFactory replicaManagerFactory) {
+    super(LEADER);
 
     this.log = checkNotNull(log);
     this.scheduler = checkNotNull(scheduler);
@@ -164,7 +166,6 @@ class Leader extends BaseState {
   @Nonnull
   @Override
   public ListenableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
-
     resetTimeout(ctx);
     ListenableFuture<Object> result = log.append(operation);
     sendRequests(ctx);
@@ -188,8 +189,9 @@ class Leader extends BaseState {
 
     int n = sorted.size();
     int quorumSize = (n / 2) + 1;
-    int middle = quorumSize - 1;
-    final long committed = sorted.get(middle);
+    final long committed = sorted.get(quorumSize - 1);
+
+    LOGGER.debug("updating commitIndex to {}", committed);
     log.commitIndex(committed);
 
   }

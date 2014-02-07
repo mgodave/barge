@@ -20,13 +20,15 @@ import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.*;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
 import com.google.inject.Inject;
 import com.google.protobuf.ByteString;
 import journal.io.api.Journal;
 import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.Replica;
-import org.robotninjas.barge.rpc.RaftExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -58,7 +60,6 @@ public class RaftLog {
   private final ClusterConfig config;
   private final StateMachineProxy stateMachine;
   private final RaftJournal journal;
-  private final ListeningExecutorService executor;
 
   private final ConcurrentMap<Object, SettableFuture<Object>> operationResults = Maps.newConcurrentMap();
 
@@ -71,11 +72,10 @@ public class RaftLog {
 
   @Inject
   RaftLog(@Nonnull Journal journal, @Nonnull ClusterConfig config,
-          @Nonnull StateMachineProxy stateMachine, @RaftExecutor ListeningExecutorService raftThread) {
+          @Nonnull StateMachineProxy stateMachine) {
     this.journal = new RaftJournal(checkNotNull(journal));
     this.config = checkNotNull(config);
     this.stateMachine = checkNotNull(stateMachine);
-    this.executor = checkNotNull(raftThread);
   }
 
   public void load() {
@@ -115,7 +115,7 @@ public class RaftLog {
   }
 
   private SettableFuture<Object> storeEntry(final long index, @Nonnull Entry entry) {
-    LOGGER.debug("{}", entry);
+    LOGGER.debug("{} storing {}", config.local(),entry);
     journal.appendEntry(entry, index);
     log.put(index, entry);
     SettableFuture<Object> result = SettableFuture.create();
@@ -181,6 +181,7 @@ public class RaftLog {
         byte[] rawCommand = log.get(i).getCommand().toByteArray();
         final ByteBuffer operation = ByteBuffer.wrap(rawCommand).asReadOnlyBuffer();
         ListenableFuture<Object> result = stateMachine.dispatchOperation(operation);
+
         final SettableFuture<Object> returnedResult = operationResults.remove(i);
         // returnedResult may be null on log replay
         if (returnedResult != null) {

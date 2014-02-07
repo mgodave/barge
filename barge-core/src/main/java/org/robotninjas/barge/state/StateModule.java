@@ -30,8 +30,7 @@ public class StateModule extends PrivateModule {
   @Override
   protected void configure() {
 
-    install(new FactoryModuleBuilder()
-      .build(StateFactory.class));
+    bind(StateFactory.class).to(DefaultStateFactory.class);
 
     install(new FactoryModuleBuilder()
       .build(ReplicaManagerFactory.class));
@@ -40,9 +39,11 @@ public class StateModule extends PrivateModule {
       .annotatedWith(ElectionTimeout.class)
       .toInstance(electionTimeout);
 
-    bind(RaftStateContext.class)
+    bind(Raft.class)
+      .to(RaftStateContext.class)
       .asEagerSingleton();
-    expose(RaftStateContext.class);
+
+    expose(Raft.class);
 
   }
 
