@@ -7,3 +7,8 @@ target/
 build
 out
 dependency-reduced-pom.xml
+
+# Eclipse stuff
+.classpath
+.project
+.settings/
