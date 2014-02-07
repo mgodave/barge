@@ -7,6 +7,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.ClusterConfigStub;
 import org.robotninjas.barge.RaftException;
@@ -18,6 +20,7 @@ import javax.annotation.Nonnull;
 
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.robotninjas.barge.proto.RaftProto.RequestVote;
 
@@ -38,6 +41,13 @@ public class BaseStateTest {
     when(mockRaftLog.lastLogTerm()).thenReturn(2l);
     when(mockRaftLog.self()).thenReturn(self);
     when(mockRaftLog.config()).thenReturn(config);
+    when(mockRaftLog.getReplica(anyString())).thenAnswer(new Answer<Replica>() {
+      @Override
+      public Replica answer(InvocationOnMock invocation) throws Throwable {
+        String arg = (String) invocation.getArguments()[0];
+        return config.getReplica(arg);
+      }
+    });
 
   }
 

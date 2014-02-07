@@ -8,12 +8,4 @@ public interface ClusterConfig {
 
   Replica getReplica(String info);
 
-  @Override
-  int hashCode();
-
-  @Override
-  boolean equals(Object o);
-
-  @Override
-  String toString();
 }

@@ -122,7 +122,7 @@ class Candidate extends BaseState {
 
     LOGGER.debug("RequestVote received for term {}", request.getTerm());
 
-    Replica candidate = log.config().getReplica(request.getCandidateId());
+    Replica candidate = log.getReplica(request.getCandidateId());
 
     boolean voteGranted = false;
 

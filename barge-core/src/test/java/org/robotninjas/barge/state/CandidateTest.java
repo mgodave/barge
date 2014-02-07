@@ -5,6 +5,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.robotninjas.barge.*;
 import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.proto.RaftProto;
@@ -43,6 +45,13 @@ public class CandidateTest {
     when(mockRaftLog.lastLogIndex()).thenReturn(0L);
     when(mockRaftLog.currentTerm()).thenReturn(term);
     when(mockRaftLog.config()).thenReturn(config);
+    when(mockRaftLog.getReplica(anyString())).thenAnswer(new Answer<Replica>() {
+      @Override
+      public Replica answer(InvocationOnMock invocation) throws Throwable {
+        String arg = (String) invocation.getArguments()[0];
+        return config.getReplica(arg);
+      }
+    });
 
     ScheduledFuture mockScheduledFuture = mock(ScheduledFuture.class);
     when(mockScheduler.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class)))
