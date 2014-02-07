@@ -4,6 +4,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import journal.io.api.Journal;
 import journal.io.api.Location;
+import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.proto.LogProto;
 import org.robotninjas.barge.proto.RaftEntry;
@@ -21,10 +22,12 @@ import static journal.io.api.Journal.WriteType;
 class RaftJournal {
 
   private final Journal journal;
+  private final ClusterConfig config;
   private final TreeMap<Long, Location> entryIndex = Maps.newTreeMap();
 
-  public RaftJournal(Journal journal) {
+  public RaftJournal(Journal journal, ClusterConfig config) {
     this.journal = journal;
+    this.config = config;
   }
 
   public void init() {
@@ -200,7 +203,7 @@ class RaftJournal {
           LogProto.Vote vote = entry.getVote();
           String votedfor = vote.getVotedFor();
           Replica replica = votedfor == null
-            ? null : Replica.fromString(votedfor);
+            ? null : config.getReplica(votedfor);
           visitor.vote(Optional.fromNullable(replica));
         }
 

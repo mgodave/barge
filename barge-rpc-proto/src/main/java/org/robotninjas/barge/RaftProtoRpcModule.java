@@ -14,10 +14,10 @@ import java.util.concurrent.ScheduledExecutorService;
 
 class RaftProtoRpcModule extends PrivateModule {
 
-  private final Replica localEndpoint;
+  private final NettyReplica localEndpoint;
   private Optional<NioEventLoopGroup> eventLoopGroup = Optional.absent();
 
-  public RaftProtoRpcModule(Replica localEndpoint) {
+  public RaftProtoRpcModule(NettyReplica localEndpoint) {
     this.localEndpoint = localEndpoint;
   }
 

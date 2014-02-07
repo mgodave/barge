@@ -124,7 +124,7 @@ public class NettyRaftService extends AbstractService implements RaftService {
     }
   }
 
-  public static Builder newBuilder(ClusterConfig config) {
+  public static Builder newBuilder(NettyClusterConfig config) {
     return new Builder(config);
   }
 
@@ -136,12 +136,12 @@ public class NettyRaftService extends AbstractService implements RaftService {
 
     private static long TIMEOUT = 150;
 
-    private final ClusterConfig config;
+    private final NettyClusterConfig config;
     private File logDir = Files.createTempDir();
     private long timeout = TIMEOUT;
     private StateTransitionListener listener;
 
-    protected Builder(ClusterConfig config) {
+    protected Builder(NettyClusterConfig config) {
       this.config = config;
     }
 

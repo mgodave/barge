@@ -42,7 +42,6 @@
     <module>barge-core</module>
     <module>barge-tools</module>
     <module>barge-rpc-proto</module>
-    <module>barge-service</module>
   </modules>
 
   <dependencyManagement>
