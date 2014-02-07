@@ -12,14 +12,14 @@ import static com.google.common.base.Preconditions.checkArgument;
 public class SimpleCounterMachine implements StateMachine {
 
   private final int id;
-  private final List<Replica> replicas;
+  private final List<NettyReplica> replicas;
   private final GroupOfCounters groupOfCounters;
 
   private int counter;
   private File logDirectory;
   private NettyRaftService service;
 
-  public SimpleCounterMachine(int id, List<Replica> replicas, GroupOfCounters groupOfCounters) {
+  public SimpleCounterMachine(int id, List<NettyReplica> replicas, GroupOfCounters groupOfCounters) {
     checkArgument(id >= 0 && id < replicas.size(), "replica id " + id + " should be between 0 and " + replicas.size());
 
     this.groupOfCounters = groupOfCounters;
@@ -46,12 +46,12 @@ public class SimpleCounterMachine implements StateMachine {
 
   public void startRaft() {
     int clusterSize = replicas.size();
-    Replica[] configuration = new Replica[clusterSize - 1];
+    NettyReplica[] configuration = new NettyReplica[clusterSize - 1];
     for (int i = 0; i < clusterSize - 1; i++) {
       configuration[i] = replicas.get((id + i + 1) % clusterSize);
     }
 
-    ClusterConfig config1 = ClusterConfig.from(replicas.get(id % clusterSize), configuration);
+    NettyClusterConfig config1 = NettyClusterConfig.from(replicas.get(id % clusterSize), configuration);
 
     NettyRaftService service1 = NettyRaftService.newBuilder(config1)
       .logDir(logDirectory)

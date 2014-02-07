@@ -108,7 +108,7 @@ class Leader extends BaseState {
       log.currentTerm(request.getTerm());
       stepDown(ctx);
 
-      Replica candidate = Replica.fromString(request.getCandidateId());
+      Replica candidate = log.getReplica(request.getCandidateId());
       voteGranted = shouldVoteFor(log, request);
 
       if (voteGranted) {

@@ -32,7 +32,7 @@ import static org.robotninjas.barge.state.Raft.StateType;
 
 public class GroupOfCounters extends ExternalResource implements StateTransitionListener {
 
-  private final List<Replica> replicas;
+  private final List<NettyReplica> replicas;
   private final List<SimpleCounterMachine> counters;
   private final File target;
   private final Map<Raft, StateType> states = Maps.newConcurrentMap();
@@ -44,7 +44,7 @@ public class GroupOfCounters extends ExternalResource implements StateTransition
     counters = Lists.newArrayList();
 
     for (int i = 10001; i <= (10000 + numberOfReplicas); i++) {
-      replicas.add(Replica.fromString("localhost:" + i));
+      replicas.add(NettyReplica.fromString("localhost:" + i));
       counters.add(new SimpleCounterMachine(i - 10001, replicas, this));
     }
   }

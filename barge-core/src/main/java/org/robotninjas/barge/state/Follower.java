@@ -82,7 +82,7 @@ class Follower extends BaseState {
         log.currentTerm(request.getTerm());
       }
 
-      Replica candidate = Replica.fromString(request.getCandidateId());
+      Replica candidate = log.getReplica(request.getCandidateId());
       voteGranted = shouldVoteFor(log, request);
 
       if (voteGranted) {
@@ -113,7 +113,7 @@ class Follower extends BaseState {
         log.currentTerm(request.getTerm());
       }
 
-      leader = Optional.of(Replica.fromString(request.getLeaderId()));
+      leader = Optional.of(log.getReplica(request.getLeaderId()));
       timeoutTask.reset();
       success = log.append(request);
 

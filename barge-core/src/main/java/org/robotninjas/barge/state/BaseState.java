@@ -29,7 +29,7 @@ public abstract class BaseState implements State {
   boolean shouldVoteFor(@Nonnull RaftLog log, @Nonnull RequestVote request) {
 
     Optional<Replica> lastVotedFor = log.lastVotedFor();
-    Replica candidate = Replica.fromString(request.getCandidateId());
+    Replica candidate = log.getReplica(request.getCandidateId());
 
     boolean hasAtLeastTerm = request.getLastLogTerm() >= log.lastLogTerm();
     boolean hasAtLeastIndex = request.getLastLogIndex() >= log.lastLogIndex();

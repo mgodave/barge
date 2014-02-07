@@ -8,6 +8,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.robotninjas.barge.ClusterConfig;
+import org.robotninjas.barge.ClusterConfigStub;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.log.GetEntriesResult;
 import org.robotninjas.barge.log.RaftLog;
@@ -25,8 +27,9 @@ import static org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse;
 
 public class ReplicaManagerTest {
 
-  private static final Replica SELF = Replica.fromString("localhost:8080");
-  private static final Replica FOLLOWER = Replica.fromString("localhost:1000");
+  private static final ClusterConfig config = ClusterConfigStub.getStub();
+  private static final Replica SELF = config.local();
+  private static final Replica FOLLOWER = config.getReplica("remote");
 
   private
   @Mock

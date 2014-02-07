@@ -73,7 +73,7 @@ public class RaftLog {
   @Inject
   RaftLog(@Nonnull Journal journal, @Nonnull ClusterConfig config,
           @Nonnull StateMachineProxy stateMachine) {
-    this.journal = new RaftJournal(checkNotNull(journal));
+    this.journal = new RaftJournal(checkNotNull(journal), checkNotNull(config));
     this.config = checkNotNull(config);
     this.stateMachine = checkNotNull(stateMachine);
   }
@@ -204,6 +204,10 @@ public class RaftLog {
     return commitIndex;
   }
 
+  public ClusterConfig config() {
+    return config;
+  }
+
   public void commitIndex(long index) {
     commitIndex = index;
     journal.appendCommit(index);
@@ -241,6 +245,11 @@ public class RaftLog {
   @Nonnull
   public List<Replica> members() {
     return unmodifiableList(newArrayList(config.remote()));
+  }
+
+  @Nonnull
+  public Replica getReplica(String info) {
+    return config.getReplica(info);
   }
 
   @Override

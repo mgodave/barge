@@ -7,8 +7,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.robotninjas.barge.Replica;
-import org.robotninjas.barge.StateMachine;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.robotninjas.barge.*;
 import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.proto.RaftProto;
 import org.robotninjas.barge.rpc.Client;
@@ -24,15 +25,15 @@ import static org.robotninjas.barge.proto.RaftProto.RequestVote;
 public class CandidateTest {
 
   private final long term = 2L;
-  private final Replica self = Replica.fromString("localhost:1000");
 
   private Fiber scheduler = new FiberStub();
   private @Mock Replica mockReplica;
+  private final ClusterConfig config = ClusterConfigStub.getStub();
+  private final Replica self = config.local();
   private @Mock Client mockRaftClient;
   private @Mock StateMachine mockStateMachine;
   private @Mock RaftLog mockRaftLog;
-  private @Mock
-  RaftStateContext mockRaftStateContext;
+  private @Mock RaftStateContext mockRaftStateContext;
 
   @Before
   public void initMocks() {
@@ -44,6 +45,14 @@ public class CandidateTest {
     when(mockRaftLog.lastLogTerm()).thenReturn(0L);
     when(mockRaftLog.lastLogIndex()).thenReturn(0L);
     when(mockRaftLog.currentTerm()).thenReturn(term);
+    when(mockRaftLog.config()).thenReturn(config);
+    when(mockRaftLog.getReplica(anyString())).thenAnswer(new Answer<Replica>() {
+      @Override
+      public Replica answer(InvocationOnMock invocation) throws Throwable {
+        String arg = (String) invocation.getArguments()[0];
+        return config.getReplica(arg);
+      }
+    });
 
     ScheduledFuture mockScheduledFuture = mock(ScheduledFuture.class);
 
@@ -55,7 +64,7 @@ public class CandidateTest {
     Candidate candidate = new Candidate(mockRaftLog, scheduler, 150, mockRaftClient);
     candidate.init(mockRaftStateContext);
 
-    Replica mockCandidate = Replica.fromString("localhost:10001");
+    Replica mockCandidate = config.getReplica("other");
 
     RequestVote request =
       RequestVote.newBuilder()
@@ -89,7 +98,7 @@ public class CandidateTest {
     Candidate candidate = new Candidate(mockRaftLog, scheduler, 150, mockRaftClient);
     candidate.init(mockRaftStateContext);
 
-    Replica mockCandidate = Replica.fromString("localhost:10001");
+    Replica mockCandidate = config.getReplica("other");
 
     RequestVote request =
       RequestVote.newBuilder()
@@ -120,7 +129,7 @@ public class CandidateTest {
     Candidate candidate = new Candidate(mockRaftLog, scheduler, 150, mockRaftClient);
     candidate.init(mockRaftStateContext);
 
-    Replica mockCandidate = Replica.fromString("localhost:10001");
+    Replica mockCandidate = config.getReplica("other");
 
     RequestVote request =
       RequestVote.newBuilder()
@@ -154,7 +163,7 @@ public class CandidateTest {
     Candidate candidate = new Candidate(mockRaftLog, scheduler, 1, mockRaftClient);
     candidate.init(mockRaftStateContext);
 
-    Replica mockLeader = Replica.fromString("localhost:10001");
+    Replica mockLeader = config.getReplica("other");
 
     AppendEntries request =
       AppendEntries.newBuilder()
@@ -189,7 +198,7 @@ public class CandidateTest {
     Candidate candidate = new Candidate(mockRaftLog, scheduler, 1, mockRaftClient);
     candidate.init(mockRaftStateContext);
 
-    Replica mockLeader = Replica.fromString("localhost:10001");
+    Replica mockLeader = config.getReplica("other");
 
     AppendEntries request =
       RaftProto.AppendEntries.newBuilder()

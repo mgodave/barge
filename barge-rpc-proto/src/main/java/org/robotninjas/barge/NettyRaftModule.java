@@ -6,12 +6,12 @@ import java.io.File;
 
 public class NettyRaftModule extends PrivateModule {
 
-  private final ClusterConfig config;
+  private final NettyClusterConfig config;
   private final File logDir;
   private final StateMachine stateMachine;
   private final long timeout;
 
-  public NettyRaftModule(ClusterConfig config, File logDir, StateMachine stateMachine, long timeout) {
+  public NettyRaftModule(NettyClusterConfig config, File logDir, StateMachine stateMachine, long timeout) {
     this.config = config;
     this.logDir = logDir;
     this.stateMachine = stateMachine;
