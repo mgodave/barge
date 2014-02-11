@@ -16,9 +16,13 @@
 
 package org.robotninjas.barge.state;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListenableFutureTask;
+import org.jetlang.fibers.Fiber;
 import org.robotninjas.barge.RaftException;
+import org.robotninjas.barge.RaftExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -28,6 +32,8 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.robotninjas.barge.proto.RaftProto.*;
@@ -38,36 +44,85 @@ class RaftStateContext implements Raft {
   private static final Logger LOGGER = LoggerFactory.getLogger(RaftStateContext.class);
 
   private final StateFactory stateFactory;
+  private final Executor executor;
   private final Set<StateTransitionListener> listeners = Sets.newConcurrentHashSet();
 
   private volatile StateType state;
   private volatile State delegate;
 
   @Inject
-  RaftStateContext(StateFactory stateFactory) {
+  RaftStateContext(StateFactory stateFactory, @RaftExecutor Fiber executor) {
     this.stateFactory = stateFactory;
+    this.executor = executor;
     this.listeners.add(new LogListener());
   }
 
   @Override
   @Nonnull
-  public RequestVoteResponse requestVote(@Nonnull RequestVote request) {
+  public RequestVoteResponse requestVote(@Nonnull final RequestVote request) {
+
     checkNotNull(request);
-    return delegate.requestVote(this, request);
+
+    ListenableFutureTask<RequestVoteResponse> response =
+        ListenableFutureTask.create(new Callable<RequestVoteResponse>() {
+          @Override
+          public RequestVoteResponse call() throws Exception {
+            return delegate.requestVote(RaftStateContext.this, request);
+          }
+        });
+
+    executor.execute(response);
+
+    try {
+      return response.get();
+    } catch (Exception e) {
+      throw Throwables.propagate(e);
+    }
+
   }
 
   @Override
   @Nonnull
-  public AppendEntriesResponse appendEntries(@Nonnull AppendEntries request) {
+  public AppendEntriesResponse appendEntries(@Nonnull final AppendEntries request) {
+
     checkNotNull(request);
-    return delegate.appendEntries(this, request);
+
+    ListenableFutureTask<AppendEntriesResponse> response =
+        ListenableFutureTask.create(new Callable<AppendEntriesResponse>() {
+          @Override
+          public AppendEntriesResponse call() throws Exception {
+            return delegate.appendEntries(RaftStateContext.this, request);
+          }
+        });
+
+    executor.execute(response);
+
+    try {
+      return response.get();
+    } catch (Exception e) {
+      throw Throwables.propagate(e);
+    }
+
   }
 
   @Override
   @Nonnull
-  public ListenableFuture<Object> commitOperation(@Nonnull byte[] op) throws RaftException {
+  public ListenableFuture<Object> commitOperation(@Nonnull final byte[] op) throws RaftException {
+
     checkNotNull(op);
-    return delegate.commitOperation(this, op);
+
+    ListenableFutureTask<Object> response =
+        ListenableFutureTask.create(new Callable<Object>() {
+          @Override
+          public Object call() throws Exception {
+            return delegate.commitOperation(RaftStateContext.this, op);
+          }
+        });
+
+    executor.execute(response);
+
+    return response;
+
   }
 
   @Override

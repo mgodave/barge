@@ -16,7 +16,6 @@
 
 package org.robotninjas.barge.rpc;
 
-import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.inject.PrivateModule;
 import io.netty.channel.nio.NioEventLoopGroup;
 import org.robotninjas.protobuf.netty.client.RpcClient;
@@ -24,10 +23,8 @@ import org.robotninjas.protobuf.netty.server.RpcServer;
 
 import javax.annotation.Nonnull;
 import java.net.SocketAddress;
-import java.util.concurrent.ScheduledExecutorService;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator;
 
 public class RpcModule extends PrivateModule {
 
@@ -41,20 +38,6 @@ public class RpcModule extends PrivateModule {
 
   @Override
   protected void configure() {
-
-    bind(ListeningExecutorService.class)
-        .annotatedWith(RaftExecutor.class)
-        .toInstance(listeningDecorator(eventLoopGroup));
-
-    bind(ScheduledExecutorService.class)
-        .annotatedWith(RaftScheduler.class)
-        .toInstance(listeningDecorator(eventLoopGroup));
-
-    expose(ListeningExecutorService.class)
-        .annotatedWith(RaftExecutor.class);
-
-    expose(ScheduledExecutorService.class)
-        .annotatedWith(RaftScheduler.class);
 
     bind(NioEventLoopGroup.class)
         .toInstance(eventLoopGroup);

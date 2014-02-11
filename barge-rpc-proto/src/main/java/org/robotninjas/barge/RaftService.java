@@ -1,7 +1,6 @@
-package org.robotninjas.barge.service;
+package org.robotninjas.barge;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.robotninjas.barge.RaftException;
 
 /**
  * An instance of a set of replica managed through Raft protocol.
@@ -23,7 +22,7 @@ public interface RaftService {
    * @param operation an arbitrary operation to be sent to the <em>state machine</em> managed by Raft.
    * @return the result of executing the operation, wrapped in a {@link ListenableFuture}, that can be retrieved
    *         at a later point in time.
-   * @throws RaftException
+   * @throws org.robotninjas.barge.RaftException
    */
   ListenableFuture<Object> commitAsync(byte[] operation) throws RaftException;
 

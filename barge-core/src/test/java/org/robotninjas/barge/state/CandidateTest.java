@@ -1,6 +1,8 @@
 package org.robotninjas.barge.state;
 
 import com.google.common.base.Optional;
+import org.jetlang.fibers.Fiber;
+import org.jetlang.fibers.FiberStub;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -12,9 +14,7 @@ import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.proto.RaftProto;
 import org.robotninjas.barge.rpc.Client;
 
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
@@ -26,9 +26,10 @@ public class CandidateTest {
 
   private final long term = 2L;
 
+  private Fiber scheduler = new FiberStub();
+  private @Mock Replica mockReplica;
   private final ClusterConfig config = ClusterConfigStub.getStub();
   private final Replica self = config.local();
-  private @Mock ScheduledExecutorService mockScheduler;
   private @Mock Client mockRaftClient;
   private @Mock StateMachine mockStateMachine;
   private @Mock RaftLog mockRaftLog;
@@ -54,15 +55,13 @@ public class CandidateTest {
     });
 
     ScheduledFuture mockScheduledFuture = mock(ScheduledFuture.class);
-    when(mockScheduler.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class)))
-      .thenReturn(mockScheduledFuture);
 
   }
 
   @Test
   public void testRequestVoteWithNewerTerm() throws Exception {
 
-    Candidate candidate = new Candidate(mockRaftLog, mockScheduler, 150, mockRaftClient);
+    Candidate candidate = new Candidate(mockRaftLog, scheduler, 150, mockRaftClient);
     candidate.init(mockRaftStateContext);
 
     Replica mockCandidate = config.getReplica("other");
@@ -96,7 +95,7 @@ public class CandidateTest {
 
   @Test
   public void testRequestVoteWithOlderTerm() throws Exception {
-    Candidate candidate = new Candidate(mockRaftLog, mockScheduler, 150, mockRaftClient);
+    Candidate candidate = new Candidate(mockRaftLog, scheduler, 150, mockRaftClient);
     candidate.init(mockRaftStateContext);
 
     Replica mockCandidate = config.getReplica("other");
@@ -127,7 +126,7 @@ public class CandidateTest {
 
   @Test
   public void testRequestVoteWithSameTerm() throws Exception {
-    Candidate candidate = new Candidate(mockRaftLog, mockScheduler, 150, mockRaftClient);
+    Candidate candidate = new Candidate(mockRaftLog, scheduler, 150, mockRaftClient);
     candidate.init(mockRaftStateContext);
 
     Replica mockCandidate = config.getReplica("other");
@@ -161,7 +160,7 @@ public class CandidateTest {
   @Test
   public void testAppendEntriesWithNewerTerm() throws Exception {
 
-    Candidate candidate = new Candidate(mockRaftLog, mockScheduler, 1, mockRaftClient);
+    Candidate candidate = new Candidate(mockRaftLog, scheduler, 1, mockRaftClient);
     candidate.init(mockRaftStateContext);
 
     Replica mockLeader = config.getReplica("other");
@@ -196,7 +195,7 @@ public class CandidateTest {
   @Test
   public void testAppendEntriesWithOlderTerm() throws Exception {
 
-    Candidate candidate = new Candidate(mockRaftLog, mockScheduler, 1, mockRaftClient);
+    Candidate candidate = new Candidate(mockRaftLog, scheduler, 1, mockRaftClient);
     candidate.init(mockRaftStateContext);
 
     Replica mockLeader = config.getReplica("other");
@@ -229,7 +228,7 @@ public class CandidateTest {
   @Test
   public void testAppendEntriesWithSameTerm() throws Exception {
 
-    Candidate candidate = new Candidate(mockRaftLog, mockScheduler, 1, mockRaftClient);
+    Candidate candidate = new Candidate(mockRaftLog, scheduler, 1, mockRaftClient);
     candidate.init(mockRaftStateContext);
 
     AppendEntries request =

@@ -114,6 +114,12 @@
         <version>4.0.11.Final</version>
       </dependency>
 
+      <dependency>
+        <groupId>org.jetlang</groupId>
+        <artifactId>jetlang</artifactId>
+        <version>0.2.12</version>
+      </dependency>
+
       <!-- Optional Dependencies -->
       <dependency>
         <groupId>com.google.code.findbugs</groupId>

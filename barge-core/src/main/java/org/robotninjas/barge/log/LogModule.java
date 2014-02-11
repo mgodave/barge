@@ -16,7 +16,6 @@
 
 package org.robotninjas.barge.log;
 
-import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
@@ -27,6 +26,7 @@ import org.robotninjas.barge.StateMachine;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.Executor;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Throwables.propagate;
@@ -35,9 +35,9 @@ public class LogModule extends PrivateModule {
 
   private final File logDirectory;
   private final StateMachine stateMachine;
-  private final ListeningExecutorService executor;
+  private final Executor executor;
 
-  public LogModule(@Nonnull File logDirectory, @Nonnull StateMachine stateMachine, @Nonnull ListeningExecutorService executor) {
+  public LogModule(@Nonnull File logDirectory, @Nonnull StateMachine stateMachine, @Nonnull Executor executor) {
     this.logDirectory = checkNotNull(logDirectory);
     this.stateMachine = checkNotNull(stateMachine);
     this.executor = checkNotNull(executor);
@@ -48,10 +48,10 @@ public class LogModule extends PrivateModule {
 
     bind(StateMachine.class).toInstance(stateMachine);
     bind(StateMachineProxy.class);
+    bind(Executor.class)
+        .annotatedWith(StateExecutor.class)
+        .toInstance(executor);
     bind(RaftLog.class).asEagerSingleton();
-    bind(ListeningExecutorService.class)
-      .annotatedWith(StateMachineExecutor.class)
-      .toInstance(executor);
     expose(RaftLog.class);
 
   }

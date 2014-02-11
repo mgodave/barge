@@ -23,7 +23,7 @@ class RaftServiceEndpoint implements RaftProto.RaftService.Interface {
   }
 
   @Override
-  public void requestVote(@Nonnull RpcController controller, @Nonnull RequestVote request, @Nonnull RpcCallback<RequestVoteResponse> done) {
+  public void requestVote(@Nonnull final RpcController controller, @Nonnull final RequestVote request, @Nonnull final RpcCallback<RequestVoteResponse> done) {
     try {
       done.run(ctx.requestVote(request));
     } catch (Exception e) {
@@ -34,7 +34,7 @@ class RaftServiceEndpoint implements RaftProto.RaftService.Interface {
   }
 
   @Override
-  public void appendEntries(@Nonnull RpcController controller, @Nonnull AppendEntries request, @Nonnull RpcCallback<AppendEntriesResponse> done) {
+  public void appendEntries(@Nonnull final RpcController controller, @Nonnull final AppendEntries request, @Nonnull final RpcCallback<AppendEntriesResponse> done) {
     try {
       done.run(ctx.appendEntries(request));
     } catch (Exception e) {

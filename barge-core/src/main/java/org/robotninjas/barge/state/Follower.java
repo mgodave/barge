@@ -19,16 +19,15 @@ package org.robotninjas.barge.state;
 import com.google.common.base.Optional;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Inject;
+import org.jetlang.fibers.Fiber;
 import org.robotninjas.barge.*;
 import org.robotninjas.barge.log.RaftLog;
-import org.robotninjas.barge.rpc.RaftScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.concurrent.ScheduledExecutorService;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -42,13 +41,13 @@ class Follower extends BaseState {
   private static final Logger LOGGER = LoggerFactory.getLogger(Follower.class);
 
   private final RaftLog log;
-  private final ScheduledExecutorService scheduler;
+  private final Fiber scheduler;
   private final long timeout;
   private Optional<Replica> leader = Optional.absent();
   private DeadlineTimer timeoutTask;
 
   @Inject
-  Follower(RaftLog log, @RaftScheduler ScheduledExecutorService scheduler, @ElectionTimeout @Nonnegative long timeout) {
+  Follower(RaftLog log, @RaftExecutor Fiber scheduler, @ElectionTimeout @Nonnegative long timeout) {
     super(FOLLOWER);
 
     this.log = checkNotNull(log);

@@ -23,10 +23,13 @@ import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import org.jetlang.core.Disposable;
+import org.jetlang.fibers.Fiber;
 import org.robotninjas.barge.RaftException;
+import org.robotninjas.barge.RaftExecutor;
+import org.robotninjas.barge.RaftExecutor;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.log.RaftLog;
-import org.robotninjas.barge.rpc.RaftScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,8 +42,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -56,14 +57,14 @@ class Leader extends BaseState {
   private static final Logger LOGGER = LoggerFactory.getLogger(Leader.class);
 
   private final RaftLog log;
-  private final ScheduledExecutorService scheduler;
+  private final Fiber scheduler;
   private final long timeout;
   private final Map<Replica, ReplicaManager> managers = Maps.newHashMap();
   private final ReplicaManagerFactory replicaManagerFactory;
-  private ScheduledFuture<?> heartbeatTask;
+  private Disposable heartbeatTask;
 
   @Inject
-  Leader(RaftLog log, @RaftScheduler ScheduledExecutorService scheduler,
+  Leader(RaftLog log, @RaftExecutor Fiber scheduler,
          @ElectionTimeout @Nonnegative long timeout, ReplicaManagerFactory replicaManagerFactory) {
     super(LEADER);
 
@@ -87,7 +88,7 @@ class Leader extends BaseState {
   }
 
   private void stepDown(RaftStateContext ctx) {
-    heartbeatTask.cancel(false);
+    heartbeatTask.dispose();
     for (ReplicaManager mgr : managers.values()) {
       mgr.shutdown();
     }
@@ -145,7 +146,7 @@ class Leader extends BaseState {
   void resetTimeout(@Nonnull final RaftStateContext ctx) {
 
     if (null != heartbeatTask) {
-      heartbeatTask.cancel(false);
+      heartbeatTask.dispose();
     }
 
     heartbeatTask = scheduler.scheduleAtFixedRate(new Runnable() {
