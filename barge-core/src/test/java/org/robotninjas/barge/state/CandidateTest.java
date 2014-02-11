@@ -11,10 +11,14 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.robotninjas.barge.*;
+import org.robotninjas.barge.ClusterConfig;
+import org.robotninjas.barge.ClusterConfigStub;
+import org.robotninjas.barge.Replica;
+import org.robotninjas.barge.StateMachine;
+import org.robotninjas.barge.api.AppendEntries;
+import org.robotninjas.barge.api.RequestVote;
+import org.robotninjas.barge.api.RequestVoteResponse;
 import org.robotninjas.barge.log.RaftLog;
-import org.robotninjas.barge.proto.RaftProto;
-import org.robotninjas.barge.proto.RaftProto.RequestVoteResponse;
 import org.robotninjas.barge.rpc.Client;
 
 import java.util.concurrent.ScheduledFuture;
@@ -22,8 +26,6 @@ import java.util.concurrent.ScheduledFuture;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.*;
-import static org.robotninjas.barge.proto.RaftProto.AppendEntries;
-import static org.robotninjas.barge.proto.RaftProto.RequestVote;
 import static org.robotninjas.barge.state.Raft.StateType.CANDIDATE;
 import static org.robotninjas.barge.state.Raft.StateType.LEADER;
 
@@ -211,7 +213,7 @@ public class CandidateTest {
     Replica mockLeader = config.getReplica("other");
 
     AppendEntries request =
-      RaftProto.AppendEntries.newBuilder()
+      AppendEntries.newBuilder()
         .setTerm(1L)
         .setLeaderId(mockLeader.toString())
         .setPrevLogIndex(1L)

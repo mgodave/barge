@@ -25,8 +25,9 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.jetlang.fibers.Fiber;
 import org.robotninjas.barge.RaftExecutor;
 import org.robotninjas.barge.Replica;
+import org.robotninjas.barge.api.RequestVote;
+import org.robotninjas.barge.api.RequestVoteResponse;
 import org.robotninjas.barge.log.RaftLog;
-import org.robotninjas.barge.proto.RaftProto.RequestVoteResponse;
 import org.robotninjas.barge.rpc.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +41,6 @@ import java.util.Random;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.util.concurrent.Futures.addCallback;
-import static org.robotninjas.barge.proto.RaftProto.RequestVote;
 import static org.robotninjas.barge.state.MajorityCollector.majorityResponse;
 import static org.robotninjas.barge.state.Raft.StateType.*;
 import static org.robotninjas.barge.state.RaftPredicates.voteGranted;
@@ -82,7 +82,7 @@ class Candidate extends BaseState {
       responses.add(sendVoteRequest(ctx, replica));
     }
     // We always vote for ourselves
-    responses.add(Futures.immediateFuture(RequestVoteResponse.newBuilder().setVoteGranted(true).buildPartial()));
+    responses.add(Futures.immediateFuture(RequestVoteResponse.newBuilder().setVoteGranted(true).build()));
 
     electionResult = majorityResponse(responses, voteGranted());
 
@@ -151,7 +151,8 @@ class Candidate extends BaseState {
       }
 
       @Override
-      public void onFailure(Throwable t) {}
+      public void onFailure(Throwable t) {
+      }
     };
   }
 

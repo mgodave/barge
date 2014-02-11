@@ -29,7 +29,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.robotninjas.barge.proto.RaftProto.*;
 import static org.robotninjas.barge.state.Raft.StateType.CANDIDATE;
 import static org.robotninjas.barge.state.Raft.StateType.FOLLOWER;
 

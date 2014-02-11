@@ -4,7 +4,7 @@ import com.google.common.base.Optional;
 import journal.io.api.Journal;
 import journal.io.api.JournalBuilder;
 import journal.io.api.Location;
-import org.robotninjas.barge.proto.LogProto;
+import org.robotninjas.barge.api.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,43 +34,43 @@ public class LogTool {
     for (Location loc : journal.redo()) {
 
       byte[] rawEntry = journal.read(loc, Journal.ReadType.ASYNC);
-      LogProto.JournalEntry entry = LogProto.JournalEntry.parseFrom(rawEntry);
+      JournalEntry entry = JournalEntry.parseFrom(rawEntry);
 
       if (entry.hasAppend()) {
 
-        LogProto.Append a = entry.getAppend();
+        Append a = entry.getAppend();
         index = a.getIndex();
         term = a.getEntry().getTerm();
         lastEntryType = Type.APPEND;
 
       } else if (entry.hasCommit()) {
 
-        LogProto.Commit c = entry.getCommit();
+        Commit c = entry.getCommit();
         committed = c.getIndex();
         lastEntryType = Type.COMMIT;
 
       } else if (entry.hasMembership()) {
 
-        LogProto.Membership m = entry.getMembership();
+        Membership m = entry.getMembership();
         membership = m.getMembersList();
         lastEntryType = Type.MEMBERSHIP;
 
       } else if (entry.hasSnapshot()) {
 
-        LogProto.Snapshot s = entry.getSnapshot();
+        Snapshot s = entry.getSnapshot();
         index = s.getLastIncludedIndex();
         term = s.getLastIncludedTerm();
         lastEntryType = Type.SNAPSHOT;
 
       } else if (entry.hasTerm()) {
 
-        LogProto.Term t = entry.getTerm();
+        Term t = entry.getTerm();
         term = t.getTerm();
         lastEntryType = Type.TERM;
 
       } else if (entry.hasVote()) {
 
-        LogProto.Vote v = entry.getVote();
+        Vote v = entry.getVote();
         lastVotedFor = Optional.fromNullable(v.getVotedFor());
         lastEntryType = Type.VOTE;
 

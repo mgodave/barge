@@ -3,11 +3,10 @@ package org.robotninjas.barge.state;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import org.robotninjas.barge.api.AppendEntriesResponse;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse;
 
 public class ReplicaState {
 

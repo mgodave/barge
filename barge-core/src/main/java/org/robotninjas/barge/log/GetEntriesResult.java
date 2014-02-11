@@ -18,14 +18,13 @@ package org.robotninjas.barge.log;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
+import org.robotninjas.barge.api.Entry;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collections;
 import java.util.List;
-
-import static org.robotninjas.barge.proto.RaftEntry.Entry;
 
 @Immutable
 @ThreadSafe

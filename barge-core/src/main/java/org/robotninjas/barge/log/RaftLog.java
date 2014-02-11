@@ -30,6 +30,8 @@ import com.google.protobuf.ByteString;
 import journal.io.api.Journal;
 import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.Replica;
+import org.robotninjas.barge.api.AppendEntries;
+import org.robotninjas.barge.api.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -48,8 +50,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Throwables.propagate;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.unmodifiableList;
-import static org.robotninjas.barge.proto.RaftEntry.Entry;
-import static org.robotninjas.barge.proto.RaftProto.AppendEntries;
 
 @NotThreadSafe
 public class RaftLog {
