@@ -164,8 +164,4 @@ public class NettyRaftService extends AbstractService implements RaftService {
     }
   }
 
-  public boolean isLeader() {
-    return ctx.type() == Raft.StateType.LEADER;
-  }
-
 }
