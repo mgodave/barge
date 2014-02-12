@@ -23,6 +23,7 @@ import com.google.inject.Guice;
 import com.google.protobuf.Service;
 import org.robotninjas.barge.proto.RaftProto;
 import org.robotninjas.barge.state.Raft;
+import org.robotninjas.barge.state.Raft.StateType;
 import org.robotninjas.barge.state.StateTransitionListener;
 import org.robotninjas.protobuf.netty.server.RpcServer;
 
@@ -105,6 +106,10 @@ public class NettyRaftService extends AbstractService implements RaftService {
       propagateIfInstanceOf(e.getCause(), NoLeaderException.class);
       throw propagate(e.getCause());
     }
+  }
+
+  public boolean isLeader() {
+    return StateType.LEADER == ctx.type();
   }
 
   public static Builder newBuilder(NettyClusterConfig config) {
