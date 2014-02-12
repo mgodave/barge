@@ -23,6 +23,7 @@ import com.google.common.util.concurrent.ListenableFutureTask;
 import org.jetlang.fibers.Fiber;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.RaftExecutor;
+import org.robotninjas.barge.log.RaftLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -36,7 +37,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 import static org.robotninjas.barge.proto.RaftProto.*;
 
 @NotThreadSafe
@@ -44,6 +44,7 @@ class RaftStateContext implements Raft {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RaftStateContext.class);
 
+  private final String name;
   private final StateFactory stateFactory;
   private final Executor executor;
   private final Set<StateTransitionListener> listeners = Sets.newConcurrentHashSet();
@@ -51,8 +52,14 @@ class RaftStateContext implements Raft {
   private volatile StateType state;
   private volatile State delegate;
 
+
   @Inject
-  RaftStateContext(StateFactory stateFactory, @RaftExecutor Fiber executor) {
+  RaftStateContext(RaftLog log, StateFactory stateFactory, @RaftExecutor Fiber executor) {
+    this(log.self().toString(), stateFactory, executor);
+  }
+
+  RaftStateContext(String name, StateFactory stateFactory, @RaftExecutor Fiber executor) {
+    this.name = name;
     this.stateFactory = stateFactory;
     this.executor = executor;
     this.listeners.add(new LogListener());
@@ -130,12 +137,12 @@ class RaftStateContext implements Raft {
   public synchronized void setState(State oldState, @Nonnull StateType state) {
 
     if (this.delegate != oldState) {
-      LOGGER.info("previous state was not correct (transitioning to {}). Expected {}, was {}", state, oldState, this.delegate);
+      LOGGER.info("{}.  Previous state was not correct (transitioning to {}). Expected {}, was {}", this.name, state, oldState, this.delegate);
       notifiesInvalidTransition(oldState);
       throw new IllegalStateException();
     }
 
-    LOGGER.info("old state: {}, new state: {}", this.state, state);
+    LOGGER.info("{} transition.  old state: {}, new state: {}", this.name, this.state, state);
     if (this.delegate != null) {
       this.delegate.destroy(this);
     }
