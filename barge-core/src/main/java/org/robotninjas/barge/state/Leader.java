@@ -139,7 +139,7 @@ class Leader extends BaseState {
     int quorumSize = (n / 2) + 1;
     final long committed = sorted.get(quorumSize - 1);
 
-    LOGGER.debug("updating commitIndex to {}", committed);
+    LOGGER.debug("updating commitIndex to {}; sorted is {}", committed, sorted);
     getLog().commitIndex(committed);
 
   }
