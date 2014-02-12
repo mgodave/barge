@@ -15,6 +15,7 @@
  */
 package org.robotninjas.barge.api;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
@@ -74,6 +75,43 @@ public class AppendEntries {
 
   public long getEntriesCount() {
     return entriesList.size();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof AppendEntries)) return false;
+
+    AppendEntries that = (AppendEntries) o;
+
+    return Objects.equal(entriesList,that.entriesList)
+      && commitIndex == that.commitIndex
+      && prevLogIndex == that.prevLogIndex
+      && prevLogTerm == that.prevLogTerm
+      && term == that.term
+      && Objects.equal(leaderId, that.leaderId);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = (int) (prevLogIndex ^ (prevLogIndex >>> 32));
+    result = 31 * result + (int) (prevLogTerm ^ (prevLogTerm >>> 32));
+    result = 31 * result + entriesList.hashCode();
+    result = 31 * result + (int) (term ^ (term >>> 32));
+    result = 31 * result + leaderId.hashCode();
+    result = 31 * result + (int) (commitIndex ^ (commitIndex >>> 32));
+    return result;
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+      .add("prevLogIndex", prevLogIndex)
+      .add("prevLogTerm", prevLogTerm)
+      .add("entriesList", entriesList)
+      .add("term", term)
+      .add("leaderId", leaderId)
+      .add("commitIndex", commitIndex)
+      .toString();
   }
 
   public static AppendEntries getDefaultInstance() {
