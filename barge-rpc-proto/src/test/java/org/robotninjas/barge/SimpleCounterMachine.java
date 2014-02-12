@@ -106,4 +106,8 @@ public class SimpleCounterMachine implements StateMachine {
     }).probe(timeout);
   }
 
+  public boolean isLeader() {
+    return service.isLeader();
+  }
+
 }

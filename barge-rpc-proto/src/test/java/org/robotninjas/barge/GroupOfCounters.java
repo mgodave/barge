@@ -66,7 +66,18 @@ public class GroupOfCounters extends ExternalResource implements StateTransition
   }
 
   public void commitToLeader(byte[] bytes) throws RaftException, InterruptedException {
-    counters.get(0).commit(bytes);
+    int leader = getLeader();
+    counters.get(leader).commit(bytes);
+  }
+
+  private int getLeader() {
+    for (int i = 0; i < counters.size(); i++) {
+      SimpleCounterMachine counter = counters.get(i);
+      if (counter.isLeader()) {
+        return i;
+      }
+    }
+    throw new IllegalStateException("Unable to find leader");
   }
 
   /**
