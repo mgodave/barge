@@ -61,12 +61,14 @@ public abstract class BaseState implements State {
     
     assert !votedFor.isPresent() || votedFor.get().equals(candidate);
     
-    boolean logIsComplete = false;
+    boolean logIsComplete;
     if (request.getLastLogTerm() > log.lastLogTerm()) {
       logIsComplete = true;
     } else if (request.getLastLogTerm() == log.lastLogTerm()) {
       if (request.getLastLogIndex() >= log.lastLogIndex()) {
         logIsComplete = true;
+      } else {
+        logIsComplete = false;
       }
     } else {
       logIsComplete = false;
@@ -124,7 +126,7 @@ public abstract class BaseState implements State {
   @Override
   public RequestVoteResponse requestVote(@Nonnull RaftStateContext ctx, @Nonnull RequestVote request) {
 
-    boolean voteGranted = false;
+    boolean voteGranted;
 
     long term = request.getTerm();
     long currentTerm = log.currentTerm();
@@ -134,9 +136,11 @@ public abstract class BaseState implements State {
       voteGranted = false;
     } else {
 
-      if (request.getTerm() > log.currentTerm()) {
+      // If RPC request or response contains term T > currentTerm:
+      // set currentTerm = T, convert to follower (§5.1)
+      if (term > currentTerm) {
 
-        log.currentTerm(request.getTerm());
+        log.currentTerm(term);
 
         if (ctx.type().equals(LEADER) || ctx.type().equals(CANDIDATE)) {
           ctx.setState(this, FOLLOWER);
@@ -154,7 +158,7 @@ public abstract class BaseState implements State {
     }
 
     return RequestVoteResponse.newBuilder()
-        .setTerm(log.currentTerm())
+        .setTerm(currentTerm)
         .setVoteGranted(voteGranted)
         .build();
 
