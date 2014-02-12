@@ -221,7 +221,7 @@ public class RaftLog {
   public void currentTerm(@Nonnegative long term) {
     checkArgument(term >= 0);
     MDC.put("term", Long.toString(term));
-    LOGGER.debug("New term {}", term);
+    LOGGER.debug("{}: New term {}", self(), term);
     currentTerm = term;
     journal.appendTerm(term);
   }
@@ -232,7 +232,7 @@ public class RaftLog {
   }
 
   public void lastVotedFor(@Nonnull Optional<Replica> vote) {
-    LOGGER.debug("Voting for {}", vote.orNull());
+    LOGGER.debug("{} voting for {}", self(), vote.orNull());
     votedFor = vote;
     journal.appendVote(vote);
   }

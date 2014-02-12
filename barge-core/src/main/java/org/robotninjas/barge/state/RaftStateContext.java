@@ -184,12 +184,12 @@ class RaftStateContext implements Raft {
   private class LogListener implements StateTransitionListener {
     @Override
     public void changeState(@Nonnull Raft context, @Nullable StateType from, @Nonnull StateType to) {
-      LOGGER.info("old state: {}, new state: {}", from, to);
+      LOGGER.info("LogListener: old state: {}, new state: {}", from, to);
     }
 
     @Override
     public void invalidTransition(@Nonnull Raft context, @Nonnull StateType actual, @Nullable StateType expected) {
-      LOGGER.warn("State transition from incorrect previous state.  Expected {}, was {}", actual, expected);
+      LOGGER.warn("LogListener: State transition from incorrect previous state.  Expected {}, was {}", actual, expected);
     }
   }
 }

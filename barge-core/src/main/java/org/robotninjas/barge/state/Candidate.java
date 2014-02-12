@@ -69,12 +69,12 @@ class Candidate extends BaseState {
   @Override
   public void init(@Nonnull final RaftStateContext ctx) {
 
-    RaftLog log = getLog();
+    final RaftLog log = getLog();
 
     log.currentTerm(log.currentTerm() + 1);
     log.lastVotedFor(Optional.of(log.self()));
 
-    LOGGER.debug("Election starting for term {}", log.currentTerm());
+    LOGGER.debug("{} starting election for term {}", log.self(), log.currentTerm());
 
     List<ListenableFuture<RequestVoteResponse>> responses = Lists.newArrayList();
     // Request votes from peers
@@ -90,7 +90,7 @@ class Candidate extends BaseState {
     electionTimer = DeadlineTimer.start(scheduler, new Runnable() {
       @Override
       public void run() {
-        LOGGER.debug("Election timeout");
+        LOGGER.debug("{} election timeout", log.self());
         ctx.setState(Candidate.this, CANDIDATE);
       }
     }, timeout);
@@ -108,7 +108,7 @@ class Candidate extends BaseState {
       @Override
       public void onFailure(Throwable t) {
         if (!electionResult.isCancelled()) {
-          LOGGER.debug("Election failed with exception:", t);
+          LOGGER.debug("{} election failed with exception:", log.self(), t);
         }
       }
 
