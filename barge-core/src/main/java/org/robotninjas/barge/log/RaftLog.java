@@ -26,7 +26,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.inject.Inject;
-import com.google.protobuf.ByteString;
 import journal.io.api.Journal;
 import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.Replica;
@@ -55,7 +54,8 @@ import static java.util.Collections.unmodifiableList;
 public class RaftLog {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RaftLog.class);
-  private static final Entry SENTINEL = Entry.newBuilder().setCommand(ByteString.EMPTY).setTerm(0).build();
+  private static final byte[] EMPTY = new byte[0];
+  private static final Entry SENTINEL = Entry.newBuilder().setCommand(EMPTY).setTerm(0).build();
 
   private final TreeMap<Long, RaftJournal.Mark> log = Maps.newTreeMap();
   private final ClusterConfig config;
@@ -129,7 +129,7 @@ public class RaftLog {
 
     Entry entry =
         Entry.newBuilder()
-            .setCommand(ByteString.copyFrom(operation))
+            .setCommand(operation)
             .setTerm(currentTerm)
             .build();
 
@@ -194,7 +194,7 @@ public class RaftLog {
     try {
       for (long i = lastApplied + 1; i <= Math.min(commitIndex, lastLogIndex); ++i, ++lastApplied) {
         Entry entry = journal.get(log.get(i));
-        byte[] rawCommand = entry.getCommand().toByteArray();
+        byte[] rawCommand = entry.getCommand();
         final ByteBuffer operation = ByteBuffer.wrap(rawCommand).asReadOnlyBuffer();
         ListenableFuture<Object> result = stateMachine.dispatchOperation(operation);
 

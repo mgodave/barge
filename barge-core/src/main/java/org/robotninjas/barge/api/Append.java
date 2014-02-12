@@ -15,12 +15,15 @@
  */
 package org.robotninjas.barge.api;
 
+import com.google.common.base.Objects;
+
 import javax.annotation.concurrent.Immutable;
+import java.io.Serializable;
 
 /**
  */
 @Immutable
-public class Append {
+public class Append implements Serializable {
 
   private final long index;
   private final Entry entry;
@@ -36,6 +39,29 @@ public class Append {
 
   public Entry getEntry() {
     return entry;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(entry) * 37 + (int) index;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof Append))
+      return false;
+
+    Append that = (Append) obj;
+
+    return index == that.index && Objects.equal(entry, that.entry);
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+      .add("index", index)
+      .add("entry", entry)
+      .toString();
   }
 
   public static Builder newBuilder() {
@@ -61,7 +87,7 @@ public class Append {
     }
 
     public Append build() {
-      return new Append(index,entry);
+      return new Append(index, entry);
     }
   }
 }

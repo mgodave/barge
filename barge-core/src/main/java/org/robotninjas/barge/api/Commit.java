@@ -15,9 +15,13 @@
  */
 package org.robotninjas.barge.api;
 
+import com.google.common.base.Objects;
+
+import java.io.Serializable;
+
 /**
  */
-public class Commit {
+public class Commit  implements Serializable {
 
   private final long index;
 
@@ -33,16 +37,30 @@ public class Commit {
     return index;
   }
 
+  @Override
+  public int hashCode() {
+    return (int) index;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    return obj instanceof Commit && index == ((Commit) obj).index;
+
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+      .add("index", index)
+      .toString();
+  }
+
   public static class Builder {
     private long index;
 
     public Builder setIndex(long index) {
       this.index = index;
       return this;
-    }
-
-    public long getIndex() {
-      return index;
     }
 
     public Commit build() {

@@ -15,12 +15,15 @@
  */
 package org.robotninjas.barge.api;
 
+import com.google.common.base.Objects;
+
 import javax.annotation.concurrent.Immutable;
+import java.io.Serializable;
 
 /**
  */
 @Immutable
-public class Snapshot  {
+public class Snapshot implements Serializable {
 
   private final long lastIncludedIndex;
   private final long lastIncludedTerm;
@@ -44,6 +47,35 @@ public class Snapshot  {
     return lastIncludedTerm;
   }
 
+  @Override
+  public int hashCode() {
+    int result = (int) (lastIncludedIndex ^ (lastIncludedIndex >>> 32));
+    result = 31 * result + (int) (lastIncludedTerm ^ (lastIncludedTerm >>> 32));
+    result = 31 * result + (snapshotFile != null ? snapshotFile.hashCode() : 0);
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof Snapshot))
+      return false;
+
+    Snapshot that = (Snapshot) obj;
+
+    return lastIncludedIndex == that.lastIncludedIndex
+      && lastIncludedTerm == that.lastIncludedTerm
+      && Objects.equal(snapshotFile, that.snapshotFile);
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+      .add("lastIncludedIndex", lastIncludedIndex)
+      .add("lastIncludedTerm", lastIncludedTerm)
+      .add("snapshotFile", snapshotFile)
+      .toString();
+  }
+
   public static class Builder {
     private long lastIncludedIndex;
     private long lastIncludedTerm;
@@ -65,7 +97,7 @@ public class Snapshot  {
     }
 
     public Snapshot build() {
-      return new Snapshot(lastIncludedIndex,lastIncludedTerm,snapshotFile);
+      return new Snapshot(lastIncludedIndex, lastIncludedTerm, snapshotFile);
     }
   }
 }

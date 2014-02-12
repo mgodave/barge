@@ -15,12 +15,15 @@
  */
 package org.robotninjas.barge.api;
 
+import com.google.common.base.Objects;
+
 import javax.annotation.concurrent.Immutable;
+import java.io.Serializable;
 
 /**
  */
 @Immutable
-public class Term {
+public class Term implements Serializable {
 
   private final long term;
 
@@ -34,6 +37,24 @@ public class Term {
 
   public long getTerm() {
     return term;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    return o instanceof Term && term == ((Term) o).term;
+
+  }
+
+  @Override
+  public int hashCode() {
+    return (int) (term ^ (term >>> 32));
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+      .add("term", term)
+      .toString();
   }
 
   public static class Builder {

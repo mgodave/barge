@@ -15,9 +15,13 @@
  */
 package org.robotninjas.barge.api;
 
+import com.google.common.base.Objects;
+
+import java.io.Serializable;
+
 /**
  */
-public class Vote {
+public class Vote implements Serializable {
 
   private final String votedFor;
 
@@ -31,6 +35,24 @@ public class Vote {
 
   public String getVotedFor() {
     return votedFor;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    return o instanceof Vote && Objects.equal(votedFor, ((Vote) o).votedFor);
+
+  }
+
+  @Override
+  public int hashCode() {
+    return votedFor != null ? votedFor.hashCode() : 0;
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+      .add("votedFor", votedFor)
+      .toString();
   }
 
   public static class Builder {

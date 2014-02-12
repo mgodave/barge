@@ -15,19 +15,22 @@
  */
 package org.robotninjas.barge.api;
 
-import com.google.protobuf.ByteString;
+import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.Immutable;
+import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  */
 @Immutable
-public class Entry {
-  private final ByteString command;
+public class Entry  implements Serializable {
+
+  private final byte[] command;
   private final long term;
 
-  public Entry(ByteString command, long term) {
-    this.command = command;
+  public Entry(byte[] command, long term) {
+    this.command = Arrays.copyOf(command,command.length);
     this.term = term;
   }
 
@@ -35,19 +38,42 @@ public class Entry {
     return term;
   }
 
+  public byte[] getCommand() {
+    return command;
+  }
+
+  @Override
+  public int hashCode() {
+    return Arrays.hashCode(command) * 37 + (int) term;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if(!(obj instanceof Entry))
+      return false;
+
+    Entry that = (Entry)obj;
+    return Arrays.equals(command,that.command) && term == that.term;
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+      .add("command", command)
+      .add("term", term)
+      .toString();
+  }
+
   public static Builder newBuilder() {
     return new Builder();
   }
 
-  public ByteString getCommand() {
-    return command;
-  }
-
   public static class Builder {
-    private ByteString command;
+
+    private byte[] command;
     private long term;
 
-    public Builder setCommand(ByteString command) {
+    public Builder setCommand(byte[] command) {
       this.command = command;
       return this;
     }

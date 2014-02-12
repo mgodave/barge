@@ -15,7 +15,11 @@
  */
 package org.robotninjas.barge.api;
 
+import com.google.common.base.Objects;
+import com.google.common.base.Throwables;
+
 import javax.annotation.concurrent.Immutable;
+import java.io.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -23,7 +27,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 @Immutable
 public final class
-  JournalEntry {
+  JournalEntry implements Serializable {
 
   private final Object entry;
 
@@ -40,15 +44,53 @@ public final class
   }
 
   public static JournalEntry parseFrom(byte[] data) {
-    throw new RuntimeException("not yet implemented");
+    ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
+    try {
+      return (JournalEntry) new ObjectInputStream(inputStream).readObject();
+    } catch (IOException e) {
+      throw Throwables.propagate(e);
+    } catch (ClassNotFoundException e) {
+      throw Throwables.propagate(e);
+    }
   }
 
   public byte[] toByteArray() {
-    throw new RuntimeException("not yet implemented");
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    try {
+      ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
+      objectOutputStream.writeObject(this);
+      objectOutputStream.close();
+
+      return outputStream.toByteArray();
+    } catch (IOException e) {
+      throw Throwables.propagate(e);
+    }
   }
 
   public static Builder newBuilder() {
     return new Builder();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof JournalEntry))
+      return false;
+
+    JournalEntry that = (JournalEntry) o;
+
+    return Objects.equal(entry, that.entry);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(entry);
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+      .add("entry", entry)
+      .toString();
   }
 
   public boolean hasCommit() {

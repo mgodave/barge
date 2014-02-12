@@ -3,7 +3,6 @@ package org.robotninjas.barge.state;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
-import com.google.protobuf.ByteString;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -25,6 +24,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings("unchecked")
 public class ReplicaManagerTest {
 
   private static final ClusterConfig config = ClusterConfigStub.getStub();
@@ -148,7 +148,7 @@ public class ReplicaManagerTest {
 
     Entry entry = Entry.newBuilder()
       .setTerm(1)
-      .setCommand(ByteString.EMPTY)
+      .setCommand(new byte[0])
       .build();
 
     GetEntriesResult entriesResult = new GetEntriesResult(0l, 0l, Lists.newArrayList(entry));
