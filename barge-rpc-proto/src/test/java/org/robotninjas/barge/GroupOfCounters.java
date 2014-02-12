@@ -15,6 +15,7 @@
  */
 package org.robotninjas.barge;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.junit.rules.ExternalResource;
@@ -66,18 +67,16 @@ public class GroupOfCounters extends ExternalResource implements StateTransition
   }
 
   public void commitToLeader(byte[] bytes) throws RaftException, InterruptedException {
-    int leader = getLeader();
-    counters.get(leader).commit(bytes);
+    getLeader().get().commit(bytes);
   }
 
-  private int getLeader() {
-    for (int i = 0; i < counters.size(); i++) {
-      SimpleCounterMachine counter = counters.get(i);
+  private Optional<SimpleCounterMachine> getLeader() {
+    for (SimpleCounterMachine counter : counters) {
       if (counter.isLeader()) {
-        return i;
+        return Optional.of(counter);
       }
     }
-    throw new IllegalStateException("Unable to find leader");
+    return Optional.absent();
   }
 
   /**
