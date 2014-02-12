@@ -7,29 +7,21 @@ import org.robotninjas.barge.log.RaftLog;
 
 import javax.annotation.Nonnull;
 
-import static com.google.inject.internal.util.$Preconditions.checkNotNull;
 import static org.robotninjas.barge.proto.RaftProto.*;
 import static org.robotninjas.barge.state.Raft.StateType.FOLLOWER;
 import static org.robotninjas.barge.state.Raft.StateType.START;
 
-class Start implements State {
-
-  private final RaftLog log;
+class Start extends BaseState {
 
   @Inject
   public Start(RaftLog log) {
-    this.log = checkNotNull(log);
+    super(START, log);
   }
 
   @Override
   public void init(@Nonnull RaftStateContext ctx) {
-    log.load();
+    getLog().load();
     ctx.setState(this, FOLLOWER);
-  }
-
-  @Override
-  public void destroy(@Nonnull RaftStateContext ctx) {
-
   }
 
   @Nonnull
@@ -48,15 +40,6 @@ class Start implements State {
   @Override
   public ListenableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
     throw new RaftException("Service has not started yet");
-  }
-
-  @Override
-  public void doStop(RaftStateContext ctx) {
-    // No complex state
-  }
-  
-  public RaftStateContext.StateType type() {
-    return START;
   }
 
 }

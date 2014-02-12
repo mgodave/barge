@@ -155,9 +155,4 @@ class Candidate extends BaseState {
     };
   }
 
-  @Override
-  public void doStop(RaftStateContext ctx) {
-    ctx.setState(this, STOPPED);
-  }
-
 }
