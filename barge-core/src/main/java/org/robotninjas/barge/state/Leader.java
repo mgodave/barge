@@ -85,7 +85,7 @@ class Leader extends BaseState {
   @Override
   public void doStop(RaftStateContext ctx) {
     destroy(ctx);
-    ctx.setState(this, StateType.STOPPED);
+    super.doStop(ctx);
   }
 
   public void destroy(RaftStateContext ctx) {
