@@ -154,9 +154,7 @@ class RaftStateContext implements Raft {
 
     notifiesChangeState(oldState);
 
-    if (delegate != null) {
-      delegate.init(this);
-    }
+    delegate.init(this);
   }
 
   private void notifiesInvalidTransition(State oldState) {

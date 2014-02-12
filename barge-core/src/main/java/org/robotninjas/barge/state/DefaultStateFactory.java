@@ -55,7 +55,7 @@ class DefaultStateFactory implements StateFactory {
       case CANDIDATE:
         return new Candidate(log, scheduler, timeout, client);
       case STOPPED:
-        return null;
+        return new Stopped(log);
       default:
         throw new IllegalStateException("the impossible happpened, unknown state type " + state);
     }
