@@ -17,10 +17,12 @@ package org.robotninjas.barge.api;
 
 import com.google.common.base.Objects;
 
+import javax.annotation.concurrent.Immutable;
 import java.io.Serializable;
 
 /**
  */
+@Immutable
 public class Commit  implements Serializable {
 
   private final long index;
