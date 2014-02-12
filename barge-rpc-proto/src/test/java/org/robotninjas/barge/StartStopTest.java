@@ -21,7 +21,7 @@ public class StartStopTest {
 
   private File TEST_TMP_DIR;
 
-  private final Replica replicas[] = new Replica[] { Replica.fromString("localhost:10001") };
+  private final NettyReplica replicas[] = new NettyReplica[] { NettyReplica.fromString("localhost:10001") };
 
   private List<Server> allServers = Lists.newArrayList();
 
@@ -71,7 +71,7 @@ public class StartStopTest {
 
     ServerState state = new ServerState();
 
-    ClusterConfig clusterConfig = ClusterConfig.from(replicas[0]);
+    NettyClusterConfig clusterConfig = NettyClusterConfig.from(replicas[0]);
 
     NettyRaftService raftService = NettyRaftService.newBuilder(clusterConfig).logDir(logDir).timeout(500).build(state);
 

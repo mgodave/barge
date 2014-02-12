@@ -27,6 +27,11 @@ class Start implements State {
     ctx.setState(this, FOLLOWER);
   }
 
+  @Override
+  public void destroy(@Nonnull RaftStateContext ctx) {
+
+  }
+
   @Nonnull
   @Override
   public RequestVoteResponse requestVote(@Nonnull RaftStateContext ctx, @Nonnull RequestVote request) {

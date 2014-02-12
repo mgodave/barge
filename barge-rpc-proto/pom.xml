@@ -10,7 +10,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>barge-rpc-proto</artifactId>
-  <description>Handles Protocol-buffer based RPC</description>
+  <description>Main entry point to instantiate a fully functional barge service</description>
 
   <dependencies>
 
@@ -19,12 +19,6 @@
       <artifactId>barge-core</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-all</artifactId>
-    </dependency>
-
-    <!-- Compile Dependencies -->
     <dependency>
       <groupId>org.robotninjas</groupId>
       <artifactId>protorpc</artifactId>
@@ -45,6 +39,11 @@
       <artifactId>guice</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>org.jetlang</groupId>
+      <artifactId>jetlang</artifactId>
+    </dependency>
+
     <!-- Optional Dependencies -->
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
@@ -52,12 +51,14 @@
     </dependency>
 
     <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <scope>test</scope>
     </dependency>
 
   </dependencies>
-
-  
 </project>

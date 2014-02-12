@@ -6,12 +6,12 @@ import java.io.File;
 
 public class NettyRaftModule extends PrivateModule {
 
-  private final ClusterConfig config;
+  private final NettyClusterConfig config;
   private final File logDir;
   private final StateMachine stateMachine;
   private final long timeout;
 
-  public NettyRaftModule(ClusterConfig config, File logDir, StateMachine stateMachine, long timeout) {
+  public NettyRaftModule(NettyClusterConfig config, File logDir, StateMachine stateMachine, long timeout) {
     this.config = config;
     this.logDir = logDir;
     this.stateMachine = stateMachine;
@@ -20,14 +20,18 @@ public class NettyRaftModule extends PrivateModule {
 
   @Override
   protected void configure() {
-    RaftCoreModule coreModule = new RaftCoreModule(config, logDir, stateMachine);
-    coreModule.setTimeout(timeout);
-    
-    install(coreModule);
+
+    install(RaftCoreModule.builder()
+        .withTimeout(timeout)
+        .withConfig(config)
+        .withLogDir(logDir)
+        .withStateMachine(stateMachine)
+        .build());
+
     install(new RaftProtoRpcModule(config.local()));
 
     bind(NettyRaftService.class);
     expose(NettyRaftService.class);
   }
-  
+
 }

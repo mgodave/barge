@@ -22,12 +22,14 @@ import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import org.jetlang.fibers.Fiber;
 import org.robotninjas.barge.NoLeaderException;
 import org.robotninjas.barge.RaftException;
+import org.robotninjas.barge.RaftExecutor;
+import org.robotninjas.barge.RaftExecutor;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.rpc.Client;
-import org.robotninjas.barge.rpc.RaftScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,14 +39,14 @@ import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.ScheduledExecutorService;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.util.concurrent.Futures.addCallback;
-import static org.robotninjas.barge.proto.RaftProto.*;
+import static org.robotninjas.barge.proto.RaftProto.RequestVote;
+import static org.robotninjas.barge.proto.RaftProto.RequestVoteResponse;
 import static org.robotninjas.barge.state.MajorityCollector.majorityResponse;
-import static org.robotninjas.barge.state.RaftPredicates.voteGranted;
 import static org.robotninjas.barge.state.Raft.StateType.*;
+import static org.robotninjas.barge.state.RaftPredicates.voteGranted;
 
 @NotThreadSafe
 class Candidate extends BaseState {
@@ -52,18 +54,16 @@ class Candidate extends BaseState {
   private static final Logger LOGGER = LoggerFactory.getLogger(Candidate.class);
   private static final Random RAND = new Random(System.nanoTime());
 
-  private final RaftLog log;
-  private final ScheduledExecutorService scheduler;
+  private final Fiber scheduler;
   private final long electionTimeout;
   private final Client client;
   private DeadlineTimer electionTimer;
   private ListenableFuture<Boolean> electionResult;
 
   @Inject
-  Candidate(RaftLog log, @RaftScheduler ScheduledExecutorService scheduler,
+  Candidate(RaftLog log, @RaftExecutor Fiber scheduler,
             @ElectionTimeout long electionTimeout, Client client) {
-    super(CANDIDATE);
-    this.log = log;
+    super(CANDIDATE, log);
     this.scheduler = scheduler;
     this.electionTimeout = electionTimeout;
     this.client = client;
@@ -71,6 +71,8 @@ class Candidate extends BaseState {
 
   @Override
   public void init(@Nonnull final RaftStateContext ctx) {
+
+    RaftLog log = getLog();
 
     log.currentTerm(log.currentTerm() + 1);
     log.lastVotedFor(Optional.of(log.self()));
@@ -85,7 +87,7 @@ class Candidate extends BaseState {
       @Override
       public void run() {
         LOGGER.debug("Election timeout");
-        transition(ctx, CANDIDATE);
+        ctx.setState(Candidate.this, CANDIDATE);
       }
     }, timeout);
 
@@ -95,7 +97,7 @@ class Candidate extends BaseState {
         checkNotNull(elected);
         //noinspection ConstantConditions
         if (elected) {
-          transition(ctx, LEADER);
+          ctx.setState(Candidate.this, LEADER);
         }
       }
 
@@ -110,74 +112,16 @@ class Candidate extends BaseState {
 
   }
 
-  private void transition(@Nonnull RaftStateContext ctx, @Nonnull RaftStateContext.StateType state) {
-    ctx.setState(this, state);
+  @Override
+  public void destroy(RaftStateContext ctx) {
     electionResult.cancel(false);
     electionTimer.cancel();
-  }
-
-  @Nonnull
-  @Override
-  public RequestVoteResponse requestVote(@Nonnull RaftStateContext ctx, @Nonnull RequestVote request) {
-
-    LOGGER.debug("RequestVote received for term {}", request.getTerm());
-
-    Replica candidate = Replica.fromString(request.getCandidateId());
-
-    boolean voteGranted = false;
-
-    if (request.getTerm() > log.currentTerm()) {
-      log.currentTerm(request.getTerm());
-      transition(ctx, FOLLOWER);
-      voteGranted = shouldVoteFor(log, request);
-      if (voteGranted) {
-        log.lastVotedFor(Optional.of(candidate));
-      }
-    }
-
-    return RequestVoteResponse.newBuilder()
-      .setTerm(log.currentTerm())
-      .setVoteGranted(voteGranted)
-      .build();
-
-  }
-
-  @Nonnull
-  @Override
-  public AppendEntriesResponse appendEntries(@Nonnull RaftStateContext ctx, @Nonnull AppendEntries request) {
-
-    LOGGER.debug("AppendEntries received for term {}", request.getTerm());
-
-    boolean success = false;
-
-    if (request.getTerm() >= log.currentTerm()) {
-
-      if (request.getTerm() > log.currentTerm()) {
-        log.currentTerm(request.getTerm());
-      }
-
-      transition(ctx, FOLLOWER);
-
-      success = log.append(request);
-
-    }
-
-    return AppendEntriesResponse.newBuilder()
-      .setTerm(log.currentTerm())
-      .setSuccess(success)
-      .build();
-
-  }
-
-  @Nonnull
-  @Override
-  public ListenableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
-    throw new NoLeaderException();
   }
 
   @VisibleForTesting
   List<ListenableFuture<RequestVoteResponse>> sendRequests(RaftStateContext ctx) {
 
+    RaftLog log = getLog();
     RequestVote request =
       RequestVote.newBuilder()
         .setTerm(log.currentTerm())
@@ -200,9 +144,9 @@ class Candidate extends BaseState {
     return new FutureCallback<RequestVoteResponse>() {
       @Override
       public void onSuccess(@Nullable RequestVoteResponse response) {
-        if (response.getTerm() > log.currentTerm()) {
-          log.currentTerm(response.getTerm());
-          transition(ctx, FOLLOWER);
+        if (response.getTerm() > getLog().currentTerm()) {
+          getLog().currentTerm(response.getTerm());
+          ctx.setState(Candidate.this, FOLLOWER);
         }
       }
 
@@ -213,7 +157,7 @@ class Candidate extends BaseState {
 
   @Override
   public void doStop(RaftStateContext ctx) {
-    transition(ctx, STOPPED);
+    ctx.setState(this, STOPPED);
   }
 
 }

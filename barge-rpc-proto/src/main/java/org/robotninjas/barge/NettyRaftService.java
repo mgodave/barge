@@ -18,14 +18,10 @@ package org.robotninjas.barge;
 
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.AbstractService;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.inject.Guice;
 import com.google.protobuf.Service;
 import org.robotninjas.barge.proto.RaftProto;
-import org.robotninjas.barge.rpc.RaftExecutor;
-import org.robotninjas.barge.service.RaftService;
 import org.robotninjas.barge.state.Raft;
 import org.robotninjas.barge.state.StateTransitionListener;
 import org.robotninjas.protobuf.netty.server.RpcServer;
@@ -35,27 +31,23 @@ import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Inject;
 import java.io.File;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Throwables.propagate;
 import static com.google.common.base.Throwables.propagateIfInstanceOf;
-
-import static org.robotninjas.barge.state.Raft.StateType.*;
+import static org.robotninjas.barge.state.Raft.StateType.START;
 
 @ThreadSafe
 @Immutable
 public class NettyRaftService extends AbstractService implements RaftService {
 
-  private final ListeningExecutorService executor;
   private final RpcServer rpcServer;
   private final Raft ctx;
 
   @Inject
-  NettyRaftService(@Nonnull RpcServer rpcServer, @RaftExecutor ListeningExecutorService executor, @Nonnull Raft ctx) {
+  NettyRaftService(@Nonnull RpcServer rpcServer, @Nonnull Raft ctx) {
 
-    this.executor = checkNotNull(executor);
     this.rpcServer = checkNotNull(rpcServer);
     this.ctx = checkNotNull(ctx);
 
@@ -103,16 +95,7 @@ public class NettyRaftService extends AbstractService implements RaftService {
   @Override
   public ListenableFuture<Object> commitAsync(final byte[] operation) throws RaftException {
 
-    // Make sure this happens on the Barge thread
-    ListenableFuture<ListenableFuture<Object>> response =
-      executor.submit(new Callable<ListenableFuture<Object>>() {
-        @Override
-        public ListenableFuture<Object> call() throws Exception {
-          return ctx.commitOperation(operation);
-        }
-      });
-
-    return Futures.dereference(response);
+    return ctx.commitOperation(operation);
 
   }
 
@@ -127,7 +110,7 @@ public class NettyRaftService extends AbstractService implements RaftService {
     }
   }
 
-  public static Builder newBuilder(ClusterConfig config) {
+  public static Builder newBuilder(NettyClusterConfig config) {
     return new Builder(config);
   }
 
@@ -139,12 +122,12 @@ public class NettyRaftService extends AbstractService implements RaftService {
 
     private static long TIMEOUT = 150;
 
-    private final ClusterConfig config;
+    private final NettyClusterConfig config;
     private File logDir = Files.createTempDir();
     private long timeout = TIMEOUT;
     private StateTransitionListener listener;
 
-    protected Builder(ClusterConfig config) {
+    protected Builder(NettyClusterConfig config) {
       this.config = config;
     }
 

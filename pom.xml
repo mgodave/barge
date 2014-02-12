@@ -42,7 +42,6 @@
     <module>barge-core</module>
     <module>barge-tools</module>
     <module>barge-rpc-proto</module>
-    <module>barge-service</module>
   </modules>
 
   <dependencyManagement>
@@ -113,6 +112,12 @@
         <groupId>io.netty</groupId>
         <artifactId>netty-all</artifactId>
         <version>4.0.11.Final</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.jetlang</groupId>
+        <artifactId>jetlang</artifactId>
+        <version>0.2.12</version>
       </dependency>
 
       <!-- Optional Dependencies -->
