@@ -1,6 +1,8 @@
 package org.robotninjas.barge.state;
 
 import com.google.common.base.Optional;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import org.jetlang.fibers.Fiber;
 import org.jetlang.fibers.FiberStub;
 import org.junit.Before;
@@ -12,6 +14,7 @@ import org.mockito.stubbing.Answer;
 import org.robotninjas.barge.*;
 import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.proto.RaftProto;
+import org.robotninjas.barge.proto.RaftProto.RequestVoteResponse;
 import org.robotninjas.barge.rpc.Client;
 
 import java.util.concurrent.ScheduledFuture;
@@ -60,6 +63,9 @@ public class CandidateTest {
 
     when(mockRaftStateContext.type()).thenReturn(CANDIDATE);
 
+    RequestVoteResponse response = RequestVoteResponse.newBuilder().setTerm(0).setVoteGranted(true).build();
+    ListenableFuture<RequestVoteResponse> responseFuture = Futures.immediateFuture(response);
+    when(mockRaftClient.requestVote(any(Replica.class), any(RequestVote.class))).thenReturn(responseFuture);
   }
 
   @Test
@@ -93,7 +99,8 @@ public class CandidateTest {
     verify(mockRaftStateContext, times(1)).setState(any(Candidate.class), eq(Raft.StateType.FOLLOWER));
     verify(mockRaftStateContext, times(1)).setState(any(Candidate.class), eq(Raft.StateType.LEADER));
 
-    verifyZeroInteractions(mockRaftClient);
+    verify(mockRaftClient, times(1)).requestVote(any(Replica.class), any(RequestVote.class));
+    verifyNoMoreInteractions(mockRaftClient);
 
   }
 
@@ -125,7 +132,8 @@ public class CandidateTest {
 
     verify(mockRaftStateContext).setState(any(Candidate.class), eq(Raft.StateType.LEADER));
 
-    verifyZeroInteractions(mockRaftClient);
+    verify(mockRaftClient, times(1)).requestVote(any(Replica.class), any(RequestVote.class));
+    verifyNoMoreInteractions(mockRaftClient);
   }
 
   @Test
@@ -158,7 +166,8 @@ public class CandidateTest {
 
     verifyZeroInteractions(mockRaftStateContext);
 
-    verifyZeroInteractions(mockRaftClient);
+    verify(mockRaftClient, times(1)).requestVote(any(Replica.class), any(RequestVote.class));
+    verifyNoMoreInteractions(mockRaftClient);
   }
 
   @Test
@@ -192,7 +201,8 @@ public class CandidateTest {
     verify(mockRaftStateContext).setState(any(Candidate.class), eq(Raft.StateType.FOLLOWER));
     verify(mockRaftStateContext).setState(any(Candidate.class), eq(Raft.StateType.LEADER));
 
-    verifyZeroInteractions(mockRaftClient);
+    verify(mockRaftClient, times(1)).requestVote(any(Replica.class), any(RequestVote.class));
+    verifyNoMoreInteractions(mockRaftClient);
 
   }
 
@@ -225,7 +235,8 @@ public class CandidateTest {
 
     verify(mockRaftStateContext).setState(any(Candidate.class), eq(Raft.StateType.LEADER));
 
-    verifyZeroInteractions(mockRaftClient);
+    verify(mockRaftClient, times(1)).requestVote(any(Replica.class), any(RequestVote.class));
+    verifyNoMoreInteractions(mockRaftClient);
 
   }
 
@@ -256,7 +267,8 @@ public class CandidateTest {
 
     verify(mockRaftStateContext).setState(any(Candidate.class), eq(LEADER));
 
-    verifyZeroInteractions(mockRaftClient);
+    verify(mockRaftClient, times(1)).requestVote(any(Replica.class), any(RequestVote.class));
+    verifyNoMoreInteractions(mockRaftClient);
 
   }
 
