@@ -81,8 +81,8 @@ class Candidate extends BaseState {
     for (Replica replica : log.members()) {
       responses.add(sendVoteRequest(ctx, replica));
     }
-    // We need to request a vote from ourselves (otherwise majority is broken)
-    responses.add(sendVoteRequest(ctx, log.self()));
+    // We always vote for ourselves
+    responses.add(Futures.immediateFuture(RequestVoteResponse.newBuilder().setVoteGranted(true).buildPartial()));
 
     electionResult = majorityResponse(responses, voteGranted());
 
