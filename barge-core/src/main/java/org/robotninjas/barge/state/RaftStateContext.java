@@ -137,12 +137,12 @@ class RaftStateContext implements Raft {
   public synchronized void setState(State oldState, @Nonnull StateType state) {
 
     if (this.delegate != oldState) {
-      LOGGER.info("{}.  Previous state was not correct (transitioning to {}). Expected {}, was {}", this.name, state, oldState, this.delegate);
+      LOGGER.info("[{}]  Previous state was not correct (transitioning to {}). Expected {}, was {}", this.name, state, oldState, this.delegate);
       notifiesInvalidTransition(oldState);
       throw new IllegalStateException();
     }
 
-    LOGGER.info("{} transition.  old state: {}, new state: {}", this.name, this.state, state);
+    LOGGER.info("[{}] Transition: old state: {}, new state: {}", this.name, this.state, state);
     if (this.delegate != null) {
       this.delegate.destroy(this);
     }
