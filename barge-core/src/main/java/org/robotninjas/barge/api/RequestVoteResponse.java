@@ -15,6 +15,8 @@
  */
 package org.robotninjas.barge.api;
 
+import com.google.common.base.Objects;
+
 import javax.annotation.concurrent.Immutable;
 
 /**
@@ -40,6 +42,31 @@ public class RequestVoteResponse {
 
   public long getTerm() {
     return term;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof RequestVoteResponse)) return false;
+
+    RequestVoteResponse that = (RequestVoteResponse) o;
+
+    return term == that.term && voteGranted == that.voteGranted;
+
+  }
+
+  @Override
+  public int hashCode() {
+    int result = (int) (term ^ (term >>> 32));
+    result = 31 * result + (voteGranted ? 1 : 0);
+    return result;
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+      .add("term", term)
+      .add("voteGranted", voteGranted)
+      .toString();
   }
 
   public static class Builder {

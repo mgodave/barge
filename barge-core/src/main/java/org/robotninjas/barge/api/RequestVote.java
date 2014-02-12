@@ -15,6 +15,8 @@
  */
 package org.robotninjas.barge.api;
 
+import com.google.common.base.Objects;
+
 import javax.annotation.concurrent.Immutable;
 
 /**
@@ -51,6 +53,37 @@ public class RequestVote {
 
   public static Builder newBuilder() {
     return new Builder();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof RequestVote)) return false;
+
+    RequestVote that = (RequestVote) o;
+
+    return (lastLogIndex == that.lastLogIndex)
+      && (lastLogTerm == that.lastLogTerm)
+      && (term == that.term)
+      && Objects.equal(candidateId, that.candidateId);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = candidateId.hashCode();
+    result = 31 * result + (int) (lastLogTerm ^ (lastLogTerm >>> 32));
+    result = 31 * result + (int) (lastLogIndex ^ (lastLogIndex >>> 32));
+    result = 31 * result + (int) (term ^ (term >>> 32));
+    return result;
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+      .add("candidateId", candidateId)
+      .add("lastLogTerm", lastLogTerm)
+      .add("lastLogIndex", lastLogIndex)
+      .add("term", term)
+      .toString();
   }
 
   public static RequestVote getDefaultInstance() {
