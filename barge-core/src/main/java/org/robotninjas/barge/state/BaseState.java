@@ -2,6 +2,7 @@ package org.robotninjas.barge.state;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.robotninjas.barge.NoLeaderException;
@@ -140,9 +141,11 @@ public abstract class BaseState implements State {
   @Nonnull
   @Override
   public ListenableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
-    if (ctx.type().equals(FOLLOWER)) {
+    StateType stateType = ctx.type();
+    Preconditions.checkNotNull(stateType);
+    if (stateType.equals(FOLLOWER)) {
       throw new NotLeaderException(leader.get());
-    } else if (ctx.type().equals(CANDIDATE)) {
+    } else if (stateType.equals(CANDIDATE)) {
       throw new NoLeaderException();
     }
     return Futures.immediateCancelledFuture();
