@@ -77,6 +77,7 @@ class Follower extends BaseState {
   @Override
   public void doStop(RaftStateContext ctx) {
     timeoutTask.cancel();
+    super.doStop(ctx);
   }
 
 }
