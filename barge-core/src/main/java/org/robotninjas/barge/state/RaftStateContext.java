@@ -23,6 +23,7 @@ import com.google.common.util.concurrent.ListenableFutureTask;
 import org.jetlang.fibers.Fiber;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.RaftExecutor;
+import org.robotninjas.barge.log.RaftLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -36,7 +37,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 import static org.robotninjas.barge.proto.RaftProto.*;
 
 @NotThreadSafe
@@ -51,8 +51,15 @@ class RaftStateContext implements Raft {
   private volatile StateType state;
   private volatile State delegate;
 
+
   @Inject
-  RaftStateContext(StateFactory stateFactory, @RaftExecutor Fiber executor) {
+  RaftStateContext(RaftLog log, StateFactory stateFactory, @RaftExecutor Fiber executor) {
+    this(log.self().toString(), stateFactory, executor);
+  }
+
+  RaftStateContext(String name, StateFactory stateFactory, @RaftExecutor Fiber executor) {
+    MDC.put("self", name);
+
     this.stateFactory = stateFactory;
     this.executor = executor;
     this.listeners.add(new LogListener());
@@ -130,11 +137,12 @@ class RaftStateContext implements Raft {
   public synchronized void setState(State oldState, @Nonnull StateType state) {
 
     if (this.delegate != oldState) {
+      LOGGER.info("Previous state was not correct (transitioning to {}). Expected {}, was {}", state, oldState, this.delegate);
       notifiesInvalidTransition(oldState);
       throw new IllegalStateException();
     }
 
-    LOGGER.info("old state: {}, new state: {}", this.state, state);
+    LOGGER.info("Transition: old state: {}, new state: {}", this.state, state);
     if (this.delegate != null) {
       this.delegate.destroy(this);
     }
@@ -176,12 +184,12 @@ class RaftStateContext implements Raft {
   private class LogListener implements StateTransitionListener {
     @Override
     public void changeState(@Nonnull Raft context, @Nullable StateType from, @Nonnull StateType to) {
-      LOGGER.info("old state: {}, new state: {}", from, to);
+      LOGGER.info("LogListener: old state: {}, new state: {}", from, to);
     }
 
     @Override
     public void invalidTransition(@Nonnull Raft context, @Nonnull StateType actual, @Nullable StateType expected) {
-      LOGGER.warn("State transition from incorrect previous state.  Expected {}, was {}", actual, expected);
+      LOGGER.warn("LogListener: State transition from incorrect previous state.  Expected {}, was {}", actual, expected);
     }
   }
 }

@@ -138,11 +138,12 @@ public class MajorityCollectorTest {
   }
 
   @Test
-  public void testEvenSplitAllCompleted() {
+  public void testBareMajorityTrueAllCompleted() {
 
     List<ListenableFuture<Boolean>> responses = Lists.newArrayList(
       Futures.<Boolean>immediateFuture(Boolean.FALSE),
       Futures.<Boolean>immediateFuture(Boolean.FALSE),
+      Futures.<Boolean>immediateFuture(Boolean.TRUE),
       Futures.<Boolean>immediateFuture(Boolean.TRUE),
       Futures.<Boolean>immediateFuture(Boolean.TRUE)
     );
@@ -154,11 +155,29 @@ public class MajorityCollectorTest {
   }
 
   @Test
-  public void testEvenSplitHalfFailed() {
+  public void testBareMajorityFalseAllCompleted() {
+
+    List<ListenableFuture<Boolean>> responses = Lists.newArrayList(
+      Futures.<Boolean>immediateFuture(Boolean.FALSE),
+      Futures.<Boolean>immediateFuture(Boolean.FALSE),
+      Futures.<Boolean>immediateFuture(Boolean.FALSE),
+      Futures.<Boolean>immediateFuture(Boolean.TRUE),
+      Futures.<Boolean>immediateFuture(Boolean.TRUE)
+    );
+
+    ListenableFuture<Boolean> collector = majorityResponse(responses, Identity);
+
+    assertFalse(Futures.getUnchecked(collector));
+
+  }
+
+  @Test
+  public void testBareMajorityTrueOthersFailed() {
 
     List<ListenableFuture<Boolean>> responses = Lists.newArrayList(
       Futures.<Boolean>immediateFailedFuture(new Exception()),
       Futures.<Boolean>immediateFailedFuture(new Exception()),
+      Futures.<Boolean>immediateFuture(Boolean.TRUE),
       Futures.<Boolean>immediateFuture(Boolean.TRUE),
       Futures.<Boolean>immediateFuture(Boolean.TRUE)
     );
@@ -176,8 +195,8 @@ public class MajorityCollectorTest {
     SettableFuture<Boolean> f2 = SettableFuture.create();
     SettableFuture<Boolean> f3 = SettableFuture.create();
 
-    List<ListenableFuture<Boolean>> responses = Lists.newArrayList(
-      f1, f2, f3, Futures.<Boolean>immediateFuture(Boolean.FALSE)
+    List<SettableFuture<Boolean>> responses = Lists.newArrayList(
+      f1, f2, f3
     );
 
     ListenableFuture<Boolean> collector = majorityResponse(responses, Identity);
@@ -220,9 +239,10 @@ public class MajorityCollectorTest {
     SettableFuture<Boolean> f1 = SettableFuture.create();
     SettableFuture<Boolean> f2 = SettableFuture.create();
     SettableFuture<Boolean> f3 = SettableFuture.create();
+    ListenableFuture<Boolean> f4 = Futures.immediateFuture(Boolean.TRUE);
 
     List<ListenableFuture<Boolean>> responses = Lists.newArrayList(
-      f1, f2, f3, Futures.<Boolean>immediateFuture(Boolean.TRUE)
+      f1, f2, f3, f4
     );
 
     ListenableFuture<Boolean> collector = majorityResponse(responses, Identity);
@@ -230,13 +250,13 @@ public class MajorityCollectorTest {
     f1.setException(new Exception());
     assertFalse(collector.isDone());
 
-    f2.setException(new Exception());
+    f3.set(Boolean.TRUE);
     assertFalse(collector.isDone());
 
-    f3.set(Boolean.TRUE);
+    f2.setException(new Exception());
     assertTrue(collector.isDone());
 
-    assertTrue(Futures.getUnchecked(collector));
+    assertFalse(Futures.getUnchecked(collector));
 
   }
 
