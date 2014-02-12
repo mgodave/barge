@@ -72,7 +72,7 @@ class Candidate extends BaseState {
     final RaftLog log = getLog();
 
     log.currentTerm(log.currentTerm() + 1);
-    log.lastVotedFor(Optional.of(log.self()));
+    log.votedFor(Optional.of(log.self()));
 
     LOGGER.debug("{} starting election for term {}", log.self(), log.currentTerm());
 

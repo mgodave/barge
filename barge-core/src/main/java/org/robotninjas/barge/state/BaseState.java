@@ -47,21 +47,37 @@ public abstract class BaseState implements State {
   @VisibleForTesting
   boolean shouldVoteFor(@Nonnull RaftLog log, @Nonnull RequestVote request) {
 
-    Optional<Replica> lastVotedFor = log.lastVotedFor();
+    //  If votedFor is null or candidateId, and candidate's log is at 
+    //  least as up-to-date as receiver’s log, grant vote (§5.2, §5.4)
+      
+    Optional<Replica> votedFor = log.votedFor();
     Replica candidate = log.getReplica(request.getCandidateId());
 
-    boolean hasAtLeastTerm = request.getLastLogTerm() >= log.lastLogTerm();
-    boolean hasAtLeastIndex = request.getLastLogIndex() >= log.lastLogIndex();
-
-    boolean logAsComplete = (hasAtLeastTerm && hasAtLeastIndex);
-
-    boolean alreadyVotedForCandidate = lastVotedFor.equals(Optional.of(candidate));
-    boolean notYetVoted = !lastVotedFor.isPresent();
-
-    return (alreadyVotedForCandidate && logAsComplete) || (notYetVoted && logAsComplete) ||
-        (request.getLastLogTerm() > log.lastLogTerm()) || (hasAtLeastTerm && (request.getLastLogIndex() > log.lastLogIndex()))
-        || logAsComplete;
-
+    if (votedFor.isPresent()) {
+      if (!votedFor.get().equals(candidate)) {
+        return false;
+      }
+    }
+    
+    assert !votedFor.isPresent() || votedFor.get().equals(candidate);
+    
+    boolean logIsComplete = false;
+    if (request.getLastLogTerm() > log.lastLogTerm()) {
+      logIsComplete = true;
+    } else if (request.getLastLogTerm() == log.lastLogTerm()) {
+      if (request.getLastLogIndex() >= log.lastLogIndex()) {
+        logIsComplete = true;
+      }
+    } else {
+      logIsComplete = false;
+    }
+    
+    if (logIsComplete) {
+      // Requestor has an up-to-date log, we haven't voted for anyone else => OK
+      return true;
+    }
+   
+    return false;
   }
 
   protected void resetTimer() {
@@ -110,7 +126,13 @@ public abstract class BaseState implements State {
 
     boolean voteGranted = false;
 
-    if (request.getTerm() >= log.currentTerm()) {
+    long term = request.getTerm();
+    long currentTerm = log.currentTerm();
+    
+    if (term < currentTerm) {
+      // Reply false if term < currentTerm (§5.1)
+      voteGranted = false;
+    } else {
 
       if (request.getTerm() > log.currentTerm()) {
 
@@ -126,7 +148,7 @@ public abstract class BaseState implements State {
       voteGranted = shouldVoteFor(log, request);
 
       if (voteGranted) {
-        log.lastVotedFor(Optional.of(candidate));
+        log.votedFor(Optional.of(candidate));
       }
 
     }

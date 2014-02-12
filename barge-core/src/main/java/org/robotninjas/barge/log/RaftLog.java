@@ -223,15 +223,16 @@ public class RaftLog {
     MDC.put("term", Long.toString(term));
     LOGGER.debug("{}: New term {}", self(), term);
     currentTerm = term;
+    votedFor = Optional.absent();
     journal.appendTerm(term);
   }
 
   @Nonnull
-  public Optional<Replica> lastVotedFor() {
+  public Optional<Replica> votedFor() {
     return votedFor;
   }
 
-  public void lastVotedFor(@Nonnull Optional<Replica> vote) {
+  public void votedFor(@Nonnull Optional<Replica> vote) {
     LOGGER.debug("{} voting for {}", self(), vote.orNull());
     votedFor = vote;
     journal.appendVote(vote);
