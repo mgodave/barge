@@ -37,7 +37,6 @@ import java.util.concurrent.ExecutionException;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Throwables.propagate;
 import static com.google.common.base.Throwables.propagateIfInstanceOf;
-import static org.robotninjas.barge.state.Raft.StateType.START;
 
 @ThreadSafe
 @Immutable
@@ -59,7 +58,7 @@ public class NettyRaftService extends AbstractService implements RaftService {
 
     try {
 
-      ctx.setState(null, START);
+      ctx.init().get();
 
       configureRpcServer();
       rpcServer.startAsync().awaitRunning();

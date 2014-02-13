@@ -27,6 +27,8 @@ import static org.robotninjas.barge.proto.RaftProto.*;
  */
 public interface Raft {
 
+  ListenableFuture init();
+
   @Nonnull
   RequestVoteResponse requestVote(@Nonnull RequestVote request);
 
