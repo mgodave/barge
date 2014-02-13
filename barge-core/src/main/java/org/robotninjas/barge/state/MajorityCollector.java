@@ -49,7 +49,7 @@ class MajorityCollector<T> extends AbstractFuture<Boolean> implements FutureCall
   }
 
   @Nonnull
-  public static <U> ListenableFuture<Boolean> majorityResponse(@Nonnull List<ListenableFuture<U>> responses, @Nonnull Predicate<U> isSuccess) {
+  public static <U> ListenableFuture<Boolean> majorityResponse(@Nonnull List<? extends ListenableFuture<U>> responses, @Nonnull Predicate<U> isSuccess) {
     MajorityCollector collector = new MajorityCollector(responses.size(), isSuccess);
     for (ListenableFuture<U> response : responses) {
       Futures.addCallback(response, collector);
@@ -63,9 +63,9 @@ class MajorityCollector<T> extends AbstractFuture<Boolean> implements FutureCall
   private void checkComplete() {
     if (!isDone()) {
       final double half = totalNum / 2.0;
-      if (numSuccess >= half) {
+      if (numSuccess > half) {
         set(true);
-      } else if (numFailed > half) {
+      } else if (numFailed >= half) {
         set(false);
       }
     }

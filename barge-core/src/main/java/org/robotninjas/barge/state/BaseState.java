@@ -2,6 +2,7 @@ package org.robotninjas.barge.state;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.robotninjas.barge.NoLeaderException;
@@ -46,21 +47,39 @@ public abstract class BaseState implements State {
   @VisibleForTesting
   boolean shouldVoteFor(@Nonnull RaftLog log, @Nonnull RequestVote request) {
 
-    Optional<Replica> lastVotedFor = log.lastVotedFor();
+    //  If votedFor is null or candidateId, and candidate's log is at 
+    //  least as up-to-date as receiver’s log, grant vote (§5.2, §5.4)
+      
+    Optional<Replica> votedFor = log.votedFor();
     Replica candidate = log.getReplica(request.getCandidateId());
 
-    boolean hasAtLeastTerm = request.getLastLogTerm() >= log.lastLogTerm();
-    boolean hasAtLeastIndex = request.getLastLogIndex() >= log.lastLogIndex();
-
-    boolean logAsComplete = (hasAtLeastTerm && hasAtLeastIndex);
-
-    boolean alreadyVotedForCandidate = lastVotedFor.equals(Optional.of(candidate));
-    boolean notYetVoted = !lastVotedFor.isPresent();
-
-    return (alreadyVotedForCandidate && logAsComplete) || (notYetVoted && logAsComplete) ||
-        (request.getLastLogTerm() > log.lastLogTerm()) || (hasAtLeastTerm && (request.getLastLogIndex() > log.lastLogIndex()))
-        || logAsComplete;
-
+    if (votedFor.isPresent()) {
+      if (!votedFor.get().equals(candidate)) {
+        return false;
+      }
+    }
+    
+    assert !votedFor.isPresent() || votedFor.get().equals(candidate);
+    
+    boolean logIsComplete;
+    if (request.getLastLogTerm() > log.lastLogTerm()) {
+      logIsComplete = true;
+    } else if (request.getLastLogTerm() == log.lastLogTerm()) {
+      if (request.getLastLogIndex() >= log.lastLogIndex()) {
+        logIsComplete = true;
+      } else {
+        logIsComplete = false;
+      }
+    } else {
+      logIsComplete = false;
+    }
+    
+    if (logIsComplete) {
+      // Requestor has an up-to-date log, we haven't voted for anyone else => OK
+      return true;
+    }
+   
+    return false;
   }
 
   protected void resetTimer() {
@@ -107,13 +126,21 @@ public abstract class BaseState implements State {
   @Override
   public RequestVoteResponse requestVote(@Nonnull RaftStateContext ctx, @Nonnull RequestVote request) {
 
-    boolean voteGranted = false;
+    boolean voteGranted;
 
-    if (request.getTerm() >= log.currentTerm()) {
+    long term = request.getTerm();
+    long currentTerm = log.currentTerm();
+    
+    if (term < currentTerm) {
+      // Reply false if term < currentTerm (§5.1)
+      voteGranted = false;
+    } else {
 
-      if (request.getTerm() > log.currentTerm()) {
+      // If RPC request or response contains term T > currentTerm:
+      // set currentTerm = T, convert to follower (§5.1)
+      if (term > currentTerm) {
 
-        log.currentTerm(request.getTerm());
+        log.currentTerm(term);
 
         if (ctx.type().equals(LEADER) || ctx.type().equals(CANDIDATE)) {
           ctx.setState(this, FOLLOWER);
@@ -125,13 +152,13 @@ public abstract class BaseState implements State {
       voteGranted = shouldVoteFor(log, request);
 
       if (voteGranted) {
-        log.lastVotedFor(Optional.of(candidate));
+        log.votedFor(Optional.of(candidate));
       }
 
     }
 
     return RequestVoteResponse.newBuilder()
-        .setTerm(log.currentTerm())
+        .setTerm(currentTerm)
         .setVoteGranted(voteGranted)
         .build();
 
@@ -140,9 +167,11 @@ public abstract class BaseState implements State {
   @Nonnull
   @Override
   public ListenableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
-    if (ctx.type().equals(FOLLOWER)) {
+    StateType stateType = ctx.type();
+    Preconditions.checkNotNull(stateType);
+    if (stateType.equals(FOLLOWER)) {
       throw new NotLeaderException(leader.get());
-    } else if (ctx.type().equals(CANDIDATE)) {
+    } else if (stateType.equals(CANDIDATE)) {
       throw new NoLeaderException();
     }
     return Futures.immediateCancelledFuture();
