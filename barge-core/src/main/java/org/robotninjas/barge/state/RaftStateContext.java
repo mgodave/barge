@@ -23,7 +23,6 @@ import com.google.common.util.concurrent.ListenableFutureTask;
 import org.jetlang.fibers.Fiber;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.RaftExecutor;
-import org.robotninjas.barge.log.RaftLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -53,13 +52,7 @@ class RaftStateContext implements Raft {
 
 
   @Inject
-  RaftStateContext(RaftLog log, StateFactory stateFactory, @RaftExecutor Fiber executor) {
-    this(log.self().toString(), stateFactory, executor);
-  }
-
-  RaftStateContext(String name, StateFactory stateFactory, @RaftExecutor Fiber executor) {
-    MDC.put("self", name);
-
+  RaftStateContext(StateFactory stateFactory, @RaftExecutor Fiber executor) {
     this.stateFactory = stateFactory;
     this.executor = executor;
     this.listeners.add(new LogListener());

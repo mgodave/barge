@@ -4,6 +4,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Inject;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.log.RaftLog;
+import org.slf4j.MDC;
 
 import javax.annotation.Nonnull;
 
@@ -23,6 +24,8 @@ class Start implements State {
 
   @Override
   public void init(@Nonnull RaftStateContext ctx) {
+    MDC.put("self", log.self().toString());
+
     log.load();
     ctx.setState(this, FOLLOWER);
   }
