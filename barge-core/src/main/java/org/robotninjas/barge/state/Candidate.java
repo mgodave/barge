@@ -74,7 +74,7 @@ class Candidate extends BaseState {
     log.currentTerm(log.currentTerm() + 1);
     log.votedFor(Optional.of(log.self()));
 
-    LOGGER.debug("[{}] Election starting for term {}", log.self(), log.currentTerm());
+    LOGGER.debug("Election starting for term {}", log.currentTerm());
 
     List<ListenableFuture<RequestVoteResponse>> responses = Lists.newArrayList();
     // Request votes from peers
@@ -90,7 +90,7 @@ class Candidate extends BaseState {
     electionTimer = DeadlineTimer.start(scheduler, new Runnable() {
       @Override
       public void run() {
-        LOGGER.debug("[{}] Election timeout", log.self());
+        LOGGER.debug("Election timeout");
         ctx.setState(Candidate.this, CANDIDATE);
       }
     }, timeout);
@@ -108,7 +108,7 @@ class Candidate extends BaseState {
       @Override
       public void onFailure(Throwable t) {
         if (!electionResult.isCancelled()) {
-          LOGGER.debug("[{}] Election failed with exception:", log.self(), t);
+          LOGGER.debug("Election failed with exception:", t);
         }
       }
 

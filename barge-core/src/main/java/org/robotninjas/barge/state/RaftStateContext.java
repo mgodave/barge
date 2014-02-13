@@ -44,7 +44,6 @@ class RaftStateContext implements Raft {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RaftStateContext.class);
 
-  private final String name;
   private final StateFactory stateFactory;
   private final Executor executor;
   private final Set<StateTransitionListener> listeners = Sets.newConcurrentHashSet();
@@ -59,7 +58,8 @@ class RaftStateContext implements Raft {
   }
 
   RaftStateContext(String name, StateFactory stateFactory, @RaftExecutor Fiber executor) {
-    this.name = name;
+    MDC.put("self", name);
+
     this.stateFactory = stateFactory;
     this.executor = executor;
     this.listeners.add(new LogListener());
@@ -137,12 +137,12 @@ class RaftStateContext implements Raft {
   public synchronized void setState(State oldState, @Nonnull StateType state) {
 
     if (this.delegate != oldState) {
-      LOGGER.info("[{}]  Previous state was not correct (transitioning to {}). Expected {}, was {}", this.name, state, oldState, this.delegate);
+      LOGGER.info("Previous state was not correct (transitioning to {}). Expected {}, was {}", state, oldState, this.delegate);
       notifiesInvalidTransition(oldState);
       throw new IllegalStateException();
     }
 
-    LOGGER.info("[{}] Transition: old state: {}, new state: {}", this.name, this.state, state);
+    LOGGER.info("Transition: old state: {}, new state: {}", this.state, state);
     if (this.delegate != null) {
       this.delegate.destroy(this);
     }
