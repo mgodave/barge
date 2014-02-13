@@ -59,13 +59,13 @@ class RaftCoreModule extends PrivateModule {
 
     PoolFiberFactory fiberFactory = new PoolFiberFactory(executor);
 
-    Fiber raftFiber = fiberFactory.create();
+    Fiber raftFiber = fiberFactory.create(new BatchExecutor());
     raftFiber.start();
     bind(Fiber.class)
         .annotatedWith(RaftExecutor.class)
         .toInstance(raftFiber);
 
-    Fiber stateMachineFiber = fiberFactory.create();
+    Fiber stateMachineFiber = fiberFactory.create(new BatchExecutor());
     stateMachineFiber.start();
 
     install(new LogModule(logDir, stateMachine, stateMachineFiber));
