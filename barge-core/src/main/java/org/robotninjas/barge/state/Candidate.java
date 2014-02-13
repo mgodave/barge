@@ -23,12 +23,10 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.jetlang.fibers.Fiber;
-import org.robotninjas.barge.NoLeaderException;
-import org.robotninjas.barge.RaftException;
-import org.robotninjas.barge.RaftExecutor;
 import org.robotninjas.barge.RaftExecutor;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.log.RaftLog;
+import org.robotninjas.barge.proto.RaftProto.RequestVoteResponse;
 import org.robotninjas.barge.rpc.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +41,6 @@ import java.util.Random;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.util.concurrent.Futures.addCallback;
 import static org.robotninjas.barge.proto.RaftProto.RequestVote;
-import static org.robotninjas.barge.proto.RaftProto.RequestVoteResponse;
 import static org.robotninjas.barge.state.MajorityCollector.majorityResponse;
 import static org.robotninjas.barge.state.Raft.StateType.*;
 import static org.robotninjas.barge.state.RaftPredicates.voteGranted;
@@ -72,14 +69,21 @@ class Candidate extends BaseState {
   @Override
   public void init(@Nonnull final RaftStateContext ctx) {
 
-    RaftLog log = getLog();
+    final RaftLog log = getLog();
 
     log.currentTerm(log.currentTerm() + 1);
-    log.lastVotedFor(Optional.of(log.self()));
+    log.votedFor(Optional.of(log.self()));
 
     LOGGER.debug("Election starting for term {}", log.currentTerm());
 
-    List<ListenableFuture<RequestVoteResponse>> responses = sendRequests(ctx);
+    List<ListenableFuture<RequestVoteResponse>> responses = Lists.newArrayList();
+    // Request votes from peers
+    for (Replica replica : log.members()) {
+      responses.add(sendVoteRequest(ctx, replica));
+    }
+    // We always vote for ourselves
+    responses.add(Futures.immediateFuture(RequestVoteResponse.newBuilder().setVoteGranted(true).buildPartial()));
+
     electionResult = majorityResponse(responses, voteGranted());
 
     long timeout = electionTimeout + (RAND.nextLong() % electionTimeout);
@@ -119,7 +123,7 @@ class Candidate extends BaseState {
   }
 
   @VisibleForTesting
-  List<ListenableFuture<RequestVoteResponse>> sendRequests(RaftStateContext ctx) {
+  ListenableFuture<RequestVoteResponse> sendVoteRequest(RaftStateContext ctx, Replica replica) {
 
     RaftLog log = getLog();
     RequestVote request =
@@ -130,14 +134,10 @@ class Candidate extends BaseState {
         .setLastLogTerm(log.lastLogTerm())
         .build();
 
-    List<ListenableFuture<RequestVoteResponse>> responses = Lists.newArrayList();
-    for (Replica replica : log.members()) {
-      ListenableFuture<RequestVoteResponse> response = client.requestVote(replica, request);
-      Futures.addCallback(response, checkTerm(ctx));
-      responses.add(response);
-    }
+    ListenableFuture<RequestVoteResponse> response = client.requestVote(replica, request);
+    Futures.addCallback(response, checkTerm(ctx));
 
-    return responses;
+    return response;
   }
 
   private FutureCallback<RequestVoteResponse> checkTerm(final RaftStateContext ctx) {

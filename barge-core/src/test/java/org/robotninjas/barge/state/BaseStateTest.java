@@ -63,7 +63,7 @@ public class BaseStateTest {
       .setTerm(2)
       .build();
 
-    when(mockRaftLog.lastVotedFor()).thenReturn(Optional.<Replica>absent());
+    when(mockRaftLog.votedFor()).thenReturn(Optional.<Replica>absent());
     boolean shouldVote = state.shouldVoteFor(mockRaftLog, requestVote);
 
     assertTrue(shouldVote);
@@ -81,7 +81,7 @@ public class BaseStateTest {
       .setTerm(2)
       .build();
 
-    when(mockRaftLog.lastVotedFor()).thenReturn(Optional.of(candidate));
+    when(mockRaftLog.votedFor()).thenReturn(Optional.of(candidate));
     boolean shouldVote = state.shouldVoteFor(mockRaftLog, requestVote);
 
     assertTrue(shouldVote);
@@ -101,7 +101,7 @@ public class BaseStateTest {
       .build();
 
     Replica otherCandidate = config.getReplica("other");
-    when(mockRaftLog.lastVotedFor()).thenReturn(Optional.of(otherCandidate));
+    when(mockRaftLog.votedFor()).thenReturn(Optional.of(otherCandidate));
     boolean shouldVote = state.shouldVoteFor(mockRaftLog, requestVote);
 
     assertTrue(shouldVote);
@@ -120,7 +120,7 @@ public class BaseStateTest {
       .build();
 
     Replica otherCandidate = config.getReplica("other");
-    when(mockRaftLog.lastVotedFor()).thenReturn(Optional.of(otherCandidate));
+    when(mockRaftLog.votedFor()).thenReturn(Optional.of(otherCandidate));
     boolean shouldVote = state.shouldVoteFor(mockRaftLog, requestVote);
 
     assertFalse(shouldVote);
@@ -139,7 +139,7 @@ public class BaseStateTest {
       .build();
 
     Replica otherCandidate = config.getReplica("other");
-    when(mockRaftLog.lastVotedFor()).thenReturn(Optional.of(otherCandidate));
+    when(mockRaftLog.votedFor()).thenReturn(Optional.of(otherCandidate));
     boolean shouldVote = state.shouldVoteFor(mockRaftLog, requestVote);
 
     assertFalse(shouldVote);
@@ -159,7 +159,7 @@ public class BaseStateTest {
       .build();
 
     Replica otherCandidate = config.getReplica("other");
-    when(mockRaftLog.lastVotedFor()).thenReturn(Optional.of(otherCandidate));
+    when(mockRaftLog.votedFor()).thenReturn(Optional.of(otherCandidate));
     boolean shouldVote = state.shouldVoteFor(mockRaftLog, requestVote);
 
     assertTrue(shouldVote);
