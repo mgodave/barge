@@ -1,5 +1,6 @@
 package org.robotninjas.barge;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import org.jetlang.core.BatchExecutorImpl;
 import org.jetlang.core.EventReader;
@@ -14,13 +15,15 @@ class BatchExecutor extends BatchExecutorImpl {
   @Override
   public void execute(EventReader toExecute) {
 
-    Map oldContext = MDC.getCopyOfContextMap();
+    Optional<Map> oldContext = Optional.fromNullable(MDC.getCopyOfContextMap());
     MDC.setContextMap(contextMap);
 
     super.execute(toExecute);
 
     contextMap = MDC.getCopyOfContextMap();
-    MDC.setContextMap(oldContext);
+    if (oldContext.isPresent()) {
+      MDC.setContextMap(oldContext.get());
+    }
 
   }
 
