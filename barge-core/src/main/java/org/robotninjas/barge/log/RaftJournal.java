@@ -1,7 +1,7 @@
 package org.robotninjas.barge.log;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.Maps;
+import com.google.common.collect.FluentIterable;
 import journal.io.api.Journal;
 import journal.io.api.Location;
 import org.robotninjas.barge.ClusterConfig;
@@ -11,8 +11,6 @@ import org.robotninjas.barge.proto.RaftEntry;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.TreeMap;
 
 import static com.google.common.base.Functions.toStringFunction;
 import static com.google.common.base.Throwables.propagate;
@@ -23,29 +21,10 @@ class RaftJournal {
 
   private final Journal journal;
   private final ClusterConfig config;
-  private final TreeMap<Long, Location> entryIndex = Maps.newTreeMap();
 
   public RaftJournal(Journal journal, ClusterConfig config) {
     this.journal = journal;
     this.config = config;
-  }
-
-  public void init() {
-
-    try {
-      for (Location location : journal.redo()) {
-        LogProto.JournalEntry entry = read(location);
-        if (entry.hasAppend()) {
-          LogProto.Append append = entry.getAppend();
-          long index = append.getIndex();
-          long term = append.getEntry().getTerm();
-          entryIndex.put(index, location);
-        }
-      }
-    } catch (IOException e) {
-      propagate(e);
-    }
-
   }
 
   private LogProto.JournalEntry read(Location loc) {
@@ -78,40 +57,6 @@ class RaftJournal {
     return entry.getAppend().getEntry();
   }
 
-  public void removeAfter(long index) {
-
-    Collection<Location> entries =
-      entryIndex.tailMap(index, false).values();
-
-    for (Location loc : entries) {
-      delete(loc);
-    }
-
-    entries.clear();
-
-  }
-
-  public void removeBefore(long index) {
-
-    Collection<Location> entries =
-      entryIndex.headMap(index, false).values();
-
-    for (Location loc : entries) {
-      delete(loc);
-    }
-
-    entries.clear();
-
-  }
-
-  public Mark mark() {
-    try {
-      return new Mark(journal.undo().iterator().next());
-    } catch (IOException e) {
-      throw propagate(e);
-    }
-  }
-
   public void truncateHead(Mark mark) {
     try {
       for (Location loc : journal.undo(mark.getLocation())) {
@@ -124,9 +69,16 @@ class RaftJournal {
 
   public void truncateTail(Mark mark) {
     try {
-      for (Location loc : journal.redo(mark.getLocation())) {
+
+      Location location = mark.getLocation();
+      Iterable<Location> locations = FluentIterable
+          .from(journal.redo(location))
+          .skip(1);
+
+      for (Location loc : locations) {
         delete(loc);
       }
+
     } catch (IOException e) {
       throw propagate(e);
     }
@@ -141,7 +93,6 @@ class RaftJournal {
         .build();
 
     Location location = write(je);
-    entryIndex.put(index, location);
     return new Mark(location);
   }
 
@@ -158,7 +109,7 @@ class RaftJournal {
     Location location =
       write(LogProto.JournalEntry.newBuilder()
         .setCommit(LogProto.Commit.newBuilder()
-          .setIndex(commit))
+            .setIndex(commit))
         .build());
     return new Mark(location);
   }
@@ -167,7 +118,7 @@ class RaftJournal {
     Location location =
       write(LogProto.JournalEntry.newBuilder()
         .setVote(LogProto.Vote.newBuilder()
-          .setVotedFor(vote.transform(toStringFunction()).or("")))
+            .setVotedFor(vote.transform(toStringFunction()).or("")))
         .build());
     return new Mark(location);
   }
@@ -176,9 +127,9 @@ class RaftJournal {
     Location location =
       write(LogProto.JournalEntry.newBuilder()
         .setSnapshot(LogProto.Snapshot.newBuilder()
-          .setLastIncludedIndex(index)
-          .setLastIncludedTerm(term)
-          .setSnapshotFile(file.getName()))
+            .setLastIncludedIndex(index)
+            .setLastIncludedTerm(term)
+            .setSnapshotFile(file.getName()))
         .build());
     return new Mark(location);
   }
@@ -189,22 +140,23 @@ class RaftJournal {
       for (Location location : journal.redo()) {
 
         LogProto.JournalEntry entry = read(location);
+        Mark mark = new Mark(location);
 
         if (entry.hasAppend()) {
           LogProto.Append append = entry.getAppend();
-          visitor.append(append.getEntry(), append.getIndex());
+          visitor.append(mark, append.getEntry(), append.getIndex());
         } else if (entry.hasCommit()) {
           LogProto.Commit commit = entry.getCommit();
-          visitor.commit(commit.getIndex());
+          visitor.commit(mark, commit.getIndex());
         } else if (entry.hasTerm()) {
           LogProto.Term term = entry.getTerm();
-          visitor.term(term.getTerm());
+          visitor.term(mark, term.getTerm());
         } else if (entry.hasVote()) {
           LogProto.Vote vote = entry.getVote();
           String votedfor = vote.getVotedFor();
           Replica replica = votedfor == null
             ? null : config.getReplica(votedfor);
-          visitor.vote(Optional.fromNullable(replica));
+          visitor.vote(mark, Optional.fromNullable(replica));
         }
 
       }
@@ -216,13 +168,13 @@ class RaftJournal {
 
   static interface Visitor {
 
-    void term(long term);
+    void term(Mark mark, long term);
 
-    void vote(Optional<Replica> vote);
+    void vote(Mark mark, Optional<Replica> vote);
 
-    void commit(long commit);
+    void commit(Mark mark, long commit);
 
-    void append(RaftEntry.Entry entry, long index);
+    void append(Mark mark, RaftEntry.Entry entry, long index);
 
   }
 

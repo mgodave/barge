@@ -16,6 +16,7 @@
 
 package org.robotninjas.barge.log;
 
+import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
@@ -56,7 +57,7 @@ public class RaftLog {
   private static final Logger LOGGER = LoggerFactory.getLogger(RaftLog.class);
   private static final Entry SENTINEL = Entry.newBuilder().setCommand(ByteString.EMPTY).setTerm(0).build();
 
-  private final TreeMap<Long, Entry> log = Maps.newTreeMap();
+  private final TreeMap<Long, RaftJournal.Mark> log = Maps.newTreeMap();
   private final ClusterConfig config;
   private final StateMachineProxy stateMachine;
   private final RaftJournal journal;
@@ -82,42 +83,40 @@ public class RaftLog {
 
     LOGGER.info("Replaying log");
 
-    journal.init();
-
     journal.replay(new RaftJournal.Visitor() {
       @Override
-      public void term(long term) {
+      public void term(RaftJournal.Mark mark, long term) {
         currentTerm = Math.max(currentTerm, term);
       }
 
       @Override
-      public void vote(Optional<Replica> vote) {
+      public void vote(RaftJournal.Mark mark, Optional<Replica> vote) {
         votedFor = vote;
       }
 
       @Override
-      public void commit(long commit) {
+      public void commit(RaftJournal.Mark mark, long commit) {
         commitIndex = Math.max(commitIndex, commit);
       }
 
       @Override
-      public void append(Entry entry, long index) {
+      public void append(RaftJournal.Mark mark, Entry entry, long index) {
         lastLogIndex = Math.max(index, lastLogIndex);
-        lastLogTerm =  Math.max(entry.getTerm(), lastLogTerm);
-        log.put(index, entry);
+        lastLogTerm = Math.max(entry.getTerm(), lastLogTerm);
+        log.put(index, mark);
       }
     });
 
     fireComitted();
 
     LOGGER.info("Finished replaying log lastIndex {}, currentTerm {}, commitIndex {}, lastVotedFor {}",
-      lastLogIndex, currentTerm, commitIndex, votedFor.orNull());
+        lastLogIndex, currentTerm, commitIndex, votedFor.orNull());
   }
 
   private SettableFuture<Object> storeEntry(final long index, @Nonnull Entry entry) {
-    LOGGER.debug("{} storing {}", config.local(),entry);
-    journal.appendEntry(entry, index);
-    log.put(index, entry);
+    LOGGER.debug("{} storing {}", config.local(), entry);
+    RaftJournal.Mark mark = journal.appendEntry(entry, index);
+    log.put(index, mark);
     SettableFuture<Object> result = SettableFuture.create();
     operationResults.put(index, result);
     return result;
@@ -129,10 +128,10 @@ public class RaftLog {
     lastLogTerm = currentTerm;
 
     Entry entry =
-      Entry.newBuilder()
-        .setCommand(ByteString.copyFrom(operation))
-        .setTerm(currentTerm)
-        .build();
+        Entry.newBuilder()
+            .setCommand(ByteString.copyFrom(operation))
+            .setTerm(currentTerm)
+            .build();
 
     return storeEntry(index, entry);
 
@@ -144,13 +143,20 @@ public class RaftLog {
     final long prevLogTerm = appendEntries.getPrevLogTerm();
     final List<Entry> entries = appendEntries.getEntriesList();
 
-    if ((prevLogIndex > 0) && (!log.containsKey(prevLogIndex) || log.get(prevLogIndex).getTerm() != prevLogTerm)) {
-      LOGGER.debug("Append prevLogIndex {} prevLogTerm {}", prevLogIndex, prevLogTerm);
-      return false;
-    }
+    if (log.containsKey(prevLogIndex)) {
 
-    journal.removeAfter(prevLogIndex);
-    log.tailMap(prevLogIndex, false).clear();
+      RaftJournal.Mark previousMark = log.get(prevLogIndex);
+      Entry previousEntry = journal.get(previousMark);
+
+      if ((prevLogIndex > 0) && previousEntry.getTerm() != prevLogTerm) {
+        LOGGER.debug("Append prevLogIndex {} prevLogTerm {}", prevLogIndex, prevLogTerm);
+        return false;
+      }
+
+      journal.truncateTail(previousMark);
+      log.tailMap(prevLogIndex, false).clear();
+
+    }
 
     lastLogIndex = prevLogIndex;
     for (Entry entry : entries) {
@@ -168,8 +174,17 @@ public class RaftLog {
     checkArgument(beginningIndex >= 0);
 
     long previousIndex = beginningIndex - 1;
-    Entry previous = previousIndex <= 0 ? SENTINEL : log.get(previousIndex);
-    Iterable<Entry> entries = FluentIterable.from(log.tailMap(beginningIndex).values()).limit(max);
+    Entry previous = previousIndex <= 0 ? SENTINEL : journal.get(log.get(previousIndex));
+    Iterable<Entry> entries = FluentIterable
+        .from(log.tailMap(beginningIndex).values())
+        .limit(max)
+        .transform(new Function<RaftJournal.Mark, Entry>() {
+          @Nullable
+          @Override
+          public Entry apply(@Nullable RaftJournal.Mark input) {
+            return journal.get(input);
+          }
+        });
 
     return new GetEntriesResult(previous.getTerm(), previousIndex, entries);
 
@@ -178,12 +193,13 @@ public class RaftLog {
   void fireComitted() {
     try {
       for (long i = lastApplied + 1; i <= Math.min(commitIndex, lastLogIndex); ++i, ++lastApplied) {
-        byte[] rawCommand = log.get(i).getCommand().toByteArray();
+        Entry entry = journal.get(log.get(i));
+        byte[] rawCommand = entry.getCommand().toByteArray();
         final ByteBuffer operation = ByteBuffer.wrap(rawCommand).asReadOnlyBuffer();
         ListenableFuture<Object> result = stateMachine.dispatchOperation(operation);
 
         final SettableFuture<Object> returnedResult = operationResults.remove(i);
-        if(returnedResult != null) {
+        if (returnedResult != null) {
           Futures.addCallback(result, new PromiseBridge<Object>(returnedResult));
         }
       }
@@ -256,11 +272,11 @@ public class RaftLog {
   @Override
   public String toString() {
     return Objects.toStringHelper(getClass())
-      .add("lastLogIndex", lastLogIndex)
-      .add("lastApplied", lastApplied)
-      .add("commitIndex", commitIndex)
-      .add("lastVotedFor", votedFor)
-      .toString();
+        .add("lastLogIndex", lastLogIndex)
+        .add("lastApplied", lastApplied)
+        .add("commitIndex", commitIndex)
+        .add("lastVotedFor", votedFor)
+        .toString();
   }
 
   private static class PromiseBridge<V> implements FutureCallback<V> {
