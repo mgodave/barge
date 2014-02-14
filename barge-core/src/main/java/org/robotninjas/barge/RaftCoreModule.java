@@ -34,7 +34,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static java.util.concurrent.Executors.newCachedThreadPool;
 
 @Immutable
-class RaftCoreModule extends PrivateModule {
+public class RaftCoreModule extends PrivateModule {
 
   private static final long DEFAULT_TIMEOUT = 225;
 
