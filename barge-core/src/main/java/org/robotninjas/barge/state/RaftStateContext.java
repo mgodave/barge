@@ -144,7 +144,6 @@ class RaftStateContext implements Raft {
 
   }
 
-  @Override
   public synchronized void setState(State oldState, @Nonnull StateType state) {
 
     if (this.delegate != oldState) {

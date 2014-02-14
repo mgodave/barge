@@ -38,8 +38,6 @@ public interface Raft {
   @Nonnull
   ListenableFuture<Object> commitOperation(@Nonnull byte[] op) throws RaftException;
 
-  void setState(State oldState, @Nonnull StateType state);
-
   void addTransitionListener(@Nonnull StateTransitionListener transitionListener);
 
   @Nonnull
