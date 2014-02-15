@@ -24,8 +24,9 @@ class Start implements State {
 
   @Override
   public void init(@Nonnull RaftStateContext ctx) {
+    MDC.put("state", Raft.StateType.START.name());
+    MDC.put("term", Long.toString(log.currentTerm()));
     MDC.put("self", log.self().toString());
-
     log.load();
     ctx.setState(this, FOLLOWER);
   }

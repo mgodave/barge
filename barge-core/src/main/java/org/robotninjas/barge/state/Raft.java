@@ -27,6 +27,8 @@ import static org.robotninjas.barge.proto.RaftProto.*;
  */
 public interface Raft {
 
+  ListenableFuture init();
+
   @Nonnull
   RequestVoteResponse requestVote(@Nonnull RequestVote request);
 
@@ -35,8 +37,6 @@ public interface Raft {
 
   @Nonnull
   ListenableFuture<Object> commitOperation(@Nonnull byte[] op) throws RaftException;
-
-  void setState(State oldState, @Nonnull StateType state);
 
   void addTransitionListener(@Nonnull StateTransitionListener transitionListener);
 
