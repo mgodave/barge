@@ -15,6 +15,7 @@
  */
 package org.robotninjas.barge.jaxrs;
 
+import com.google.common.base.Throwables;
 import org.robotninjas.barge.api.AppendEntries;
 import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.api.RequestVote;
@@ -57,4 +58,15 @@ public class BargeResource {
     return raft.appendEntries(appendEntries);
   }
 
+  @Path("/commit")
+  @POST
+  @Produces(MediaType.APPLICATION_OCTET_STREAM)
+  @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+  public Object commit(byte[] operation){
+    try {
+      return raft.commitOperation(operation).get();
+    } catch (Exception e) {
+      throw Throwables.propagate(e);
+    }
+  }
 }

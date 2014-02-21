@@ -16,6 +16,7 @@
 package org.robotninjas.barge.jaxrs;
 
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.Futures;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Test;
@@ -60,6 +61,18 @@ public class BargeResourceTest extends JerseyTest {
 
     assertThat(actual).isEqualTo(Model.entriesResponse);
   }
+
+  @Test
+  public void onPOSTCommitReturn200WithResponseGivenServiceReturnsResponse() throws Exception {
+    when(raftService.commitOperation("foo".getBytes())).thenReturn(Futures.<Object>immediateFuture("42"));
+
+    String value = client()
+      .target("/raft/commit").request()
+      .post(Entity.entity("foo".getBytes(), MediaType.APPLICATION_OCTET_STREAM)).readEntity(String.class);
+
+    assertThat(value).isEqualTo("42");
+  }
+
 
   public Client client() {
     return super.client().register(Jackson.customJacksonProvider());
