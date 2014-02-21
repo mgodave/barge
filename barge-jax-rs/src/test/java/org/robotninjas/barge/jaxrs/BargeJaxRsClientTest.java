@@ -20,6 +20,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Test;
+import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.api.RequestVoteResponse;
 import org.robotninjas.barge.jaxrs.client.BargeJaxRsClient;
 
@@ -48,6 +49,17 @@ public class BargeJaxRsClientTest extends JerseyTest {
     assertThat(future.get(1, TimeUnit.SECONDS)).isEqualTo(Model.voteResponse);
   }
 
+
+  @Test
+  public void returnsFutureWithServerResponseWhenAppendingEntriesGivenServerAnswers() throws Exception {
+    BargeJaxRsClient bargeJaxRsClient = new BargeJaxRsClient(getBaseUri(),client().register(Jackson.customJacksonProvider()));
+
+    ListenableFuture<AppendEntriesResponse> future = bargeJaxRsClient.appendEntries(Model.entries);
+
+    assertThat(future.get(1, TimeUnit.SECONDS)).isEqualTo(Model.entriesResponse);
+  }
+
+
   @Override
   protected Application configure() {
     ResourceConfig resourceConfig = ResourceConfig.forApplication(new Application() {
@@ -71,6 +83,12 @@ public class BargeJaxRsClientTest extends JerseyTest {
     @POST
     public RequestVoteResponse vote() {
       return Model.voteResponse;
+    }
+
+    @Path("/entries")
+    @POST
+    public AppendEntriesResponse entries() {
+      return Model.entriesResponse;
     }
   }
 

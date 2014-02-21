@@ -74,7 +74,23 @@ public class BargeJaxRsClient implements RaftClient {
 
   @Override
   public ListenableFuture<AppendEntriesResponse> appendEntries(AppendEntries request) {
-    throw new RuntimeException("not yet implemented");
+    final SettableFuture<AppendEntriesResponse> result = SettableFuture.create();
+
+    client.target(baseUri).path("/raft/entries")
+      .request().async()
+      .post(Entity.entity(request, MediaType.APPLICATION_JSON_TYPE), new InvocationCallback<Response>() {
+        @Override
+        public void completed(Response response) {
+          result.set(response.readEntity(AppendEntriesResponse.class));
+        }
+
+        @Override
+        public void failed(Throwable throwable) {
+          result.setException(throwable);
+        }
+      });
+
+    return result;
   }
 
   private static Client makeClient() {
