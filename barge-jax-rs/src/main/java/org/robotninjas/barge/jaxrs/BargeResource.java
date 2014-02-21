@@ -1,0 +1,48 @@
+/**
+ * Copyright 2013-2014 David Rusek <dave dot rusek at gmail dot com>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.robotninjas.barge.jaxrs;
+
+import org.robotninjas.barge.api.RequestVote;
+import org.robotninjas.barge.api.RequestVoteResponse;
+import org.robotninjas.barge.state.Raft;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+
+/**
+ * Exposes a Raft instance as a REST endpoint.
+ */
+@Path("/raft")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+public class BargeResource {
+
+  private final Raft raft;
+
+  public BargeResource(Raft raft) {
+    this.raft = raft;
+  }
+
+  @Path("/vote")
+  @POST
+  public RequestVoteResponse requestVote(RequestVote vote) {
+    return raft.requestVote(vote);
+  }
+
+}

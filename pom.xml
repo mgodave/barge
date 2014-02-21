@@ -42,7 +42,13 @@
     <module>barge-core</module>
     <module>barge-tools</module>
     <module>barge-rpc-proto</module>
+    <module>barge-jax-rs</module>
   </modules>
+
+  <properties>
+    <jersey.version>2.5</jersey.version>
+    <jackson.version>2.2.2</jackson.version>
+  </properties>
 
   <dependencyManagement>
     <dependencies>
@@ -119,6 +125,37 @@
         <artifactId>jetlang</artifactId>
         <version>0.2.12</version>
       </dependency>
+
+      <dependency>
+        <groupId>javax.ws.rs</groupId>
+        <artifactId>javax.ws.rs-api</artifactId>
+        <version>2.0</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.glassfish.jersey.test-framework.providers</groupId>
+        <artifactId>jersey-test-framework-provider-inmemory</artifactId>
+        <version>${jersey.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.glassfish.jersey.test-framework</groupId>
+        <artifactId>jersey-test-framework-core</artifactId>
+        <version>${jersey.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-core</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.fasterxml.jackson.jaxrs</groupId>
+        <artifactId>jackson-jaxrs-json-provider</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+
 
       <!-- Optional Dependencies -->
       <dependency>
