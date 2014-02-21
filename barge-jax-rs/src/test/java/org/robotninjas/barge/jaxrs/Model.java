@@ -20,17 +20,17 @@ import org.robotninjas.barge.api.*;
 /**
  */
 public class Model {
-  static final RequestVote vote = RequestVote.newBuilder()
+  public static final RequestVote vote = RequestVote.newBuilder()
     .setCandidateId("id")
     .setLastLogIndex(12)
     .setLastLogTerm(13)
     .setTerm(13)
     .build();
-  static final RequestVoteResponse voteResponse = RequestVoteResponse.newBuilder()
+  public static final RequestVoteResponse voteResponse = RequestVoteResponse.newBuilder()
     .setVoteGranted(true)
     .setTerm(13)
     .build();
-  static final AppendEntries entries = AppendEntries.newBuilder()
+  public static final AppendEntries entries = AppendEntries.newBuilder()
     .setLeaderId("foo")
     .addEntry(Entry.newBuilder()
       .setCommand("command".getBytes())
@@ -43,7 +43,7 @@ public class Model {
     .setPrevLogTerm(3)
     .setTerm(3)
     .build();
-  static final AppendEntriesResponse entriesResponse = AppendEntriesResponse.newBuilder()
+  public static final AppendEntriesResponse entriesResponse = AppendEntriesResponse.newBuilder()
     .setLastLogIndex(12)
     .setSuccess(true)
     .setTerm(3)

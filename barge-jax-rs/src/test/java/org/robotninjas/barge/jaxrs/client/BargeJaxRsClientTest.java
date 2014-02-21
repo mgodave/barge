@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.robotninjas.barge.jaxrs;
+package org.robotninjas.barge.jaxrs.client;
 
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -22,7 +22,8 @@ import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Test;
 import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.api.RequestVoteResponse;
-import org.robotninjas.barge.jaxrs.client.BargeJaxRsClient;
+import org.robotninjas.barge.jaxrs.Jackson;
+import org.robotninjas.barge.jaxrs.Model;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
