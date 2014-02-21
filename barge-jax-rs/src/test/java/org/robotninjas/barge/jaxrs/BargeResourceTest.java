@@ -38,59 +38,27 @@ public class BargeResourceTest extends JerseyTest {
 
   private Raft raftService;
 
-  private final RequestVote vote = RequestVote.newBuilder()
-    .setCandidateId("id")
-    .setLastLogIndex(12)
-    .setLastLogTerm(13)
-    .setTerm(13)
-    .build();
-
-  private final RequestVoteResponse voteResponse = RequestVoteResponse.newBuilder()
-    .setVoteGranted(true)
-    .setTerm(13)
-    .build();
-
-  private final AppendEntries entries = AppendEntries.newBuilder()
-    .setLeaderId("foo")
-    .addEntry(Entry.newBuilder()
-      .setCommand("command".getBytes())
-      .setTerm(2).build())
-    .addEntry(Entry.newBuilder()
-      .setCommand("command1".getBytes())
-      .setTerm(2).build())
-    .setCommitIndex(1)
-    .setPrevLogIndex(2)
-    .setPrevLogTerm(3)
-    .setTerm(3)
-    .build();
-
-  private final AppendEntriesResponse entriesResponse = AppendEntriesResponse.newBuilder()
-    .setLastLogIndex(12)
-    .setSuccess(true)
-    .setTerm(3)
-    .build();
-
 
   @Test
   public void onPOSTRequestVoteReturn200WithResponseGivenServiceReturnsResponse() throws Exception {
-    when(raftService.requestVote(vote)).thenReturn(voteResponse);
+    when(raftService.requestVote(Model.vote)).thenReturn(Model.voteResponse);
 
     RequestVoteResponse actual = client()
       .target("/raft/vote").request()
-      .post(Entity.entity(vote, MediaType.APPLICATION_JSON_TYPE)).readEntity(RequestVoteResponse.class);
+      .post(Entity.entity(Model.vote, MediaType.APPLICATION_JSON_TYPE)).readEntity(RequestVoteResponse.class);
 
-    assertThat(actual).isEqualTo(voteResponse);
+    assertThat(actual).isEqualTo(Model.voteResponse);
   }
 
   @Test
   public void onPOSTAppendEntriesReturn200WithResponseGivenServiceReturnsResponse() throws Exception {
-    when(raftService.appendEntries(entries)).thenReturn(entriesResponse);
+    when(raftService.appendEntries(Model.entries)).thenReturn(Model.entriesResponse);
 
     AppendEntriesResponse actual = client()
       .target("/raft/entries").request()
-      .post(Entity.entity(entries, MediaType.APPLICATION_JSON_TYPE)).readEntity(AppendEntriesResponse.class);
+      .post(Entity.entity(Model.entries, MediaType.APPLICATION_JSON_TYPE)).readEntity(AppendEntriesResponse.class);
 
-    assertThat(actual).isEqualTo(entriesResponse);
+    assertThat(actual).isEqualTo(Model.entriesResponse);
   }
 
   public Client client() {

@@ -30,7 +30,7 @@ import java.io.IOException;
 /**
  * Utility methods for configuring Jackson.
  */
-abstract class Jackson {
+public abstract class Jackson {
 
 
   /**
@@ -50,7 +50,7 @@ abstract class Jackson {
   /**
    * @return a suitable provider with configured deserialization objects.
    */
-  static JacksonJaxbJsonProvider customJacksonProvider() {
+  public static JacksonJaxbJsonProvider customJacksonProvider() {
     JacksonJaxbJsonProvider provider = new JacksonJaxbJsonProvider();
     provider.setMapper(objectMapper());
     return provider;
