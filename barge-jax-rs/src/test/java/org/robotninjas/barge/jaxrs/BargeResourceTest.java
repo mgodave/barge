@@ -19,8 +19,7 @@ import com.google.common.collect.Sets;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Test;
-import org.robotninjas.barge.api.RequestVote;
-import org.robotninjas.barge.api.RequestVoteResponse;
+import org.robotninjas.barge.api.*;
 import org.robotninjas.barge.state.Raft;
 
 import javax.ws.rs.client.Client;
@@ -39,29 +38,60 @@ public class BargeResourceTest extends JerseyTest {
 
   private Raft raftService;
 
-  private final RequestVote request = RequestVote.newBuilder()
+  private final RequestVote vote = RequestVote.newBuilder()
     .setCandidateId("id")
     .setLastLogIndex(12)
     .setLastLogTerm(13)
     .setTerm(13)
     .build();
 
-  private final RequestVoteResponse response = RequestVoteResponse.newBuilder()
+  private final RequestVoteResponse voteResponse = RequestVoteResponse.newBuilder()
     .setVoteGranted(true)
     .setTerm(13)
     .build();
 
+  private final AppendEntries entries = AppendEntries.newBuilder()
+    .setLeaderId("foo")
+    .addEntry(Entry.newBuilder()
+      .setCommand("command".getBytes())
+      .setTerm(2).build())
+    .addEntry(Entry.newBuilder()
+      .setCommand("command1".getBytes())
+      .setTerm(2).build())
+    .setCommitIndex(1)
+    .setPrevLogIndex(2)
+    .setPrevLogTerm(3)
+    .setTerm(3)
+    .build();
+
+  private final AppendEntriesResponse entriesResponse = AppendEntriesResponse.newBuilder()
+    .setLastLogIndex(12)
+    .setSuccess(true)
+    .setTerm(3)
+    .build();
+
+
   @Test
   public void onPOSTRequestVoteReturn200WithResponseGivenServiceReturnsResponse() throws Exception {
-    when(raftService.requestVote(request)).thenReturn(response);
+    when(raftService.requestVote(vote)).thenReturn(voteResponse);
 
     RequestVoteResponse actual = client()
       .target("/raft/vote").request()
-      .post(Entity.entity(request, MediaType.APPLICATION_JSON_TYPE)).readEntity(RequestVoteResponse.class);
+      .post(Entity.entity(vote, MediaType.APPLICATION_JSON_TYPE)).readEntity(RequestVoteResponse.class);
 
-    assertThat(actual).isEqualTo(response);
+    assertThat(actual).isEqualTo(voteResponse);
   }
 
+  @Test
+  public void onPOSTAppendEntriesReturn200WithResponseGivenServiceReturnsResponse() throws Exception {
+    when(raftService.appendEntries(entries)).thenReturn(entriesResponse);
+
+    AppendEntriesResponse actual = client()
+      .target("/raft/entries").request()
+      .post(Entity.entity(entries, MediaType.APPLICATION_JSON_TYPE)).readEntity(AppendEntriesResponse.class);
+
+    assertThat(actual).isEqualTo(entriesResponse);
+  }
 
   public Client client() {
     return super.client().register(Jackson.customJacksonProvider());

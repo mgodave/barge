@@ -15,6 +15,8 @@
  */
 package org.robotninjas.barge.jaxrs;
 
+import org.robotninjas.barge.api.AppendEntries;
+import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.api.RequestVote;
 import org.robotninjas.barge.api.RequestVoteResponse;
 import org.robotninjas.barge.state.Raft;
@@ -27,6 +29,10 @@ import javax.ws.rs.core.MediaType;
 
 /**
  * Exposes a Raft instance as a REST endpoint.
+ * <p>
+ *   This is the server part of a Barge REST instance, exposing RPCs as endpoints. All messages are serialized through
+ *   JSON.
+ * </p>
  */
 @Path("/raft")
 @Produces(MediaType.APPLICATION_JSON)
@@ -43,6 +49,12 @@ public class BargeResource {
   @POST
   public RequestVoteResponse requestVote(RequestVote vote) {
     return raft.requestVote(vote);
+  }
+
+  @Path("/entries")
+  @POST
+  public AppendEntriesResponse appendEntries(AppendEntries appendEntries) {
+    return raft.appendEntries(appendEntries);
   }
 
 }

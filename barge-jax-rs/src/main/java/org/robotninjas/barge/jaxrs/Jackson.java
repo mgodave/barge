@@ -23,8 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
-import org.robotninjas.barge.api.RequestVote;
-import org.robotninjas.barge.api.RequestVoteResponse;
+import org.robotninjas.barge.api.*;
 
 import java.io.IOException;
 
@@ -35,20 +34,20 @@ abstract class Jackson {
 
 
   /**
-   *
    * @return a new Object mapper with configured deserializer for barge' object model.
    */
   static ObjectMapper objectMapper() {
     ObjectMapper mapper = new ObjectMapper();
     SimpleModule testModule = new SimpleModule("MyModule", new Version(0, 1, 0, null, "org.robotninjas", "barge"))
-      .addDeserializer(RequestVote.class, new RequestVoteDeserializer(RequestVote.class))
-      .addDeserializer(RequestVoteResponse.class, new RequestVoteResponseDeserializer(RequestVoteResponse.class));
+      .addDeserializer(RequestVote.class, new RequestVoteDeserializer())
+      .addDeserializer(RequestVoteResponse.class, new RequestVoteResponseDeserializer())
+      .addDeserializer(AppendEntries.class, new AppendEntriesDeserializer())
+      .addDeserializer(AppendEntriesResponse.class, new AppendEntriesResponseDeserializer());
     mapper.registerModule(testModule);
     return mapper;
   }
 
   /**
-   *
    * @return a suitable provider with configured deserialization objects.
    */
   static JacksonJaxbJsonProvider customJacksonProvider() {
@@ -57,10 +56,10 @@ abstract class Jackson {
     return provider;
   }
 
-  static class RequestVoteDeserializer extends StdDeserializer<RequestVote> {
+  private static class RequestVoteDeserializer extends StdDeserializer<RequestVote> {
 
-    protected RequestVoteDeserializer(Class<?> aClass) {
-      super(aClass);
+    protected RequestVoteDeserializer() {
+      super(RequestVote.class);
     }
 
     /**
@@ -91,10 +90,10 @@ abstract class Jackson {
 
   }
 
-  public static class RequestVoteResponseDeserializer extends StdDeserializer<RequestVoteResponse> {
+  private static class RequestVoteResponseDeserializer extends StdDeserializer<RequestVoteResponse> {
 
-    public RequestVoteResponseDeserializer(Class<RequestVoteResponse> requestVoteResponseClass) {
-      super(requestVoteResponseClass);
+    public RequestVoteResponseDeserializer() {
+      super(RequestVoteResponse.class);
     }
 
 
@@ -119,6 +118,92 @@ abstract class Jackson {
       jsonParser.close();
       return builder.build();
 
+    }
+  }
+
+
+  private static class AppendEntriesDeserializer extends StdDeserializer<AppendEntries> {
+    public AppendEntriesDeserializer() {
+      super(AppendEntries.class);
+    }
+
+    @Override
+    public AppendEntries deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
+      AppendEntries.Builder builder = AppendEntries.newBuilder();
+
+      while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
+        String fieldName = jsonParser.getCurrentName();
+
+        JsonToken token = jsonParser.nextToken();
+
+        if (fieldName.equals("term")) {
+          builder.setTerm(jsonParser.getLongValue());
+        } else if (fieldName.equals("prevLogIndex")) {
+          builder.setPrevLogIndex(jsonParser.getLongValue());
+        }else if (fieldName.equals("prevLogTerm")) {
+          builder.setPrevLogTerm(jsonParser.getLongValue());
+        }else if (fieldName.equals("commitIndex")) {
+          builder.setCommitIndex(jsonParser.getLongValue());
+        }else if (fieldName.equals("leaderId")) {
+          builder.setLeaderId(jsonParser.getText());
+        }else if (fieldName.equals("entriesList")) {
+          if(token != JsonToken.START_ARRAY) {
+              throw new IOException("entriesList should be an array, got " + token);
+          }
+          while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
+            builder.addEntry(deserializeEntry(jsonParser));
+          }
+        }
+      }
+      jsonParser.close();
+      return builder.build();
+    }
+
+    private Entry deserializeEntry(JsonParser jsonParser) throws IOException {
+      Entry.Builder builder = Entry.newBuilder();
+
+
+      while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
+        String fieldName = jsonParser.getCurrentName();
+
+        jsonParser.nextToken();
+
+        if (fieldName.equals("term")) {
+          builder.setTerm(jsonParser.getLongValue());
+        } else if (fieldName.equals("command")) {
+          builder.setCommand(jsonParser.getBinaryValue());
+        }
+      }
+
+      return builder.build();
+    }
+  }
+
+  private static class AppendEntriesResponseDeserializer extends StdDeserializer<AppendEntriesResponse> {
+    protected AppendEntriesResponseDeserializer() {
+      super(AppendEntriesResponse.class);
+    }
+
+    @Override
+    public AppendEntriesResponse deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
+      AppendEntriesResponse.Builder builder = AppendEntriesResponse.newBuilder();
+
+      while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
+        String fieldName = jsonParser.getCurrentName();
+
+        jsonParser.nextToken();
+
+        if (fieldName.equals("term")) {
+          builder.setTerm(jsonParser.getLongValue());
+        } else if (fieldName.equals("success")) {
+          builder.setSuccess(jsonParser.getBooleanValue());
+        }else if (fieldName.equals("lastLogIndex")) {
+          builder.setLastLogIndex(jsonParser.getLongValue());
+        }
+      }
+
+      jsonParser.close();
+      return builder.build();
     }
   }
 }
