@@ -55,4 +55,8 @@ public class HttpReplica implements Replica {
   boolean match(URI uri) {
     return this.uri.equals(uri);
   }
+
+  public URI getURI() {
+    return uri;
+  }
 }
