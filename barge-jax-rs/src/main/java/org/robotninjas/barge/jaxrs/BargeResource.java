@@ -22,11 +22,11 @@ import org.robotninjas.barge.api.RequestVote;
 import org.robotninjas.barge.api.RequestVoteResponse;
 import org.robotninjas.barge.state.Raft;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Exposes a Raft instance as a REST endpoint.
@@ -42,8 +42,21 @@ public class BargeResource {
 
   private final Raft raft;
 
+  @Inject
   public BargeResource(Raft raft) {
     this.raft = raft;
+  }
+
+  @SuppressWarnings("UnusedDeclaration")
+  @PostConstruct
+  public void init() throws ExecutionException, InterruptedException {
+    raft.init().get();
+  }
+
+  @Path("/state")
+  @GET
+  public Raft.StateType state(){
+    return raft.type();
   }
 
   @Path("/vote")

@@ -73,6 +73,12 @@ public class BargeResourceTest extends JerseyTest {
     assertThat(value).isEqualTo("42");
   }
 
+  @Test
+  public void onGETTypeReturnsTheCurrentStateOfRaftService() throws Exception {
+    when(raftService.type()).thenReturn(Raft.StateType.LEADER);
+
+    assertThat(client().target("/raft/state").request().get(Raft.StateType.class)).isEqualTo(Raft.StateType.LEADER);
+  }
 
   public Client client() {
     return super.client().register(Jackson.customJacksonProvider());
