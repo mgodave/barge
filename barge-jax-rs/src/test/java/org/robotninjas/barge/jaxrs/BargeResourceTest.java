@@ -20,8 +20,10 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
+import org.junit.ClassRule;
 import org.junit.Test;
-import org.robotninjas.barge.api.*;
+import org.robotninjas.barge.api.AppendEntriesResponse;
+import org.robotninjas.barge.api.RequestVoteResponse;
 import org.robotninjas.barge.state.Raft;
 
 import javax.ws.rs.client.Client;
@@ -41,6 +43,8 @@ public class BargeResourceTest extends JerseyTest {
 
   private Raft raftService;
 
+  @ClassRule
+  public static MuteJUL muteJUL = new MuteJUL();
 
   @Test
   public void onPOSTRequestVoteReturn200WithResponseGivenServiceReturnsResponse() throws Exception {

@@ -19,11 +19,13 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.api.RequestVoteResponse;
 import org.robotninjas.barge.jaxrs.Jackson;
 import org.robotninjas.barge.jaxrs.Model;
+import org.robotninjas.barge.jaxrs.MuteJUL;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -40,6 +42,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class BargeJaxRsClientTest extends JerseyTest {
 
+  @ClassRule
+  public static MuteJUL muteJUL = new MuteJUL();
 
   @Test
   public void returnsFutureWithServerResponseWhenRequestingVoteGivenServerAnswers() throws Exception {
