@@ -22,17 +22,15 @@ import org.robotninjas.barge.api.RequestVote;
 import org.robotninjas.barge.api.RequestVoteResponse;
 import org.robotninjas.barge.state.Raft;
 
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Exposes a Raft instance as a REST endpoint.
  * <p>
- *   This is the server part of a Barge REST instance, exposing RPCs as endpoints. All messages are serialized through
- *   JSON.
+ * This is the server part of a Barge REST instance, exposing RPCs as endpoints. All messages are serialized through
+ * JSON.
  * </p>
  */
 @Path("/raft")
@@ -47,15 +45,19 @@ public class BargeResource {
     this.raft = raft;
   }
 
-  @SuppressWarnings("UnusedDeclaration")
-  @PostConstruct
-  public void init() throws ExecutionException, InterruptedException {
-    raft.init().get();
+  @Path("/init")
+  @POST
+  public Raft.StateType init() {
+    try {
+      return raft.init().get();
+    } catch (Exception e) {
+      throw Throwables.propagate(e);
+    }
   }
 
   @Path("/state")
   @GET
-  public Raft.StateType state(){
+  public Raft.StateType state() {
     return raft.type();
   }
 
@@ -73,11 +75,10 @@ public class BargeResource {
 
   @Path("/commit")
   @POST
-  @Produces(MediaType.APPLICATION_OCTET_STREAM)
   @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-  public Object commit(byte[] operation){
+  public void commit(byte[] operation) {
     try {
-      return raft.commitOperation(operation).get();
+      raft.commitOperation(operation).get();
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }

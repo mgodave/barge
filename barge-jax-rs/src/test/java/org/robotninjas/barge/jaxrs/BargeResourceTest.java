@@ -17,6 +17,7 @@ package org.robotninjas.barge.jaxrs;
 
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Test;
@@ -27,6 +28,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -63,14 +65,14 @@ public class BargeResourceTest extends JerseyTest {
   }
 
   @Test
-  public void onPOSTCommitReturn200WithResponseGivenServiceReturnsResponse() throws Exception {
+  public void onPOSTCommitReturn204GivenServiceReturnsResponse() throws Exception {
     when(raftService.commitOperation("foo".getBytes())).thenReturn(Futures.<Object>immediateFuture("42"));
 
-    String value = client()
+    Response value = client()
       .target("/raft/commit").request()
-      .post(Entity.entity("foo".getBytes(), MediaType.APPLICATION_OCTET_STREAM)).readEntity(String.class);
+      .post(Entity.entity("foo".getBytes(), MediaType.APPLICATION_OCTET_STREAM));
 
-    assertThat(value).isEqualTo("42");
+    assertThat(value.getStatus()).isEqualTo(204);
   }
 
   @Test
@@ -82,6 +84,15 @@ public class BargeResourceTest extends JerseyTest {
 
   public Client client() {
     return super.client().register(Jackson.customJacksonProvider());
+  }
+
+  @Test
+  public void onPOSTInitThenItSynchronouslyInitRaftService() throws Exception {
+    ListenableFuture<Raft.StateType> future = Futures.immediateFuture(Raft.StateType.START);
+    when(raftService.init()).thenReturn(future);
+
+    assertThat(client().target("/raft/init").request().post(Entity.json("")).readEntity(Raft.StateType.class))
+      .isEqualTo(Raft.StateType.START);
   }
 
   @Override
