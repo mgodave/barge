@@ -1,5 +1,7 @@
 package org.robotninjas.barge;
 
+import org.robotninjas.barge.utils.Prober;
+
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;

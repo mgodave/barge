@@ -21,6 +21,7 @@ import com.google.common.collect.Maps;
 import org.junit.rules.ExternalResource;
 import org.robotninjas.barge.state.Raft;
 import org.robotninjas.barge.state.StateTransitionListener;
+import org.robotninjas.barge.utils.Prober;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
