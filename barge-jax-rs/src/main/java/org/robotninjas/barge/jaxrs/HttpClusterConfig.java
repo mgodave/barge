@@ -20,6 +20,7 @@ import com.google.common.collect.Iterables;
 import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.Replica;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -43,7 +44,15 @@ public class HttpClusterConfig implements ClusterConfig {
     this.remotes = remotes;
   }
 
-  public static ClusterConfig from(HttpReplica local, HttpReplica... remotes) {
+  /**
+   * Builds an HTTP-based cluster configuration from some replicas descriptors.
+   *
+   * @param local the local replica: This is the configuration that will be used by local agent to define itself and
+   *              start server endpoint.
+   * @param remotes known replicas in the cluster.
+   * @return a valid configuration.
+   */
+  public static @Nonnull ClusterConfig from(@Nonnull HttpReplica local, HttpReplica... remotes) {
     return new HttpClusterConfig(local, remotes);
   }
 

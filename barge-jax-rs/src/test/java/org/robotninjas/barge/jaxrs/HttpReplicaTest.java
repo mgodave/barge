@@ -15,46 +15,18 @@
  */
 package org.robotninjas.barge.jaxrs;
 
-import com.google.common.base.Objects;
-import org.robotninjas.barge.Replica;
+import org.junit.Test;
 
 import java.net.URI;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  */
-public class HttpReplica implements Replica {
+public class HttpReplicaTest {
 
-  private final URI uri;
-
-  public HttpReplica(URI uri) {
-    this.uri = uri;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof HttpReplica)) return false;
-
-    HttpReplica that = (HttpReplica) o;
-
-    return Objects.equal(uri, that.uri);
-  }
-
-  @Override
-  public int hashCode() {
-    return uri.hashCode();
-  }
-
-  @Override
-  public String toString() {
-    return uri.toString();
-  }
-
-  boolean match(URI uri) {
-    return this.uri.equals(uri);
-  }
-
-  public URI getURI() {
-    return uri;
+  @Test
+  public void toStringReturnsOnlyURI() throws Exception {
+    assertThat(new HttpReplica(new URI("http://localhost:1234")).toString()).isEqualTo("http://localhost:1234");
   }
 }
