@@ -70,14 +70,14 @@ class RaftStateContext implements Raft {
   }
 
   @Override
-  public ListenableFuture init() {
+  public ListenableFuture<StateType> init() {
 
-    ListenableFutureTask init =
-        ListenableFutureTask.create(new Callable() {
+    ListenableFutureTask<StateType> init =
+        ListenableFutureTask.create(new Callable<StateType>() {
           @Override
-          public Object call() {
+          public StateType call() {
             setState(null, StateType.START);
-            return null;
+            return StateType.START;
           }
         });
 
