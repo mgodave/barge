@@ -16,6 +16,7 @@
 package org.robotninjas.barge.jaxrs;
 
 import com.google.common.base.Throwables;
+import org.robotninjas.barge.NotLeaderException;
 import org.robotninjas.barge.api.AppendEntries;
 import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.api.RequestVote;
@@ -25,6 +26,7 @@ import org.robotninjas.barge.state.Raft;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 /**
  * Exposes a Raft instance as a REST endpoint.
@@ -76,9 +78,12 @@ public class BargeResource {
   @Path("/commit")
   @POST
   @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-  public void commit(byte[] operation) {
+  public Response commit(byte[] operation) {
     try {
       raft.commitOperation(operation).get();
+      return Response.noContent().build();
+    } catch (NotLeaderException e) {
+      return Response.status(Response.Status.FOUND).location(((HttpReplica) e.getLeader()).getURI()).build();
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }

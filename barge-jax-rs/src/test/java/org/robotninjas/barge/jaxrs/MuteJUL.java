@@ -18,14 +18,18 @@ package org.robotninjas.barge.jaxrs;
 import org.junit.rules.ExternalResource;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  */
 public class MuteJUL extends ExternalResource {
 
   @Override
   protected void before() throws Throwable {
-      SLF4JBridgeHandler.removeHandlersForRootLogger();
-      SLF4JBridgeHandler.install();
+    Logger.getLogger("").setLevel(Level.ALL);
+    SLF4JBridgeHandler.removeHandlersForRootLogger();
+    SLF4JBridgeHandler.install();
   }
 
 }

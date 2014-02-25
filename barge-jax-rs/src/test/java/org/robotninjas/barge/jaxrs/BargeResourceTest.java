@@ -18,10 +18,12 @@ package org.robotninjas.barge.jaxrs;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.robotninjas.barge.NotLeaderException;
 import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.api.RequestVoteResponse;
 import org.robotninjas.barge.state.Raft;
@@ -31,6 +33,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.net.URI;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -80,6 +83,19 @@ public class BargeResourceTest extends JerseyTest {
   }
 
   @Test
+  public void onPOSTCommitReturn302WithLeaderURIGivenRaftThrowsNotLeaderException() throws Exception {
+    URI leaderURI = new URI("http://localhost:1234");
+    when(raftService.commitOperation("foo".getBytes())).thenThrow(new NotLeaderException(new HttpReplica(leaderURI)));
+
+    Response value = client()
+      .target("/raft/commit").request()
+      .post(Entity.entity("foo".getBytes(), MediaType.APPLICATION_OCTET_STREAM));
+
+    assertThat(value.getStatus()).isEqualTo(302);
+    assertThat(value.getLocation()).isEqualTo(leaderURI);
+  }
+
+  @Test
   public void onGETTypeReturnsTheCurrentStateOfRaftService() throws Exception {
     when(raftService.type()).thenReturn(Raft.StateType.LEADER);
 
@@ -87,7 +103,7 @@ public class BargeResourceTest extends JerseyTest {
   }
 
   public Client client() {
-    return super.client().register(Jackson.customJacksonProvider());
+    return super.client().property(ClientProperties.FOLLOW_REDIRECTS,false).register(Jackson.customJacksonProvider());
   }
 
   @Test
