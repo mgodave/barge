@@ -54,6 +54,8 @@ class DefaultStateFactory implements StateFactory {
         return new Leader(log, scheduler, timeout, replicaManagerFactory);
       case CANDIDATE:
         return new Candidate(log, scheduler, timeout, client);
+      case STOPPED:
+        return new Stopped(log);
       default:
         throw new IllegalStateException("the impossible happpened, unknown state type " + state);
     }

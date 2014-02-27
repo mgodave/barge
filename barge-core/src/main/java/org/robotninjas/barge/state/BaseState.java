@@ -176,4 +176,10 @@ public abstract class BaseState implements State {
     }
     return Futures.immediateCancelledFuture();
   }
+  
+  @Override
+  public void doStop(RaftStateContext ctx) {
+    ctx.setState(this, STOPPED);
+  }
+
 }

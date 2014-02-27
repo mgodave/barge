@@ -18,14 +18,12 @@ package org.robotninjas.barge.state;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
-import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.jetlang.core.Disposable;
 import org.jetlang.fibers.Fiber;
 import org.robotninjas.barge.RaftException;
-import org.robotninjas.barge.RaftExecutor;
 import org.robotninjas.barge.RaftExecutor;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.log.RaftLog;
@@ -38,7 +36,6 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -87,6 +84,11 @@ class Leader extends BaseState {
   }
 
   @Override
+  public void doStop(RaftStateContext ctx) {
+    destroy(ctx);
+    super.doStop(ctx);
+  }
+
   public void destroy(RaftStateContext ctx) {
     heartbeatTask.dispose();
     for (ReplicaManager mgr : managers.values()) {
@@ -127,17 +129,18 @@ class Leader extends BaseState {
    */
   private void updateCommitted() {
 
-    List<ReplicaManager> sorted = newArrayList(managers.values());
-    Collections.sort(sorted, new Comparator<ReplicaManager>() {
-      @Override
-      public int compare(ReplicaManager o, ReplicaManager o2) {
-        return Longs.compare(o.getMatchIndex(), o2.getMatchIndex());
-      }
-    });
+    List<Long> sorted = newArrayList();
+    for (ReplicaManager manager : managers.values()) {
+      sorted.add(manager.getMatchIndex());
+    }
+    sorted.add(getLog().lastLogIndex());
+    Collections.sort(sorted);
 
-    final int middle = (int) Math.ceil(sorted.size() / 2.0);
-    final long committed = sorted.get(middle).getMatchIndex();
-    LOGGER.debug("updating commitIndex to {}", committed);
+    int n = sorted.size();
+    int quorumSize = (n / 2) + 1;
+    final long committed = sorted.get(quorumSize - 1);
+
+    LOGGER.debug("updating commitIndex to {}; sorted is {}", committed, sorted);
     getLog().commitIndex(committed);
 
   }
@@ -177,6 +180,12 @@ class Leader extends BaseState {
       });
 
     }
+
+    // Cope if we're the only node in the cluster.
+    if (responses.isEmpty()) {
+      updateCommitted();
+    }
+
     return responses;
   }
 

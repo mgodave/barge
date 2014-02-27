@@ -4,48 +4,39 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Inject;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.log.RaftLog;
-import org.slf4j.MDC;
 
 import javax.annotation.Nonnull;
 
 import static org.robotninjas.barge.proto.RaftProto.*;
-import static org.robotninjas.barge.state.Raft.StateType.FOLLOWER;
-import static org.robotninjas.barge.state.Raft.StateType.START;
+import static org.robotninjas.barge.state.Raft.StateType.STOPPED;
 
-class Start extends BaseState {
+class Stopped extends BaseState {
 
   @Inject
-  public Start(RaftLog log) {
-    super(START, log);
+  public Stopped(RaftLog log) {
+    super(STOPPED, log);
   }
 
   @Override
-  public void init(@Nonnull RaftStateContext ctx) {
-    RaftLog log = getLog();
-
-    MDC.put("state", Raft.StateType.START.name());
-    MDC.put("term", Long.toString(log.currentTerm()));
-    MDC.put("self", log.self().toString());
-    log.load();
-    ctx.setState(this, FOLLOWER);
+  public void init(RaftStateContext ctx) {
   }
 
   @Nonnull
   @Override
   public RequestVoteResponse requestVote(@Nonnull RaftStateContext ctx, @Nonnull RequestVote request) {
-    throw new RuntimeException("Service unavailable");
+    throw new RuntimeException("Service is stopped");
   }
 
   @Nonnull
   @Override
   public AppendEntriesResponse appendEntries(@Nonnull RaftStateContext ctx, @Nonnull AppendEntries request) {
-    throw new RuntimeException("Service unavailable");
+    throw new RuntimeException("Service is stopped");
   }
 
   @Nonnull
   @Override
   public ListenableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
-    throw new RaftException("Service has not started yet");
+    throw new RaftException("Service is stopped");
   }
 
 }

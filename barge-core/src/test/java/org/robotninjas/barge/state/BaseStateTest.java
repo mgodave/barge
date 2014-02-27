@@ -198,11 +198,6 @@ public class BaseStateTest {
       return null;
     }
 
-    @Override
-    public RaftStateContext.StateType type() {
-      return null;
-    }
-
   }
 
 }
