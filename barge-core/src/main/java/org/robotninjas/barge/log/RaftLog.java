@@ -199,6 +199,7 @@ public class RaftLog {
         ListenableFuture<Object> result = stateMachine.dispatchOperation(operation);
 
         final SettableFuture<Object> returnedResult = operationResults.remove(i);
+        // returnedResult may be null on log replay
         if (returnedResult != null) {
           Futures.addCallback(result, new PromiseBridge<Object>(returnedResult));
         }

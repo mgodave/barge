@@ -39,5 +39,7 @@ interface State {
   @Nonnull
   ListenableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException;
 
+  void doStop(RaftStateContext ctx);
+
   StateType type();
 }

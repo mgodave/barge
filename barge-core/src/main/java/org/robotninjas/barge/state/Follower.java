@@ -73,4 +73,11 @@ class Follower extends BaseState {
   protected void resetTimer() {
     timeoutTask.reset();
   }
+
+  @Override
+  public void doStop(RaftStateContext ctx) {
+    timeoutTask.cancel();
+    super.doStop(ctx);
+  }
+
 }

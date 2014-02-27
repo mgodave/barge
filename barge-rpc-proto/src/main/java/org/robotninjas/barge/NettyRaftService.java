@@ -82,6 +82,9 @@ public class NettyRaftService extends AbstractService implements RaftService {
 
     try {
       rpcServer.stopAsync().awaitTerminated();
+
+      ctx.stop();
+
       notifyStopped();
     } catch (Exception e) {
       notifyFailed(e);
@@ -147,7 +150,9 @@ public class NettyRaftService extends AbstractService implements RaftService {
         new NettyRaftModule(config, logDir, stateMachine, timeout))
         .getInstance(NettyRaftService.class);
 
-      nettyRaftService.addTransitionListener(listener);
+      if (listener != null) {
+        nettyRaftService.addTransitionListener(listener);
+      }
 
       return nettyRaftService;
     }

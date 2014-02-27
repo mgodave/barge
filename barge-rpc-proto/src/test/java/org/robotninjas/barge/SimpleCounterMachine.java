@@ -28,7 +28,7 @@ public class SimpleCounterMachine implements StateMachine {
   }
 
   @SuppressWarnings({"ConstantConditions", "ResultOfMethodCallIgnored"})
-  private static void delete(File directory) {
+  public static void delete(File directory) {
     for (File file : directory.listFiles()) {
       if (file.isFile()) {
         file.delete();
