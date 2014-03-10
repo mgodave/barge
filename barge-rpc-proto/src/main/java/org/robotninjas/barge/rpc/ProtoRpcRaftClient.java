@@ -18,11 +18,17 @@ package org.robotninjas.barge.rpc;
 
 import com.google.common.util.concurrent.AbstractFuture;
 import com.google.common.util.concurrent.AsyncFunction;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.RpcCallback;
 import com.google.protobuf.RpcController;
 import org.apache.commons.pool.ObjectPool;
+import org.robotninjas.barge.ProtoUtils;
 import org.robotninjas.barge.RaftException;
+import org.robotninjas.barge.api.AppendEntries;
+import org.robotninjas.barge.api.AppendEntriesResponse;
+import org.robotninjas.barge.api.RequestVote;
+import org.robotninjas.barge.api.RequestVoteResponse;
 import org.robotninjas.barge.proto.RaftProto;
 import org.robotninjas.protobuf.netty.client.ClientController;
 import org.robotninjas.protobuf.netty.client.NettyRpcChannel;
@@ -36,7 +42,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.util.concurrent.Futures.immediateFailedFuture;
 import static com.google.common.util.concurrent.Futures.transform;
 import static com.google.common.util.concurrent.MoreExecutors.sameThreadExecutor;
-import static org.robotninjas.barge.proto.RaftProto.*;
 
 //TODO write a protoc code generator for this bullshit
 @Immutable
@@ -53,13 +58,13 @@ class ProtoRpcRaftClient implements RaftClient {
   @Nonnull
   public ListenableFuture<RequestVoteResponse> requestVote(@Nonnull RequestVote request) {
     checkNotNull(request);
-    return call(RpcCall.requestVote(request));
+    return Futures.transform(call(RpcCall.requestVote(ProtoUtils.convert(request))), ProtoUtils.convertVoteResponse);
   }
 
   @Nonnull
   public ListenableFuture<AppendEntriesResponse> appendEntries(@Nonnull AppendEntries request) {
     checkNotNull(request);
-    return call(RpcCall.appendEntries(request));
+    return Futures.transform(call(RpcCall.appendEntries(ProtoUtils.convert(request))),ProtoUtils.convertAppendResponse);
   }
 
   private <T> ListenableFuture<T> call(final RpcCall<T> call) {
@@ -119,21 +124,21 @@ class ProtoRpcRaftClient implements RaftClient {
 
   private static abstract class RpcCall<T> {
 
-    abstract void call(RaftService.Stub stub, RpcController controller, RpcCallback<T> callback);
+    abstract void call(RaftProto.RaftService.Stub stub, RpcController controller, RpcCallback<T> callback);
 
-    static RpcCall<AppendEntriesResponse> appendEntries(final AppendEntries request) {
-      return new RpcCall<AppendEntriesResponse>() {
+    static RpcCall<RaftProto.AppendEntriesResponse> appendEntries(final RaftProto.AppendEntries request) {
+      return new RpcCall<RaftProto.AppendEntriesResponse>() {
         @Override
-        public void call(RaftService.Stub stub, RpcController controller, RpcCallback<AppendEntriesResponse> callback) {
+        public void call(RaftProto.RaftService.Stub stub, RpcController controller, RpcCallback<RaftProto.AppendEntriesResponse> callback) {
           stub.appendEntries(controller, request, callback);
         }
       };
     }
 
-    static RpcCall<RequestVoteResponse> requestVote(final RequestVote request) {
-      return new RpcCall<RequestVoteResponse>() {
+    static RpcCall<RaftProto.RequestVoteResponse> requestVote(final RaftProto.RequestVote request) {
+      return new RpcCall<RaftProto.RequestVoteResponse>() {
         @Override
-        public void call(RaftService.Stub stub, RpcController controller, RpcCallback<RequestVoteResponse> callback) {
+        public void call(RaftProto.RaftService.Stub stub, RpcController controller, RpcCallback<RaftProto.RequestVoteResponse> callback) {
           stub.requestVote(controller, request, callback);
         }
       };

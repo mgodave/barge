@@ -3,7 +3,6 @@ package org.robotninjas.barge.state;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
-import com.google.protobuf.ByteString;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -11,6 +10,9 @@ import org.mockito.MockitoAnnotations;
 import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.ClusterConfigStub;
 import org.robotninjas.barge.Replica;
+import org.robotninjas.barge.api.AppendEntries;
+import org.robotninjas.barge.api.AppendEntriesResponse;
+import org.robotninjas.barge.api.Entry;
 import org.robotninjas.barge.log.GetEntriesResult;
 import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.rpc.Client;
@@ -21,10 +23,8 @@ import static junit.framework.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
-import static org.robotninjas.barge.proto.RaftEntry.Entry;
-import static org.robotninjas.barge.proto.RaftProto.AppendEntries;
-import static org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse;
 
+@SuppressWarnings("unchecked")
 public class ReplicaManagerTest {
 
   private static final ClusterConfig config = ClusterConfigStub.getStub();
@@ -148,7 +148,7 @@ public class ReplicaManagerTest {
 
     Entry entry = Entry.newBuilder()
       .setTerm(1)
-      .setCommand(ByteString.EMPTY)
+      .setCommand(new byte[0])
       .build();
 
     GetEntriesResult entriesResult = new GetEntriesResult(0l, 0l, Lists.newArrayList(entry));
@@ -165,7 +165,7 @@ public class ReplicaManagerTest {
         .setPrevLogIndex(0)
         .setPrevLogTerm(0)
         .setTerm(1)
-        .addEntries(entry)
+        .addEntry(entry)
         .build();
 
     assertTrue(replicaManager.isRunning());

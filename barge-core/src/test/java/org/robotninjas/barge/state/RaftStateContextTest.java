@@ -20,7 +20,8 @@ import org.jetlang.fibers.ThreadFiber;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.robotninjas.barge.proto.RaftProto;
+import org.robotninjas.barge.api.AppendEntries;
+import org.robotninjas.barge.api.RequestVote;
 
 import static org.mockito.Mockito.*;
 import static org.robotninjas.barge.state.Raft.StateType.*;
@@ -78,7 +79,7 @@ public class RaftStateContextTest {
 
   @Test
   public void delegatesAppendEntriesRequestToCurrentState() throws Exception {
-    RaftProto.AppendEntries appendEntries = RaftProto.AppendEntries.getDefaultInstance();
+    AppendEntries appendEntries = AppendEntries.getDefaultInstance();
     context.setState(null, FOLLOWER);
 
     context.appendEntries(appendEntries);
@@ -88,7 +89,7 @@ public class RaftStateContextTest {
 
   @Test
   public void delegateRequestVoteToCurrentState() throws Exception {
-    RaftProto.RequestVote requestVote = RaftProto.RequestVote.getDefaultInstance();
+    RequestVote requestVote = RequestVote.getDefaultInstance();
     context.setState(null, FOLLOWER);
 
     context.requestVote(requestVote);

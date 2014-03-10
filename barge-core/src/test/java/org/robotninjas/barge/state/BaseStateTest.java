@@ -13,8 +13,11 @@ import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.ClusterConfigStub;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.Replica;
+import org.robotninjas.barge.api.AppendEntries;
+import org.robotninjas.barge.api.AppendEntriesResponse;
+import org.robotninjas.barge.api.RequestVote;
+import org.robotninjas.barge.api.RequestVoteResponse;
 import org.robotninjas.barge.log.RaftLog;
-import org.robotninjas.barge.proto.RaftProto;
 
 import javax.annotation.Nonnull;
 
@@ -22,7 +25,6 @@ import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
-import static org.robotninjas.barge.proto.RaftProto.RequestVote;
 
 public class BaseStateTest {
 
@@ -182,13 +184,13 @@ public class BaseStateTest {
 
     @Nonnull
     @Override
-    public RaftProto.RequestVoteResponse requestVote(@Nonnull RaftStateContext ctx, @Nonnull RequestVote request) {
+    public RequestVoteResponse requestVote(@Nonnull RaftStateContext ctx, @Nonnull RequestVote request) {
       return null;
     }
 
     @Nonnull
     @Override
-    public RaftProto.AppendEntriesResponse appendEntries(@Nonnull RaftStateContext ctx, @Nonnull RaftProto.AppendEntries request) {
+    public AppendEntriesResponse appendEntries(@Nonnull RaftStateContext ctx, @Nonnull AppendEntries request) {
       return null;
     }
 
