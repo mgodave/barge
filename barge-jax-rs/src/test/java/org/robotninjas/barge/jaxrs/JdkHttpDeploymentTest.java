@@ -18,6 +18,7 @@ package org.robotninjas.barge.jaxrs;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.sun.net.httpserver.HttpServer;
+import org.assertj.core.util.Files;
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.utilities.Binder;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -42,11 +43,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -99,9 +95,9 @@ public class JdkHttpDeploymentTest {
     File logDir = new File("log" + serverIndex);
 
     if (logDir.isDirectory())
-      delete(logDir);
+      Files.delete(logDir);
 
-    Files.createDirectories(logDir.toPath());
+    logDir.mkdirs();
 
     StateMachine stateMachine = new StateMachine() {
       int i = 0;
@@ -141,33 +137,6 @@ public class JdkHttpDeploymentTest {
     return JdkHttpServerFactory.createHttpServer(uris[serverIndex], resourceConfig);
   }
 
-  private Path delete(File logDir) throws IOException {
-    return Files.walkFileTree(logDir.toPath(), new FileVisitor<Path>() {
-      @Override
-      public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-        return FileVisitResult.CONTINUE;
-      }
-
-      @Override
-      public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-        Files.delete(file);
-        return FileVisitResult.CONTINUE;
-      }
-
-      @Override
-      public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-        return FileVisitResult.CONTINUE;
-      }
-
-      @Override
-      public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-        Files.delete(dir);
-        return FileVisitResult.CONTINUE;
-      }
-    });
-  }
-
-
   @Test
   public void test() throws Exception {
     final Client client = ClientBuilder.newBuilder().register(Jackson.customJacksonProvider()).build();
@@ -194,11 +163,11 @@ public class JdkHttpDeploymentTest {
   }
 
   private URI getLeader(Client client) {
-    if(isLeader(client,uris[0]))
+    if (isLeader(client, uris[0]))
       return uris[0];
-    if(isLeader(client,uris[1]))
+    if (isLeader(client, uris[1]))
       return uris[1];
-    if(isLeader(client,uris[2]))
+    if (isLeader(client, uris[2]))
       return uris[2];
 
     throw new IllegalStateException("expected one server to be a leader");
