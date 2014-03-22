@@ -29,7 +29,7 @@ import javax.annotation.Nonnull;
  */
 public interface Raft {
 
-  ListenableFuture init();
+  ListenableFuture<StateType> init();
 
   @Nonnull
   RequestVoteResponse requestVote(@Nonnull RequestVote request);
