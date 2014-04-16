@@ -17,35 +17,41 @@
 package org.robotninjas.barge.state;
 
 import com.google.common.annotations.VisibleForTesting;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.Lists.newArrayList;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+
 import org.jetlang.core.Disposable;
+
 import org.jetlang.fibers.Fiber;
+
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.RaftExecutor;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.log.RaftLog;
+import static org.robotninjas.barge.state.Raft.StateType.FOLLOWER;
+import static org.robotninjas.barge.state.Raft.StateType.LEADER;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
-import javax.inject.Inject;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.Lists.newArrayList;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.robotninjas.barge.state.Raft.StateType.FOLLOWER;
-import static org.robotninjas.barge.state.Raft.StateType.LEADER;
+import javax.inject.Inject;
+
 
 @NotThreadSafe
 class Leader extends BaseState {
@@ -59,8 +65,8 @@ class Leader extends BaseState {
   private Disposable heartbeatTask;
 
   @Inject
-  Leader(RaftLog log, @RaftExecutor Fiber scheduler,
-         @ElectionTimeout @Nonnegative long timeout, ReplicaManagerFactory replicaManagerFactory) {
+  Leader(RaftLog log, @RaftExecutor Fiber scheduler, @ElectionTimeout @Nonnegative long timeout,
+    ReplicaManagerFactory replicaManagerFactory) {
 
     super(LEADER, log);
 
@@ -91,6 +97,7 @@ class Leader extends BaseState {
 
   public void destroy(RaftStateContext ctx) {
     heartbeatTask.dispose();
+
     for (ReplicaManager mgr : managers.values()) {
       mgr.shutdown();
     }
@@ -103,12 +110,12 @@ class Leader extends BaseState {
     }
 
     heartbeatTask = scheduler.scheduleAtFixedRate(new Runnable() {
-      @Override
-      public void run() {
-        LOGGER.debug("Sending heartbeat");
-        sendRequests(ctx);
-      }
-    }, timeout, timeout, MILLISECONDS);
+          @Override
+          public void run() {
+            LOGGER.debug("Sending heartbeat");
+            sendRequests(ctx);
+          }
+        }, timeout, timeout, MILLISECONDS);
 
   }
 
@@ -116,8 +123,10 @@ class Leader extends BaseState {
   @Override
   public ListenableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
     resetTimeout(ctx);
+
     ListenableFuture<Object> result = getLog().append(operation);
     sendRequests(ctx);
+
     return result;
 
   }
@@ -130,9 +139,11 @@ class Leader extends BaseState {
   private void updateCommitted() {
 
     List<Long> sorted = newArrayList();
+
     for (ReplicaManager manager : managers.values()) {
       sorted.add(manager.getMatchIndex());
     }
+
     sorted.add(getLog().lastLogIndex());
     Collections.sort(sorted);
 
@@ -147,10 +158,10 @@ class Leader extends BaseState {
 
   private void checkTermOnResponse(RaftStateContext ctx, AppendEntriesResponse response) {
 
-      if (response.getTerm() > getLog().currentTerm()) {
-        getLog().currentTerm(response.getTerm());
-        ctx.setState(this, FOLLOWER);
-      }
+    if ((response != null) && (response.getTerm() > getLog().currentTerm())) {
+      getLog().currentTerm(response.getTerm());
+      ctx.setState(this, FOLLOWER);
+    }
 
   }
 
@@ -163,21 +174,22 @@ class Leader extends BaseState {
   @VisibleForTesting
   List<ListenableFuture<AppendEntriesResponse>> sendRequests(final RaftStateContext ctx) {
     List<ListenableFuture<AppendEntriesResponse>> responses = newArrayList();
+
     for (ReplicaManager replicaManager : managers.values()) {
       ListenableFuture<AppendEntriesResponse> response = replicaManager.requestUpdate();
       responses.add(response);
       Futures.addCallback(response, new FutureCallback<AppendEntriesResponse>() {
-        @Override
-        public void onSuccess(@Nullable AppendEntriesResponse result) {
-          updateCommitted();
-          checkTermOnResponse(ctx, result);
-        }
+          @Override
+          public void onSuccess(@Nullable AppendEntriesResponse result) {
+            updateCommitted();
+            checkTermOnResponse(ctx, result);
+          }
 
-        @Override
-        public void onFailure(Throwable t) {
-        }
+          @Override
+          public void onFailure(@Nonnull Throwable t) {
+          }
 
-      });
+        });
 
     }
 
