@@ -65,6 +65,10 @@ public class RaftHttpServer {
     "Options:\n" +
     " -h                       : Displays this help message\n" +
     " -c <configuration file>  : Use given configuration file for cluster configuration\n" +
+    "                            This file is a simple property file with indices as keys and URIs as values, eg. like\n\n" +
+    "                              0=http://localhost:1234\n" +
+    "                              1=http://localhost:3456\n" +
+    "                              2=http://localhost:4567\n\n" +
     "                            Default is './barge.conf'\n" +
     "<server index>            : Index of this server in the cluster configuration\n";
 
@@ -96,7 +100,13 @@ public class RaftHttpServer {
         usage();
         System.exit(0);
       } else {
-        index = Integer.parseInt(args[i].trim());
+
+        try {
+          index = Integer.parseInt(args[i].trim());
+        } catch (NumberFormatException e) {
+          usage();
+          System.exit(1);
+        }
       }
     }
 

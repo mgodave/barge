@@ -11,7 +11,6 @@
   </root>
 
   <logger name="org.robotninjas">
-    <appender-ref ref="STDOUT"/>
     <level value="DEBUG"/>
   </logger>
 
