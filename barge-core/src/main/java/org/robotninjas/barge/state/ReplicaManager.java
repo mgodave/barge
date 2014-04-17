@@ -22,23 +22,29 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
+
 import com.google.inject.assistedinject.Assisted;
+
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.api.AppendEntries;
 import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.log.GetEntriesResult;
 import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.rpc.Client;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
+
 import javax.inject.Inject;
 
 
 /**
+ * Manages a single {@link org.robotninjas.barge.Replica} instance on behalf of a {@link org.robotninjas.barge.state.Leader}.
+ *
  * TODO implement optimization in section 5.3
  */
 @NotThreadSafe
@@ -46,7 +52,6 @@ class ReplicaManager {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ReplicaManager.class);
   private static final int BATCH_SIZE = 1000;
-  private static final int MAX_RUNNING = 1;
 
   private final Client client;
   private final RaftLog log;
@@ -54,7 +59,7 @@ class ReplicaManager {
   private long nextIndex;
   private long matchIndex = 0;
   private boolean requested = false;
-  private int running = 0;
+  private boolean waitingForResponse = false;
   private boolean forwards = false;
   private boolean shutdown = false;
   private SettableFuture<AppendEntriesResponse> nextResponse = SettableFuture.create();
@@ -71,7 +76,7 @@ class ReplicaManager {
 
   private ListenableFuture<AppendEntriesResponse> sendUpdate() {
 
-    running++;
+    waitingForResponse = true;
     requested = false;
 
     // if the last rpc call was successful then try to send
@@ -81,8 +86,7 @@ class ReplicaManager {
     // true and we can catch up quickly
     GetEntriesResult result = log.getEntriesFrom(nextIndex, forwards ? BATCH_SIZE : 1);
 
-    final AppendEntries request =
-      AppendEntries.newBuilder()
+    final AppendEntries request = AppendEntries.newBuilder()
         .setTerm(log.currentTerm())
         .setLeaderId(log.self().toString())
         .setPrevLogIndex(result.lastLogIndex())
@@ -91,31 +95,37 @@ class ReplicaManager {
         .addAllEntries(result.entries())
         .build();
 
-    LOGGER.debug("Sending update to {} prevLogIndex {} prevLogTerm {}", remote, result.lastLogIndex(), result.lastLogTerm());
+    LOGGER.debug("Sending update to {} prevLogIndex: {}, prevLogTerm: {}, nr. of entries {}", remote, result.lastLogIndex(),
+      result.lastLogTerm(), result.entries().size());
+
     final ListenableFuture<AppendEntriesResponse> response = client.appendEntries(remote, request);
 
     final SettableFuture<AppendEntriesResponse> previousResponse = nextResponse;
 
     Futures.addCallback(response, new FutureCallback<AppendEntriesResponse>() {
 
-      @Override
-      public void onSuccess(@Nullable AppendEntriesResponse result) {
-        running--;
-        // TODO fix inconsistency. result flag as Nullable here but NonNull in updateNextIndex
-        updateNextIndex(request, result);
-        if (result.getSuccess()) {
-          previousResponse.set(result);
+        @Override
+        public void onSuccess(@Nullable AppendEntriesResponse result) {
+          waitingForResponse = false;
+
+          if (result != null) {
+            updateNextIndex(request, result);
+
+            if (result.getSuccess()) {
+              previousResponse.set(result);
+            }
+          }
+
         }
-      }
 
-      @Override
-      public void onFailure(Throwable t) {
-        running--;
-        requested = false;
-        previousResponse.setException(t);
-      }
+        @Override
+        public void onFailure(@Nonnull Throwable t) {
+          waitingForResponse = false;
+          requested = false;
+          previousResponse.setException(t);
+        }
 
-    });
+      });
 
     nextResponse = SettableFuture.create();
 
@@ -132,7 +142,7 @@ class ReplicaManager {
     LOGGER.debug("Response from {} Status {} nextIndex {}, matchIndex {}", remote, response.getSuccess(), nextIndex, matchIndex);
 
     if (response.getSuccess()) {
-      nextIndex = Math.max(nextIndex, request.getPrevLogIndex() + request.getEntriesCount());
+      nextIndex = Math.max(nextIndex, request.getPrevLogIndex() + request.getEntriesCount() + 1);
       matchIndex = Math.max(matchIndex, request.getPrevLogIndex() + request.getEntriesCount());
     } else {
       nextIndex = Math.max(1, nextIndex - 1);
@@ -149,7 +159,7 @@ class ReplicaManager {
 
   @VisibleForTesting
   boolean isRunning() {
-    return running > 0;
+    return waitingForResponse;
   }
 
   @VisibleForTesting
@@ -174,18 +184,16 @@ class ReplicaManager {
   @Nonnull
   public ListenableFuture<AppendEntriesResponse> requestUpdate() {
     requested = true;
-    if (running < MAX_RUNNING) {
+
+    if (!waitingForResponse) {
       return sendUpdate();
     }
+
     return nextResponse;
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(getClass())
-      .add("nextIndex", nextIndex)
-      .add("matchIndex", matchIndex)
-      .toString();
+    return Objects.toStringHelper(getClass()).add("nextIndex", nextIndex).add("matchIndex", matchIndex).toString();
   }
 }
-
