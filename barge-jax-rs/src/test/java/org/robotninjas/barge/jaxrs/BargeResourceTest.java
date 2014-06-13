@@ -60,7 +60,7 @@ public class BargeResourceTest extends JerseyTest {
   public void onPOSTRequestVoteReturn200WithResponseGivenServiceReturnsResponse() throws Exception {
     when(raftService.requestVote(Model.vote)).thenReturn(Model.voteResponse);
 
-    RequestVoteResponse actual = client().target("/raft/vote")
+    RequestVoteResponse actual = client().target("/vote")
         .request()
         .post(Entity.entity(Model.vote, MediaType.APPLICATION_JSON_TYPE))
         .readEntity(RequestVoteResponse.class);
@@ -72,7 +72,7 @@ public class BargeResourceTest extends JerseyTest {
   public void onPOSTAppendEntriesReturn200WithResponseGivenServiceReturnsResponse() throws Exception {
     when(raftService.appendEntries(Model.entries)).thenReturn(Model.entriesResponse);
 
-    AppendEntriesResponse actual = client().target("/raft/entries")
+    AppendEntriesResponse actual = client().target("/entries")
         .request()
         .post(Entity.entity(Model.entries, MediaType.APPLICATION_JSON_TYPE))
         .readEntity(AppendEntriesResponse.class);
@@ -84,7 +84,7 @@ public class BargeResourceTest extends JerseyTest {
   public void onPOSTCommitReturn204GivenServiceReturnsResponse() throws Exception {
     when(raftService.commitOperation("foo".getBytes())).thenReturn(Futures.<Object>immediateFuture("42"));
 
-    Response value = client().target("/raft/commit")
+    Response value = client().target("/commit")
         .request()
         .post(Entity.entity("foo".getBytes(), MediaType.APPLICATION_OCTET_STREAM));
 
@@ -96,7 +96,7 @@ public class BargeResourceTest extends JerseyTest {
     URI leaderURI = new URI("http://localhost:1234");
     when(raftService.commitOperation("foo".getBytes())).thenThrow(new NotLeaderException(new HttpReplica(leaderURI)));
 
-    Response value = client().target("/raft/commit")
+    Response value = client().target("/commit")
         .request()
         .post(Entity.entity("foo".getBytes(), MediaType.APPLICATION_OCTET_STREAM));
 
@@ -108,7 +108,7 @@ public class BargeResourceTest extends JerseyTest {
   public void onGETTypeReturnsTheCurrentStateOfRaftService() throws Exception {
     when(raftService.type()).thenReturn(Raft.StateType.LEADER);
 
-    assertThat(client().target("/raft/state").request().get(Raft.StateType.class)).isEqualTo(Raft.StateType.LEADER);
+    assertThat(client().target("/state").request().get(Raft.StateType.class)).isEqualTo(Raft.StateType.LEADER);
   }
 
   @Override
@@ -121,7 +121,7 @@ public class BargeResourceTest extends JerseyTest {
     ListenableFuture<Raft.StateType> future = Futures.immediateFuture(Raft.StateType.START);
     when(raftService.init()).thenReturn(future);
 
-    assertThat(client().target("/raft/init").request().post(Entity.json("")).readEntity(Raft.StateType.class)).isEqualTo(
+    assertThat(client().target("/init").request().post(Entity.json("")).readEntity(Raft.StateType.class)).isEqualTo(
       Raft.StateType.START);
   }
 

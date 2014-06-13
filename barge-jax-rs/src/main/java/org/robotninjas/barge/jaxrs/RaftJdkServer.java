@@ -40,7 +40,7 @@ import javax.ws.rs.core.UriBuilder;
 /**
  * A dedicated server for an instance of Raft using JDK's embedded HTTP server.
  */
-public class RaftJdkServer {
+public class RaftJdkServer implements RaftServer<RaftJdkServer> {
 
   private static final String help = "Usage: java -jar barge.jar [options] <server index>\n" +
       "Options:\n" +
@@ -73,19 +73,27 @@ public class RaftJdkServer {
 
     for (int i = 0; i < args.length; i++) {
 
-      if (args[i].equals("-c")) {
-        clusterConfiguration = new File(args[++i]);
-      } else if (args[i].equals("-h")) {
-        usage();
-        System.exit(0);
-      } else {
+      switch (args[i]) {
 
-        try {
-          index = Integer.parseInt(args[i].trim());
-        } catch (NumberFormatException e) {
+        case "-c":
+          clusterConfiguration = new File(args[++i]);
+
+          break;
+
+        case "-h":
           usage();
-          System.exit(1);
-        }
+          System.exit(0);
+
+        default:
+
+          try {
+            index = Integer.parseInt(args[i].trim());
+          } catch (NumberFormatException e) {
+            usage();
+            System.exit(1);
+          }
+
+          break;
       }
     }
 
@@ -96,7 +104,7 @@ public class RaftJdkServer {
 
     URI[] uris = readConfiguration(clusterConfiguration);
 
-    RaftJdkServer server = new RaftJdkServer(index, uris).start();
+    RaftJdkServer server = new RaftJdkServer(index, uris).start(0);
 
     waitForInput();
 
@@ -140,7 +148,7 @@ public class RaftJdkServer {
   }
 
 
-  public RaftJdkServer start() throws IOException {
+  public RaftJdkServer start(int unusedPort) {
     this.httpServer = JdkHttpServerFactory.createHttpServer(UriBuilder.fromUri(uris[serverIndex]).path("raft").build(),
       application.makeResourceConfig());
 

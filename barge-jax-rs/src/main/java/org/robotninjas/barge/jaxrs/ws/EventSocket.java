@@ -8,6 +8,7 @@ import org.eclipse.jetty.websocket.api.WebSocketAdapter;
  */
 public class EventSocket extends WebSocketAdapter {
 
+
   @Override
   public void onWebSocketConnect(Session sess) {
     super.onWebSocketConnect(sess);

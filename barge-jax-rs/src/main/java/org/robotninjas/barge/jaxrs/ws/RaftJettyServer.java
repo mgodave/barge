@@ -10,6 +10,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.servlet.ServletContainer;
 
 import org.robotninjas.barge.jaxrs.RaftApplication;
+import org.robotninjas.barge.jaxrs.RaftServer;
 
 import java.net.URI;
 
@@ -21,7 +22,7 @@ import java.net.URI;
  *     <tt>/events/</tt> URI and get notified in real-time of logged events.
  * </p>
  */
-public class RaftJettyServer {
+public class RaftJettyServer implements RaftServer<RaftJettyServer> {
 
   private final Server server;
   private final RaftApplication raftApplication;
@@ -58,7 +59,7 @@ public class RaftJettyServer {
     }
   }
 
-  public void stop() {
+  public void stop(int unused) {
 
     try {
       server.stop();

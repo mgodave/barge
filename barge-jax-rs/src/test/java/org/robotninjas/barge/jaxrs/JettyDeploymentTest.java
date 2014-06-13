@@ -15,105 +15,18 @@
  */
 package org.robotninjas.barge.jaxrs;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
-
 import org.robotninjas.barge.jaxrs.ws.RaftJettyServer;
-import org.robotninjas.barge.state.Raft;
-import org.robotninjas.barge.utils.Prober;
 
 import java.net.URI;
-
-import java.util.concurrent.Callable;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 
 /**
  */
-public class JettyDeploymentTest {
+public class JettyDeploymentTest extends ServerTest<RaftJettyServer> {
 
-  @ClassRule
-  public static MuteJUL muteJUL = new MuteJUL();
-
-  private URI[] uris = new URI[3];
-
-  private RaftJettyServer httpServer1;
-  private RaftJettyServer httpServer2;
-  private RaftJettyServer httpServer3;
-
-  @Before
-  public void setUp() throws Exception {
-    Logger.getLogger("").setLevel(Level.ALL);
-
-    uris[0] = new URI("http://localhost:56789/");
-    uris[1] = new URI("http://localhost:56790/");
-    uris[2] = new URI("http://localhost:56791/");
-
-
-    httpServer1 = new RaftJettyServer(0, uris).start(56789);
-    httpServer2 = new RaftJettyServer(1, uris).start(56790);
-    httpServer3 = new RaftJettyServer(2, uris).start(56791);
+  @Override
+  protected RaftJettyServer createServer(int serverIndex, URI[] uris1) {
+    return new RaftJettyServer(serverIndex, uris1);
   }
 
-  @After
-  public void tearDown() throws Exception {
-    httpServer1.stop();
-    httpServer2.stop();
-    httpServer3.stop();
-  }
-
-  @Test
-  public void can_commit_data_to_leader_instance() throws Exception {
-    final Client client = ClientBuilder.newBuilder().register(Jackson.customJacksonProvider()).build();
-
-    client.target(uris[0]).path("/raft/init").request().post(Entity.json(""));
-    client.target(uris[1]).path("/raft/init").request().post(Entity.json(""));
-    client.target(uris[2]).path("/raft/init").request().post(Entity.json(""));
-
-    new Prober(new Callable<Boolean>() {
-        @Override
-        public Boolean call() throws Exception {
-          return isLeader(client, uris[0]) || isLeader(client, uris[1]) || isLeader(client, uris[2]);
-        }
-      }).probe(10000);
-
-    URI leaderURI = getLeader(client);
-
-    Response result = client.target(leaderURI)
-        .path("/raft/commit")
-        .request()
-        .post(Entity.entity("foo".getBytes(),
-            MediaType.APPLICATION_OCTET_STREAM));
-
-    assertThat(result.getStatus()).isEqualTo(204);
-  }
-
-  private URI getLeader(Client client) {
-
-    if (isLeader(client, uris[0]))
-      return uris[0];
-
-    if (isLeader(client, uris[1]))
-      return uris[1];
-
-    if (isLeader(client, uris[2]))
-      return uris[2];
-
-    throw new IllegalStateException("expected one server to be a leader");
-  }
-
-  private boolean isLeader(Client client, URI uri) {
-    return client.target(uri).path("/raft/state").request().get(Raft.StateType.class).equals(Raft.StateType.LEADER);
-  }
 }
