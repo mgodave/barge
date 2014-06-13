@@ -18,44 +18,52 @@ package org.robotninjas.barge.jaxrs;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
+
 import org.junit.ClassRule;
 import org.junit.Test;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import org.robotninjas.barge.NotLeaderException;
 import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.api.RequestVoteResponse;
 import org.robotninjas.barge.state.Raft;
 
-import javax.ws.rs.client.Client;
+import java.net.URI;
+
+import java.util.Set;
+
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.net.URI;
-import java.util.Set;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  */
 public class BargeResourceTest extends JerseyTest {
 
-  private Raft raftService;
-
   @ClassRule
   public static MuteJUL muteJUL = new MuteJUL();
+
+  private Raft raftService;
 
   @Test
   public void onPOSTRequestVoteReturn200WithResponseGivenServiceReturnsResponse() throws Exception {
     when(raftService.requestVote(Model.vote)).thenReturn(Model.voteResponse);
 
-    RequestVoteResponse actual = client()
-      .target("/raft/vote").request()
-      .post(Entity.entity(Model.vote, MediaType.APPLICATION_JSON_TYPE)).readEntity(RequestVoteResponse.class);
+    RequestVoteResponse actual = client().target("/raft/vote")
+        .request()
+        .post(Entity.entity(Model.vote, MediaType.APPLICATION_JSON_TYPE))
+        .readEntity(RequestVoteResponse.class);
 
     assertThat(actual).isEqualTo(Model.voteResponse);
   }
@@ -64,9 +72,10 @@ public class BargeResourceTest extends JerseyTest {
   public void onPOSTAppendEntriesReturn200WithResponseGivenServiceReturnsResponse() throws Exception {
     when(raftService.appendEntries(Model.entries)).thenReturn(Model.entriesResponse);
 
-    AppendEntriesResponse actual = client()
-      .target("/raft/entries").request()
-      .post(Entity.entity(Model.entries, MediaType.APPLICATION_JSON_TYPE)).readEntity(AppendEntriesResponse.class);
+    AppendEntriesResponse actual = client().target("/raft/entries")
+        .request()
+        .post(Entity.entity(Model.entries, MediaType.APPLICATION_JSON_TYPE))
+        .readEntity(AppendEntriesResponse.class);
 
     assertThat(actual).isEqualTo(Model.entriesResponse);
   }
@@ -75,9 +84,9 @@ public class BargeResourceTest extends JerseyTest {
   public void onPOSTCommitReturn204GivenServiceReturnsResponse() throws Exception {
     when(raftService.commitOperation("foo".getBytes())).thenReturn(Futures.<Object>immediateFuture("42"));
 
-    Response value = client()
-      .target("/raft/commit").request()
-      .post(Entity.entity("foo".getBytes(), MediaType.APPLICATION_OCTET_STREAM));
+    Response value = client().target("/raft/commit")
+        .request()
+        .post(Entity.entity("foo".getBytes(), MediaType.APPLICATION_OCTET_STREAM));
 
     assertThat(value.getStatus()).isEqualTo(204);
   }
@@ -87,9 +96,9 @@ public class BargeResourceTest extends JerseyTest {
     URI leaderURI = new URI("http://localhost:1234");
     when(raftService.commitOperation("foo".getBytes())).thenThrow(new NotLeaderException(new HttpReplica(leaderURI)));
 
-    Response value = client()
-      .target("/raft/commit").request()
-      .post(Entity.entity("foo".getBytes(), MediaType.APPLICATION_OCTET_STREAM));
+    Response value = client().target("/raft/commit")
+        .request()
+        .post(Entity.entity("foo".getBytes(), MediaType.APPLICATION_OCTET_STREAM));
 
     assertThat(value.getStatus()).isEqualTo(302);
     assertThat(value.getLocation()).isEqualTo(leaderURI);
@@ -102,8 +111,9 @@ public class BargeResourceTest extends JerseyTest {
     assertThat(client().target("/raft/state").request().get(Raft.StateType.class)).isEqualTo(Raft.StateType.LEADER);
   }
 
-  public Client client() {
-    return super.client().property(ClientProperties.FOLLOW_REDIRECTS,false).register(Jackson.customJacksonProvider());
+  @Override
+  protected void configureClient(ClientConfig config) {
+    super.configureClient(config.property(ClientProperties.FOLLOW_REDIRECTS, false).register(Jackson.customJacksonProvider()));
   }
 
   @Test
@@ -111,19 +121,20 @@ public class BargeResourceTest extends JerseyTest {
     ListenableFuture<Raft.StateType> future = Futures.immediateFuture(Raft.StateType.START);
     when(raftService.init()).thenReturn(future);
 
-    assertThat(client().target("/raft/init").request().post(Entity.json("")).readEntity(Raft.StateType.class))
-      .isEqualTo(Raft.StateType.START);
+    assertThat(client().target("/raft/init").request().post(Entity.json("")).readEntity(Raft.StateType.class)).isEqualTo(
+      Raft.StateType.START);
   }
 
   @Override
   protected Application configure() {
     raftService = mock(Raft.class);
+
     ResourceConfig resourceConfig = ResourceConfig.forApplication(new Application() {
-      @Override
-      public Set<Object> getSingletons() {
-        return Sets.newHashSet((Object) new BargeResource(raftService));
-      }
-    });
+        @Override
+        public Set<Object> getSingletons() {
+          return Sets.newHashSet((Object) new BargeResource(raftService));
+        }
+      });
 
     resourceConfig.register(Jackson.customJacksonProvider());
 

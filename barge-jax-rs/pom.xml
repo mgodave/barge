@@ -55,6 +55,19 @@
     <!-- Test -->
 
     <dependency>
+      <groupId>org.eclipse.jetty.websocket</groupId>
+      <artifactId>websocket-api</artifactId>
+      <version>9.1.0.v20131115</version>
+    </dependency>
+    
+    <!-- To run websockets in embedded server -->
+    <dependency>
+      <groupId>org.eclipse.jetty.websocket</groupId>
+      <artifactId>websocket-server</artifactId>
+      <version>9.1.0.v20131115</version>
+    </dependency>
+    
+    <dependency>
       <groupId>org.glassfish.jersey.test-framework.providers</groupId>
       <artifactId>jersey-test-framework-provider-inmemory</artifactId>
       <scope>test</scope>
@@ -63,6 +76,12 @@
     <dependency>
       <groupId>org.glassfish.jersey.containers</groupId>
       <artifactId>jersey-container-jdk-http</artifactId>
+      <version>${jersey.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.glassfish.jersey.containers</groupId>
+      <artifactId>jersey-container-servlet</artifactId>
       <version>${jersey.version}</version>
     </dependency>
 
@@ -115,7 +134,7 @@
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <mainClass>org.robotninjas.barge.jaxrs.RaftHttpServer</mainClass>
+                  <mainClass>org.robotninjas.barge.jaxrs.RaftJdkServer</mainClass>
                 </transformer>
               </transformers>
             </configuration>

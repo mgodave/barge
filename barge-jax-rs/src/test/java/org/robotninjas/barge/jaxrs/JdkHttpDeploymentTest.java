@@ -42,15 +42,17 @@ import javax.ws.rs.core.Response;
  */
 public class JdkHttpDeploymentTest {
 
-  @ClassRule public static MuteJUL muteJUL = new MuteJUL();
+  @ClassRule
+  public static MuteJUL muteJUL = new MuteJUL();
 
   private URI[] uris = new URI[3];
 
-  private RaftHttpServer httpServer1;
-  private RaftHttpServer httpServer2;
-  private RaftHttpServer httpServer3;
+  private RaftJdkServer httpServer1;
+  private RaftJdkServer httpServer2;
+  private RaftJdkServer httpServer3;
 
-  @Before public void setUp() throws Exception {
+  @Before
+  public void setUp() throws Exception {
     Logger.getLogger("").setLevel(Level.ALL);
 
     uris[0] = new URI("http://localhost:56789/");
@@ -58,18 +60,20 @@ public class JdkHttpDeploymentTest {
     uris[2] = new URI("http://localhost:56791/");
 
 
-    httpServer1 = new RaftHttpServer(0, uris).start();
-    httpServer2 = new RaftHttpServer(1, uris).start();
-    httpServer3 = new RaftHttpServer(2, uris).start();
+    httpServer1 = new RaftJdkServer(0, uris).start();
+    httpServer2 = new RaftJdkServer(1, uris).start();
+    httpServer3 = new RaftJdkServer(2, uris).start();
   }
 
-  @After public void tearDown() throws Exception {
+  @After
+  public void tearDown() throws Exception {
     httpServer1.stop(1);
     httpServer2.stop(1);
     httpServer3.stop(1);
   }
 
-  @Test public void test() throws Exception {
+  @Test
+  public void test() throws Exception {
     final Client client = ClientBuilder.newBuilder().register(Jackson.customJacksonProvider()).build();
 
     client.target(uris[0]).path("/raft/init").request().post(Entity.json(""));
@@ -77,15 +81,19 @@ public class JdkHttpDeploymentTest {
     client.target(uris[2]).path("/raft/init").request().post(Entity.json(""));
 
     new Prober(new Callable<Boolean>() {
-        @Override public Boolean call() throws Exception {
+        @Override
+        public Boolean call() throws Exception {
           return isLeader(client, uris[0]) || isLeader(client, uris[1]) || isLeader(client, uris[2]);
         }
       }).probe(10000);
 
     URI leaderURI = getLeader(client);
 
-    Response result = client.target(leaderURI).path("/raft/commit").request().post(Entity.entity("foo".getBytes(),
-          MediaType.APPLICATION_OCTET_STREAM));
+    Response result = client.target(leaderURI)
+        .path("/raft/commit")
+        .request()
+        .post(Entity.entity("foo".getBytes(),
+            MediaType.APPLICATION_OCTET_STREAM));
 
     assertThat(result.getStatus()).isEqualTo(204);
   }
