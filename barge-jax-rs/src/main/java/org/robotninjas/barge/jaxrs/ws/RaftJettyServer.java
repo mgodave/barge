@@ -12,6 +12,9 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.robotninjas.barge.jaxrs.RaftApplication;
 import org.robotninjas.barge.jaxrs.RaftServer;
 
+import java.io.File;
+import java.io.IOException;
+
 import java.net.URI;
 
 
@@ -27,9 +30,9 @@ public class RaftJettyServer implements RaftServer<RaftJettyServer> {
   private final Server server;
   private final RaftApplication raftApplication;
 
-  public RaftJettyServer(int serverIndex, URI[] uris) {
+  public RaftJettyServer(int serverIndex, URI[] uris, File logDir) {
     server = new Server();
-    raftApplication = new RaftApplication(serverIndex, uris);
+    raftApplication = new RaftApplication(serverIndex, uris, logDir);
   }
 
   public RaftJettyServer start(int port) {
@@ -71,4 +74,15 @@ public class RaftJettyServer implements RaftServer<RaftJettyServer> {
   public URI getPort() {
     return server.getURI();
   }
+
+  @Override
+  public void clean() {
+
+    try {
+      raftApplication.clean();
+    } catch (IOException e) {
+      throw Throwables.propagate(e);
+    }
+  }
+
 }

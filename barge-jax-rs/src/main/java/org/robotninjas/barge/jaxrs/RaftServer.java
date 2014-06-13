@@ -8,4 +8,8 @@ public interface RaftServer<S extends RaftServer<S>> {
 
   void stop(int timeoutInMs);
 
+  /**
+   * Clean up persistent data stored by the server.
+   */
+  void clean();
 }

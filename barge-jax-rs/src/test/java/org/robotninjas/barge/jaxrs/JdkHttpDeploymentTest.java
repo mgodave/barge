@@ -15,6 +15,8 @@
  */
 package org.robotninjas.barge.jaxrs;
 
+import java.io.File;
+
 import java.net.URI;
 
 
@@ -22,8 +24,8 @@ import java.net.URI;
  */
 public class JdkHttpDeploymentTest extends ServerTest<RaftJdkServer> {
 
-  protected RaftJdkServer createServer(int serverIndex, URI[] uris1) {
-    return new RaftJdkServer(serverIndex, uris1);
+  protected RaftJdkServer createServer(int serverIndex, URI[] uris1, File logDir) {
+    return new RaftJdkServer(serverIndex, uris1, logDir);
   }
 
 }

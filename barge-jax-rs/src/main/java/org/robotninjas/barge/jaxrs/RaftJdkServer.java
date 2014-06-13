@@ -15,6 +15,7 @@
  */
 package org.robotninjas.barge.jaxrs;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
 
@@ -59,10 +60,10 @@ public class RaftJdkServer implements RaftServer<RaftJdkServer> {
 
   private HttpServer httpServer;
 
-  public RaftJdkServer(int serverIndex, URI[] uris) {
+  public RaftJdkServer(int serverIndex, URI[] uris, File logDir) {
     this.serverIndex = serverIndex;
     this.uris = uris;
-    this.application = new RaftApplication(serverIndex, uris);
+    this.application = new RaftApplication(serverIndex, uris, logDir);
   }
 
   public static void main(String[] args) throws IOException, URISyntaxException {
@@ -104,7 +105,7 @@ public class RaftJdkServer implements RaftServer<RaftJdkServer> {
 
     URI[] uris = readConfiguration(clusterConfiguration);
 
-    RaftJdkServer server = new RaftJdkServer(index, uris).start(0);
+    RaftJdkServer server = new RaftJdkServer(index, uris, new File("log" + index)).start(0);
 
     waitForInput();
 
@@ -157,6 +158,16 @@ public class RaftJdkServer implements RaftServer<RaftJdkServer> {
 
   public void stop(int timeout) {
     httpServer.stop(timeout);
+  }
+
+  @Override
+  public void clean() {
+
+    try {
+      application.clean();
+    } catch (IOException e) {
+      throw Throwables.propagate(e);
+    }
   }
 
 

@@ -15,10 +15,11 @@
  */
 package org.robotninjas.barge.state;
 
+import static org.robotninjas.barge.state.RaftStateContext.StateType;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import static org.robotninjas.barge.state.RaftStateContext.StateType;
 
 /**
  * An interface for being notified of state transitions within a given Raft instance.
@@ -44,4 +45,11 @@ public interface StateTransitionListener {
    * @param expected the expected state as requested by transition.
    */
   void invalidTransition(@Nonnull Raft context, @Nonnull StateType actual, @Nullable StateType expected);
+
+  /**
+   * Called when raft instance is stopped.
+   *
+   * @param raft the raft instance which is stopping.
+   */
+  void stop(@Nonnull Raft raft);
 }

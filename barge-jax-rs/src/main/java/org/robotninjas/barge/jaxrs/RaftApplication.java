@@ -12,11 +12,13 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.StateMachine;
 import org.robotninjas.barge.state.Raft;
+import org.robotninjas.barge.utils.Files;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 
 import java.net.URI;
 
@@ -34,17 +36,17 @@ public class RaftApplication {
 
   private final int serverIndex;
   private final URI[] uris;
+  private final File logDir;
 
-  public RaftApplication(int serverIndex, URI[] uris) {
+  public RaftApplication(int serverIndex, URI[] uris, File logDir) {
     this.serverIndex = serverIndex;
     this.uris = uris;
+    this.logDir = logDir;
   }
 
   public ResourceConfig makeResourceConfig() {
     ClusterConfig clusterConfig = HttpClusterConfig.from(new HttpReplica(uris[serverIndex]),
       remotes());
-
-    File logDir = new File("log" + serverIndex);
 
     if (!logDir.exists() && !logDir.mkdirs())
       logger.warn("failed to create directories for storing logs, bad things will happen");
@@ -96,5 +98,9 @@ public class RaftApplication {
 
 
     return remoteReplicas;
+  }
+
+  public void clean() throws IOException {
+    Files.delete(logDir);
   }
 }

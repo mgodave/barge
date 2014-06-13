@@ -18,19 +18,23 @@ package org.robotninjas.barge;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
 import org.junit.rules.ExternalResource;
+
 import org.robotninjas.barge.state.Raft;
+import static org.robotninjas.barge.state.Raft.StateType;
 import org.robotninjas.barge.state.StateTransitionListener;
 import org.robotninjas.barge.utils.Prober;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.File;
+
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-import static org.robotninjas.barge.state.Raft.StateType;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 
 public class GroupOfCounters extends ExternalResource implements StateTransitionListener {
 
@@ -53,6 +57,7 @@ public class GroupOfCounters extends ExternalResource implements StateTransition
 
   @Override
   protected void before() throws Throwable {
+
     for (SimpleCounterMachine counter : counters) {
       counter.makeLogDirectory(target);
       counter.startRaft();
@@ -61,6 +66,7 @@ public class GroupOfCounters extends ExternalResource implements StateTransition
 
   @Override
   protected void after() {
+
     for (SimpleCounterMachine counter : counters) {
       counter.stop();
       counter.deleteLogDirectory();
@@ -72,11 +78,14 @@ public class GroupOfCounters extends ExternalResource implements StateTransition
   }
 
   private Optional<SimpleCounterMachine> getLeader() {
+
     for (SimpleCounterMachine counter : counters) {
+
       if (counter.isLeader()) {
         return Optional.of(counter);
       }
     }
+
     return Optional.absent();
   }
 
@@ -87,6 +96,7 @@ public class GroupOfCounters extends ExternalResource implements StateTransition
    * @param timeout timeout in ms. Timeout is evaluated per instance of counter within the cluster.
    */
   public void waitAllToReachValue(int target, long timeout) {
+
     for (SimpleCounterMachine counter : counters) {
       counter.waitForValue(target, timeout);
     }
@@ -94,28 +104,34 @@ public class GroupOfCounters extends ExternalResource implements StateTransition
 
   void waitForLeaderElection() throws InterruptedException {
     new Prober(new Callable<Boolean>() {
-      @Override
-      public Boolean call() throws Exception {
-        return thereIsOneLeader();
-      }
-    }).probe(10000);
+        @Override
+        public Boolean call() throws Exception {
+          return thereIsOneLeader();
+        }
+      }).probe(10000);
   }
 
   private Boolean thereIsOneLeader() {
     int numberOfLeaders = 0;
     int numberOfFollowers = 0;
+
     for (StateType stateType : states.values()) {
+
       switch (stateType) {
+
         case LEADER:
           numberOfLeaders++;
+
           break;
+
         case FOLLOWER:
           numberOfFollowers++;
+
           break;
       }
     }
 
-    return numberOfLeaders == 1 && (numberOfFollowers + numberOfLeaders == replicas.size());
+    return (numberOfLeaders == 1) && ((numberOfFollowers + numberOfLeaders) == replicas.size());
   }
 
 
@@ -126,6 +142,11 @@ public class GroupOfCounters extends ExternalResource implements StateTransition
 
   @Override
   public void invalidTransition(@Nonnull Raft context, @Nonnull StateType actual, @Nullable StateType expected) {
+    // IGNORED
+  }
+
+  @Override
+  public void stop(@Nonnull Raft raft) {
     // IGNORED
   }
 }

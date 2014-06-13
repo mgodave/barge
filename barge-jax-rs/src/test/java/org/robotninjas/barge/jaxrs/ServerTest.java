@@ -10,6 +10,8 @@ import org.junit.Test;
 import org.robotninjas.barge.state.Raft;
 import org.robotninjas.barge.utils.Prober;
 
+import java.io.File;
+
 import java.net.URI;
 
 import java.util.concurrent.Callable;
@@ -26,6 +28,8 @@ import javax.ws.rs.core.Response;
 /**
  */
 public abstract class ServerTest<T extends RaftServer<T>> {
+
+  private static final File target = new File(ServerTest.class.getResource("/marker").getFile()).getParentFile();
 
   @ClassRule
   public static MuteJUL muteJUL = new MuteJUL();
@@ -44,10 +48,9 @@ public abstract class ServerTest<T extends RaftServer<T>> {
     uris[1] = new URI("http://localhost:56790/");
     uris[2] = new URI("http://localhost:56791/");
 
-
-    httpServer1 = createServer(0, uris).start(56789);
-    httpServer2 = createServer(1, uris).start(56790);
-    httpServer3 = createServer(2, uris).start(56791);
+    httpServer1 = createServer(0, uris, new File(target, "log" + System.nanoTime())).start(56789);
+    httpServer2 = createServer(1, uris, new File(target, "log" + System.nanoTime())).start(56790);
+    httpServer3 = createServer(2, uris, new File(target, "log" + System.nanoTime())).start(56791);
   }
 
   @After
@@ -55,6 +58,10 @@ public abstract class ServerTest<T extends RaftServer<T>> {
     httpServer1.stop(1);
     httpServer2.stop(1);
     httpServer3.stop(1);
+
+    httpServer1.clean();
+    httpServer2.clean();
+    httpServer3.clean();
   }
 
   @Test
@@ -83,7 +90,7 @@ public abstract class ServerTest<T extends RaftServer<T>> {
     assertThat(result.getStatus()).isEqualTo(204);
   }
 
-  protected abstract T createServer(int serverIndex, URI[] uris1);
+  protected abstract T createServer(int serverIndex, URI[] uris1, File logDir);
 
   private URI getLeader(Client client) {
 

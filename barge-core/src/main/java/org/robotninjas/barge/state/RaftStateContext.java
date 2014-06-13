@@ -16,36 +16,36 @@
 
 package org.robotninjas.barge.state;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
+
 import org.jetlang.fibers.Fiber;
+
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.RaftExecutor;
-import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.api.AppendEntries;
 import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.api.RequestVote;
 import org.robotninjas.barge.api.RequestVoteResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.robotninjas.barge.log.RaftLog;
+
 import org.slf4j.MDC;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
-import javax.inject.Inject;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.NotThreadSafe;
+
+import javax.inject.Inject;
+
 
 @NotThreadSafe
 class RaftStateContext implements Raft {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(RaftStateContext.class);
 
   private final StateFactory stateFactory;
   private final Executor executor;
@@ -57,29 +57,30 @@ class RaftStateContext implements Raft {
   private boolean stop;
 
   @Inject
-  RaftStateContext(RaftLog log, StateFactory stateFactory, @RaftExecutor Fiber executor) {
-    this(log.self().toString(), stateFactory, executor);
+  RaftStateContext(RaftLog log, StateFactory stateFactory, @RaftExecutor Fiber executor, Set<StateTransitionListener> listeners) {
+    this(log.self().toString(), stateFactory, executor, listeners);
   }
 
-  RaftStateContext(String name, StateFactory stateFactory, @RaftExecutor Fiber executor) {
+  RaftStateContext(String name, StateFactory stateFactory, Fiber executor, Set<StateTransitionListener> listeners) {
     MDC.put("self", name);
 
     this.stateFactory = stateFactory;
     this.executor = executor;
     this.listeners.add(new LogListener());
+    this.listeners.addAll(listeners);
   }
 
   @Override
   public ListenableFuture<StateType> init() {
 
-    ListenableFutureTask<StateType> init =
-        ListenableFutureTask.create(new Callable<StateType>() {
-          @Override
-          public StateType call() {
-            setState(null, StateType.START);
-            return StateType.START;
-          }
-        });
+    ListenableFutureTask<StateType> init = ListenableFutureTask.create(new Callable<StateType>() {
+        @Override
+        public StateType call() {
+          setState(null, StateType.START);
+
+          return StateType.START;
+        }
+      });
 
     executor.execute(init);
 
@@ -93,13 +94,12 @@ class RaftStateContext implements Raft {
 
     checkNotNull(request);
 
-    ListenableFutureTask<RequestVoteResponse> response =
-        ListenableFutureTask.create(new Callable<RequestVoteResponse>() {
-          @Override
-          public RequestVoteResponse call() throws Exception {
-            return delegate.requestVote(RaftStateContext.this, request);
-          }
-        });
+    ListenableFutureTask<RequestVoteResponse> response = ListenableFutureTask.create(new Callable<RequestVoteResponse>() {
+        @Override
+        public RequestVoteResponse call() throws Exception {
+          return delegate.requestVote(RaftStateContext.this, request);
+        }
+      });
 
     executor.execute(response);
 
@@ -117,13 +117,12 @@ class RaftStateContext implements Raft {
 
     checkNotNull(request);
 
-    ListenableFutureTask<AppendEntriesResponse> response =
-        ListenableFutureTask.create(new Callable<AppendEntriesResponse>() {
-          @Override
-          public AppendEntriesResponse call() throws Exception {
-            return delegate.appendEntries(RaftStateContext.this, request);
-          }
-        });
+    ListenableFutureTask<AppendEntriesResponse> response = ListenableFutureTask.create(new Callable<AppendEntriesResponse>() {
+        @Override
+        public AppendEntriesResponse call() throws Exception {
+          return delegate.appendEntries(RaftStateContext.this, request);
+        }
+      });
 
     executor.execute(response);
 
@@ -141,13 +140,12 @@ class RaftStateContext implements Raft {
 
     checkNotNull(op);
 
-    ListenableFutureTask<Object> response =
-        ListenableFutureTask.create(new Callable<Object>() {
-          @Override
-          public Object call() throws Exception {
-            return delegate.commitOperation(RaftStateContext.this, op);
-          }
-        });
+    ListenableFutureTask<Object> response = ListenableFutureTask.create(new Callable<Object>() {
+        @Override
+        public Object call() throws Exception {
+          return delegate.commitOperation(RaftStateContext.this, op);
+        }
+      });
 
     executor.execute(response);
 
@@ -158,17 +156,15 @@ class RaftStateContext implements Raft {
   public synchronized void setState(State oldState, @Nonnull StateType state) {
 
     if (this.delegate != oldState) {
-      LOGGER.info("Previous state was not correct (transitioning to {}). Expected {}, was {}", state, oldState, this.delegate);
       notifiesInvalidTransition(oldState);
       throw new IllegalStateException();
     }
 
     if (stop) {
       state = StateType.STOPPED;
-      LOGGER.info("Service stopping; replaced state with {}", state);
+      notifiesStop();
     }
-    
-    LOGGER.info("Transition: old state: {}, new state: {}", this.state, state);
+
     if (this.delegate != null) {
       this.delegate.destroy(this);
     }
@@ -184,15 +180,25 @@ class RaftStateContext implements Raft {
     delegate.init(this);
   }
 
-  private void notifiesInvalidTransition(State oldState) {
+  private void notifiesStop() {
+
     for (StateTransitionListener listener : listeners) {
-      listener.invalidTransition(this, state, oldState == null ? null : oldState.type());
+      listener.stop(this);
+    }
+
+  }
+
+  private void notifiesInvalidTransition(State oldState) {
+
+    for (StateTransitionListener listener : listeners) {
+      listener.invalidTransition(this, state, (oldState == null) ? null : oldState.type());
     }
   }
 
   private void notifiesChangeState(State oldState) {
+
     for (StateTransitionListener listener : listeners) {
-      listener.changeState(this, oldState == null ? null : oldState.type(), state);
+      listener.changeState(this, (oldState == null) ? null : oldState.type(), state);
     }
   }
 
@@ -209,20 +215,10 @@ class RaftStateContext implements Raft {
 
   public synchronized void stop() {
     stop = true;
+
     if (this.delegate != null) {
       this.delegate.doStop(this);
     }
   }
 
-  private class LogListener implements StateTransitionListener {
-    @Override
-    public void changeState(@Nonnull Raft context, @Nullable StateType from, @Nonnull StateType to) {
-      LOGGER.info("LogListener: old state: {}, new state: {}", from, to);
-    }
-
-    @Override
-    public void invalidTransition(@Nonnull Raft context, @Nonnull StateType actual, @Nullable StateType expected) {
-      LOGGER.warn("LogListener: State transition from incorrect previous state.  Expected {}, was {}", actual, expected);
-    }
-  }
 }

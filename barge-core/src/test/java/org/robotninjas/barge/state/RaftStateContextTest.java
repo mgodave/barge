@@ -17,14 +17,19 @@ package org.robotninjas.barge.state;
 
 import org.jetlang.fibers.Fiber;
 import org.jetlang.fibers.ThreadFiber;
+
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.robotninjas.barge.api.AppendEntries;
-import org.robotninjas.barge.api.RequestVote;
 
 import static org.mockito.Mockito.*;
+
+import org.robotninjas.barge.api.AppendEntries;
+import org.robotninjas.barge.api.RequestVote;
 import static org.robotninjas.barge.state.Raft.StateType.*;
+
+import java.util.Collections;
+
 
 //@Ignore
 public class RaftStateContextTest {
@@ -38,7 +43,8 @@ public class RaftStateContextTest {
 
   private final StateTransitionListener transitionListener = mock(StateTransitionListener.class);
 
-  private final RaftStateContext context = new RaftStateContext("mockstatecontext", factory, executor);
+  private final RaftStateContext context = new RaftStateContext("mockstatecontext", factory, executor,
+    Collections.<StateTransitionListener>emptySet());
 
   @Before
   public void setup() {
@@ -100,7 +106,7 @@ public class RaftStateContextTest {
   @Test
   @Ignore
   public void delegateCommitOperationToCurrentState() throws Exception {
-    byte[] bytes = new byte[]{1};
+    byte[] bytes = new byte[] { 1 };
     context.setState(null, FOLLOWER);
 
     context.commitOperation(bytes);

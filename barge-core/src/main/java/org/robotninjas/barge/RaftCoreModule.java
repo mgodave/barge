@@ -17,21 +17,26 @@
 package org.robotninjas.barge;
 
 import com.google.common.base.Optional;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
+
 import com.google.inject.PrivateModule;
+
 import org.jetlang.fibers.Fiber;
 import org.jetlang.fibers.PoolFiberFactory;
+
 import org.robotninjas.barge.log.LogModule;
 import org.robotninjas.barge.rpc.Client;
 import org.robotninjas.barge.state.Raft;
 import org.robotninjas.barge.state.StateModule;
 
-import javax.annotation.concurrent.Immutable;
 import java.io.File;
-import java.util.concurrent.Executor;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
+import java.util.concurrent.Executor;
 import static java.util.concurrent.Executors.newCachedThreadPool;
+
+import javax.annotation.concurrent.Immutable;
+
 
 @Immutable
 public class RaftCoreModule extends PrivateModule {
@@ -54,27 +59,22 @@ public class RaftCoreModule extends PrivateModule {
 
   @Override
   protected void configure() {
-
     install(new StateModule(timeout));
 
     PoolFiberFactory fiberFactory = new PoolFiberFactory(executor);
 
     Fiber raftFiber = fiberFactory.create(new BatchExecutor());
     raftFiber.start();
-    bind(Fiber.class)
-        .annotatedWith(RaftExecutor.class)
-        .toInstance(raftFiber);
+    bind(Fiber.class).annotatedWith(RaftExecutor.class).toInstance(raftFiber);
 
     Fiber stateMachineFiber = fiberFactory.create(new BatchExecutor());
     stateMachineFiber.start();
 
     install(new LogModule(logDir, stateMachine, stateMachineFiber));
 
-    bind(ClusterConfig.class)
-        .toInstance(config);
+    bind(ClusterConfig.class).toInstance(config);
 
-    bind(Client.class)
-        .asEagerSingleton();
+    bind(Client.class).asEagerSingleton();
 
     expose(Raft.class);
 
@@ -98,26 +98,25 @@ public class RaftCoreModule extends PrivateModule {
 
     public Builder withTimeout(long timeout) {
       this.timeout = timeout;
-      return this;
-    }
 
-    public Builder withExecutor(Executor executor) {
-      this.executor = Optional.of(executor);
       return this;
     }
 
     public Builder withConfig(ClusterConfig config) {
       this.config = Optional.of(config);
+
       return this;
     }
 
     public Builder withStateMachine(StateMachine stateMachine) {
       this.stateMachine = Optional.of(stateMachine);
+
       return this;
     }
 
     public Builder withLogDir(File logDir) {
       this.logDir = Optional.of(logDir);
+
       return this;
     }
 
@@ -126,6 +125,7 @@ public class RaftCoreModule extends PrivateModule {
       checkState(stateMachine.isPresent());
       checkState(logDir.isPresent());
       checkArgument(timeout > 0);
+
       return new RaftCoreModule(this);
     }
 

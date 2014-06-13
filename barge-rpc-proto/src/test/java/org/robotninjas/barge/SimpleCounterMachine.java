@@ -1,15 +1,20 @@
 package org.robotninjas.barge;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
+import org.robotninjas.barge.utils.Files;
 import org.robotninjas.barge.utils.Prober;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
+
 import java.nio.ByteBuffer;
+
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import static com.google.common.base.Preconditions.checkArgument;
+import javax.annotation.Nonnull;
+
 
 public class SimpleCounterMachine implements StateMachine {
 
@@ -22,23 +27,11 @@ public class SimpleCounterMachine implements StateMachine {
   private NettyRaftService service;
 
   public SimpleCounterMachine(int id, List<NettyReplica> replicas, GroupOfCounters groupOfCounters) {
-    checkArgument(id >= 0 && id < replicas.size(), "replica id " + id + " should be between 0 and " + replicas.size());
+    checkArgument((id >= 0) && (id < replicas.size()), "replica id " + id + " should be between 0 and " + replicas.size());
 
     this.groupOfCounters = groupOfCounters;
     this.id = id;
     this.replicas = replicas;
-  }
-
-  @SuppressWarnings({"ConstantConditions", "ResultOfMethodCallIgnored"})
-  public static void delete(File directory) {
-    for (File file : directory.listFiles()) {
-      if (file.isFile()) {
-        file.delete();
-      } else {
-        delete(file);
-      }
-    }
-    directory.delete();
   }
 
   @Override
@@ -49,17 +42,18 @@ public class SimpleCounterMachine implements StateMachine {
   public void startRaft() {
     int clusterSize = replicas.size();
     NettyReplica[] configuration = new NettyReplica[clusterSize - 1];
-    for (int i = 0; i < clusterSize - 1; i++) {
+
+    for (int i = 0; i < (clusterSize - 1); i++) {
       configuration[i] = replicas.get((id + i + 1) % clusterSize);
     }
 
     NettyClusterConfig config1 = NettyClusterConfig.from(replicas.get(id % clusterSize), configuration);
 
     NettyRaftService service1 = NettyRaftService.newBuilder(config1)
-      .logDir(logDirectory)
-      .timeout(500)
-      .transitionListener(groupOfCounters)
-      .build(this);
+        .logDir(logDirectory)
+        .timeout(500)
+        .transitionListener(groupOfCounters)
+        .build(this);
 
     service1.startAsync().awaitRunning();
     this.service = service1;
@@ -69,7 +63,7 @@ public class SimpleCounterMachine implements StateMachine {
     this.logDirectory = new File(parentDirectory, "log" + id);
 
     if (logDirectory.exists()) {
-      delete(logDirectory);
+      Files.delete(logDirectory);
     }
 
     if (!logDirectory.exists() && !logDirectory.mkdirs()) {
@@ -89,7 +83,7 @@ public class SimpleCounterMachine implements StateMachine {
   }
 
   public void deleteLogDirectory() {
-    delete(logDirectory);
+    Files.delete(logDirectory);
   }
 
   /**
@@ -101,11 +95,11 @@ public class SimpleCounterMachine implements StateMachine {
    */
   public void waitForValue(final int increments, long timeout) {
     new Prober(new Callable<Boolean>() {
-      @Override
-      public Boolean call() throws Exception {
-        return increments == counter;
-      }
-    }).probe(timeout);
+        @Override
+        public Boolean call() throws Exception {
+          return increments == counter;
+        }
+      }).probe(timeout);
   }
 
   public boolean isLeader() {
