@@ -68,4 +68,7 @@ public class RaftJettyServer implements RaftServer<RaftJettyServer> {
     }
   }
 
+  public URI getPort() {
+    return server.getURI();
+  }
 }

@@ -42,8 +42,7 @@ public class RaftApplication {
 
   public ResourceConfig makeResourceConfig() {
     ClusterConfig clusterConfig = HttpClusterConfig.from(new HttpReplica(uris[serverIndex]),
-      new HttpReplica(uris[(serverIndex + 1) % 3]),
-      new HttpReplica(uris[(serverIndex + 2) % 3]));
+      remotes());
 
     File logDir = new File("log" + serverIndex);
 
@@ -86,5 +85,16 @@ public class RaftApplication {
     resourceConfig.register(binder);
 
     return resourceConfig;
+  }
+
+  private HttpReplica[] remotes() {
+    HttpReplica[] remoteReplicas = new HttpReplica[uris.length - 1];
+
+    for (int i = 0; i < remoteReplicas.length; i++) {
+      remoteReplicas[i] = new HttpReplica(uris[(serverIndex + i + 1) % uris.length]);
+    }
+
+
+    return remoteReplicas;
   }
 }
