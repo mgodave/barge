@@ -29,10 +29,12 @@ public class RaftJettyServer implements RaftServer<RaftJettyServer> {
 
   private final Server server;
   private final RaftApplication raftApplication;
+  private final WsEventListener events;
 
   public RaftJettyServer(int serverIndex, URI[] uris, File logDir) {
     server = new Server();
-    raftApplication = new RaftApplication(serverIndex, uris, logDir);
+    events = new WsEventListener();
+    raftApplication = new RaftApplication(serverIndex, uris, logDir, events);
   }
 
   public RaftJettyServer start(int port) {
@@ -47,13 +49,14 @@ public class RaftJettyServer implements RaftServer<RaftJettyServer> {
     server.setHandler(context);
 
     // Add a websocket to a specific path spec
-    ServletHolder holderEvents = new ServletHolder("ws-events", EventServlet.class);
+    ServletHolder holderEvents = new ServletHolder("ws-events", new EventServlet(events));
     context.addServlet(holderEvents, "/events/*");
 
     // Add Raft REST services endpoints
     context.addServlet(new ServletHolder(new ServletContainer(raftApplication.makeResourceConfig())), "/raft/*");
 
     try {
+      events.start();
       server.start();
 
       return this;
@@ -66,6 +69,7 @@ public class RaftJettyServer implements RaftServer<RaftJettyServer> {
 
     try {
       raftApplication.stop();
+      events.stop();
       server.stop();
     } catch (Exception e) {
       throw Throwables.propagate(e);
