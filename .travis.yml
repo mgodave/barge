@@ -3,7 +3,6 @@ script: "mvn package -Ptravis --settings travis-settings.xml"
 jdk:
     - openjdk7
     - sunjdk7
-    - sunjdk8
 
 branches:
     only:
