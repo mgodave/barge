@@ -1,28 +1,24 @@
 package org.robotninjas.barge.jaxrs;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
-
 import org.robotninjas.barge.state.Raft;
 import org.robotninjas.barge.utils.Prober;
-
-import java.io.File;
-
-import java.net.URI;
-
-import java.util.concurrent.Callable;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.File;
+import java.net.URI;
+import java.util.concurrent.Callable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 
 /**
@@ -55,9 +51,9 @@ public abstract class ServerTest<T extends RaftServer<T>> {
 
   @After
   public void tearDown() throws Exception {
-    httpServer1.stop(1);
-    httpServer2.stop(1);
-    httpServer3.stop(1);
+    httpServer1.stop();
+    httpServer2.stop();
+    httpServer3.stop();
 
     httpServer1.clean();
     httpServer2.clean();

@@ -62,9 +62,10 @@ public class RaftJettyServer implements RaftServer<RaftJettyServer> {
     }
   }
 
-  public void stop(int unused) {
+  public void stop() {
 
     try {
+      raftApplication.stop();
       server.stop();
     } catch (Exception e) {
       throw Throwables.propagate(e);

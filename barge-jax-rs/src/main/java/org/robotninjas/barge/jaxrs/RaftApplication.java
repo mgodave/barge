@@ -1,42 +1,39 @@
 package org.robotninjas.barge.jaxrs;
 
+import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.utilities.Binder;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
-
 import org.glassfish.jersey.server.ResourceConfig;
-
 import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.StateMachine;
 import org.robotninjas.barge.state.Raft;
 import org.robotninjas.barge.utils.Files;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
-
 import java.net.URI;
-
 import java.nio.ByteBuffer;
-
-import javax.annotation.Nonnull;
 
 
 /**
  */
 public class RaftApplication {
 
-
   private static final Logger logger = LoggerFactory.getLogger(RaftJdkServer.class);
 
   private final int serverIndex;
   private final URI[] uris;
   private final File logDir;
+
+  private Optional<Injector> injector = Optional.absent();
 
   public RaftApplication(int serverIndex, URI[] uris, File logDir) {
     this.serverIndex = serverIndex;
@@ -62,7 +59,7 @@ public class RaftApplication {
 
     final JaxRsRaftModule raftModule = new JaxRsRaftModule(clusterConfig, logDir, stateMachine, 1500);
 
-    final Injector injector = Guice.createInjector(raftModule);
+    injector = Optional.of(Guice.createInjector(raftModule));
 
     ResourceConfig resourceConfig = new ResourceConfig();
 
@@ -72,7 +69,7 @@ public class RaftApplication {
         bindFactory(new Factory<Raft>() {
               @Override
               public Raft provide() {
-                return injector.getInstance(Raft.class);
+                return injector.get().getInstance(Raft.class);
               }
 
               @Override
@@ -96,11 +93,25 @@ public class RaftApplication {
       remoteReplicas[i] = new HttpReplica(uris[(serverIndex + i + 1) % uris.length]);
     }
 
-
     return remoteReplicas;
   }
 
   public void clean() throws IOException {
     Files.delete(logDir);
+  }
+
+  public void stop() {
+    injector.transform(new Function<Injector, Object>() {
+      @Nullable
+      @Override
+      public Object apply(@Nullable Injector input) {
+        Raft instance = null;
+        if (input != null) {
+          instance = input.getInstance(Raft.class);
+          instance.stop();
+        }
+        return instance;
+      }
+    });
   }
 }

@@ -6,7 +6,7 @@ public interface RaftServer<S extends RaftServer<S>> {
 
   S start(int port);
 
-  void stop(int timeoutInMs);
+  void stop();
 
   /**
    * Clean up persistent data stored by the server.

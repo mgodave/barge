@@ -18,24 +18,18 @@ package org.robotninjas.barge.jaxrs;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
-
 import com.sun.net.httpserver.HttpServer;
-
 import org.glassfish.jersey.jdkhttp.JdkHttpServerFactory;
-
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
+import javax.ws.rs.core.UriBuilder;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-
 import java.net.URI;
 import java.net.URISyntaxException;
-
 import java.util.List;
 import java.util.logging.Level;
-
-import javax.ws.rs.core.UriBuilder;
 
 
 /**
@@ -109,7 +103,7 @@ public class RaftJdkServer implements RaftServer<RaftJdkServer> {
 
     waitForInput();
 
-    server.stop(1);
+    server.stop();
 
     System.out.println("Bye!");
     System.exit(0);
@@ -156,8 +150,9 @@ public class RaftJdkServer implements RaftServer<RaftJdkServer> {
     return this;
   }
 
-  public void stop(int timeout) {
-    httpServer.stop(timeout);
+  public void stop() {
+    application.stop();
+    httpServer.stop(0);
   }
 
   @Override

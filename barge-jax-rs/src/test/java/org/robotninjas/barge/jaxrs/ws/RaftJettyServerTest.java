@@ -1,32 +1,26 @@
 package org.robotninjas.barge.jaxrs.ws;
 
 import com.google.common.collect.Lists;
-
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.eclipse.jetty.websocket.client.ClientUpgradeRequest;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-
 import org.robotninjas.barge.jaxrs.Jackson;
 import org.robotninjas.barge.utils.Prober;
-
-import java.io.File;
-
-import java.net.URI;
-
-import java.util.List;
-import java.util.concurrent.Callable;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
+import java.io.File;
+import java.net.URI;
+import java.util.List;
+import java.util.concurrent.Callable;
 
 
 /**
@@ -49,7 +43,7 @@ public class RaftJettyServerTest {
 
   @After
   public void tearDown() throws Exception {
-    this.server.stop(0);
+    this.server.stop();
     this.wsClient.stop();
   }
 
