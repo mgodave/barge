@@ -2,27 +2,32 @@ package org.robotninjas.barge.jaxrs.ws;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
+
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.eclipse.jetty.websocket.client.ClientUpgradeRequest;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.robotninjas.barge.jaxrs.Jackson;
+import static org.robotninjas.barge.jaxrs.Logs.uniqueLog;
 import org.robotninjas.barge.utils.Prober;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import java.io.File;
 import java.net.URI;
+
 import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.regex.Pattern;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
 
 
 /**
@@ -37,7 +42,8 @@ public class RaftJettyServerTest {
 
   @Before
   public void setUp() throws Exception {
-    this.server = new RaftJettyServer(0, new URI[] { new URI("http://localhost:12345") }, new File("log" + 0)).start(0);
+    this.server = new RaftJettyServer(0, new URI[] { new URI("http://localhost:12345") },
+      uniqueLog()).start(0);
     this.uri = server.getPort();
 
     wsClient.start();
@@ -84,8 +90,8 @@ public class RaftJettyServerTest {
     }
 
     @OnWebSocketMessage
-    public void onMessage(String msg) {
-      messages.add(msg);
+    public void onMessage(byte[] buffer, int offset, int size) {
+      messages.add(new String(buffer, offset, size));
     }
 
     @OnWebSocketConnect

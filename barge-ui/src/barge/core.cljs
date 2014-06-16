@@ -37,11 +37,13 @@ ordered from newest to latest"
 
   state is updated asynchronously"
   (swap! node-state (fn [st]
-                      (update-in st [(keyword node)] #(conj % msg)))))
+                      (update-in st [(keyword node) :msgs] #(conj % {:msg msg :timestamp "2014-06-11"})))))
 
 ;; message handlers
-(defn on-msg [e]
-  (js/alert (str "message " (.-message e))))
+(defn on-msg [node e]
+  (let [msg (.-message e)]
+    (update-msgs node msg)
+    ))
 
 (defn on-open [e]
   (js/alert (str "open " e)))
@@ -59,7 +61,7 @@ ordered from newest to latest"
         eh     (EventHandler.)
         uri    (:uri ((keyword node) st))]
 
-    (.listen eh ws EventType.MESSAGE on-msg)
+    (.listen eh ws EventType.MESSAGE (partial on-msg node))
     (.listen eh ws EventType.OPENED on-open)
     (.listen eh ws EventType.CLOSED on-close)
     (.listen eh ws EventType.ERROR on-error)
