@@ -20,6 +20,7 @@
               :compiler {
                 :output-to "app.js"
                 :output-dir "out"
+                :pretty-print true
                 :optimizations :none
                 :source-map true}}
              {:id "release"

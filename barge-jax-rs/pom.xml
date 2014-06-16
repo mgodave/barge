@@ -152,7 +152,7 @@
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <mainClass>org.robotninjas.barge.jaxrs.RaftJdkServer</mainClass>
+                  <mainClass>org.robotninjas.barge.jaxrs.ws.RaftJettyServer</mainClass>
                 </transformer>
               </transformers>
             </configuration>
