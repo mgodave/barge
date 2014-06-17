@@ -41,18 +41,28 @@ ordered from newest to latest"
 
 ;; message handlers
 (defn on-msg [node e]
-  (let [msg (.-message e)]
-    (update-msgs node msg)
-    ))
+  "Handles messages from the server, that is notifications regarding the state of some node"
+  (let [msg    (.-message e)
+        ;; msg is a Blob which should be decoded by a js/FileReader
+        ;; see https://developer.mozilla.org/en-US/docs/Web/API/Blob
+        reader (js/FileReader.)]
+        ;; callback updates messages with whatever text is contained in the blob
+        (.addEventListener reader "loadend" #(update-msgs node (.-result reader)))
+        ;; text is assumed to be encoded in UTF-8 which BTW is the default
+        (.readAsText reader msg "UTF-8"))
+    )
 
+;; TODO better notification of node's state
+;; we want to add a notification area within each node that displays until dismissed
+;; notification messages
 (defn on-open [e]
-  (js/alert (str "open " e)))
+  (.log js/console (str "open " e)))
 
 (defn on-close [e]
-  (js/alert (str "close " e)))
+  (.log js/console (str "close " e)))
 
 (defn on-error [e]
-  (js/alert (str "error " (.-type e))))
+  (.log js/console (str "error " (.-type e))))
 
 ;; connect to server and register listeners
 (defn connect [st node]
