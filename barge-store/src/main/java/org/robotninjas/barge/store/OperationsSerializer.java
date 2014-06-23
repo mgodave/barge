@@ -12,6 +12,8 @@ import com.google.common.base.Throwables;
 
 import java.io.*;
 
+import java.nio.ByteBuffer;
+
 
 /**
  */
@@ -54,11 +56,17 @@ public class OperationsSerializer {
 
     try {
       return (Write) new ObjectInputStream(in).readObject();
-    } catch (IOException e) {
-      throw Throwables.propagate(e);
-    } catch (ClassNotFoundException e) {
+    } catch (IOException | ClassNotFoundException e) {
       throw Throwables.propagate(e);
     }
+  }
+
+  public Write deserialize(ByteBuffer entry) {
+    byte[] bytes = new byte[entry.remaining()];
+
+    entry.get(bytes);
+
+    return deserialize(bytes);
   }
 
 

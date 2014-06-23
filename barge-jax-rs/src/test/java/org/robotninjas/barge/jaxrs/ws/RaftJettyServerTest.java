@@ -12,6 +12,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.robotninjas.barge.jaxrs.Jackson;
+import static org.robotninjas.barge.jaxrs.Logs.uniqueLog;
+import org.robotninjas.barge.jaxrs.RaftApplication;
 import org.robotninjas.barge.utils.Prober;
 
 import javax.ws.rs.client.Client;
@@ -38,8 +40,11 @@ public class RaftJettyServerTest {
 
   @Before
   public void setUp() throws Exception {
-    this.server = new RaftJettyServer(0, new URI[] { new URI("http://localhost:12345") },
-      uniqueLog()).start(0);
+    final URI[] uris = new URI[] { new URI("http://localhost:12345") };
+    this.server = new RaftJettyServer.Builder().setApplicationBuilder(new RaftApplication.Builder().setServerIndex(
+          0).setUris(
+            uris).setLogDir(uniqueLog())).build().start(
+          0);
     this.uri = server.getPort();
 
     wsClient.start();

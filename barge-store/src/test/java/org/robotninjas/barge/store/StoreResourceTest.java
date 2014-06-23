@@ -38,10 +38,10 @@ public class StoreResourceTest extends JerseyTest {
   public void onPUTReturns201WithLocationAndPreviousValueGivenRaftStoreCompletesSuccessfully() throws Exception {
     when(raftStore.write(write)).thenReturn(oldValue);
 
-    Response response = client().target("/foo").request().put(Entity.entity(value, APPLICATION_OCTET_STREAM_TYPE));
+    Response response = client().target("/store/foo").request().put(Entity.entity(value, APPLICATION_OCTET_STREAM_TYPE));
 
     assertThat(response.getStatus()).isEqualTo(HttpStatus.CREATED_201);
-    assertThat(response.getHeaderString("Location")).isEqualTo("http://localhost:9998/foo");
+    assertThat(response.getHeaderString("Location")).isEqualTo("http://localhost:9998/store/foo");
     assertThat(response.readEntity(byte[].class)).isEqualTo(oldValue);
   }
 
@@ -49,7 +49,7 @@ public class StoreResourceTest extends JerseyTest {
   public void onGETReturns200WithFoundValueGivenStoreContainsRequestedKey() throws Exception {
     when(raftStore.read("foo")).thenReturn(Optional.of(value));
 
-    Response response = client().target("/foo").request().get(Response.class);
+    Response response = client().target("/store/foo").request().get(Response.class);
 
     assertThat(response.getStatus()).isEqualTo(HttpStatus.OK_200);
     assertThat(response.readEntity(byte[].class)).isEqualTo(value);
@@ -59,7 +59,7 @@ public class StoreResourceTest extends JerseyTest {
   public void onGETReturns404GivenStoreDoesNotContainRequestedKey() throws Exception {
     when(raftStore.read("foo")).thenReturn(Optional.<byte[]>absent());
 
-    Response response = client().target("/foo").request().get(Response.class);
+    Response response = client().target("/store/foo").request().get(Response.class);
 
     assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND_404);
   }

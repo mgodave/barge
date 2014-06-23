@@ -13,7 +13,7 @@ import static javax.ws.rs.core.Response.ok;
 import javax.ws.rs.core.UriInfo;
 
 
-@Path("/")
+@Path("/store")
 @Produces(MediaType.APPLICATION_JSON)
 public class StoreResource {
 

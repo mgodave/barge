@@ -28,7 +28,9 @@ public class JettyDeploymentTest extends ServerTest<RaftJettyServer> {
 
   @Override
   protected RaftJettyServer createServer(int serverIndex, URI[] uris1, File logDir) {
-    return new RaftJettyServer(serverIndex, uris1, logDir);
+    return new RaftJettyServer.Builder().setApplicationBuilder(new RaftApplication.Builder().setServerIndex(
+        serverIndex).setUris(uris1).setLogDir(logDir))
+        .build();
   }
 
 }

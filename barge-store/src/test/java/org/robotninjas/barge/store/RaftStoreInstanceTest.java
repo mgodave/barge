@@ -1,6 +1,5 @@
 package org.robotninjas.barge.store;
 
-import com.google.common.base.Optional;
 import com.google.common.util.concurrent.Futures;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -14,8 +13,6 @@ import static org.mockito.Mockito.when;
 
 import org.robotninjas.barge.state.Raft;
 
-import static java.nio.ByteBuffer.wrap;
-
 
 public class RaftStoreInstanceTest {
 
@@ -23,9 +20,11 @@ public class RaftStoreInstanceTest {
   private static final Write write = new Write("foo", new byte[] { 0x42 });
 
   private final Raft raft = mock(Raft.class);
+  private final StoreStateMachine storeStateMachine = mock(StoreStateMachine.class);
+
   private final OperationsSerializer serializer = new OperationsSerializer();
 
-  private final RaftStoreInstance raftStoreInstance = new RaftStoreInstance(raft);
+  private final RaftStoreInstance raftStoreInstance = new RaftStoreInstance(raft, storeStateMachine);
 
   @Test
   public void commitSerializedWriteOperationToRaftThenReturnOldValueWhenWritingKeyValuePair() throws Exception {
@@ -35,28 +34,9 @@ public class RaftStoreInstanceTest {
   }
 
   @Test
-  public void mapsKeyToValueWhenApplyingWriteOperation() throws Exception {
-    raftStoreInstance.applyOperation(wrap(serializer.serialize(write)));
+  public void whenReadingReturnsAbsentOptionalIfKeyIsNotPresentInStore() throws Exception {
+    when(storeStateMachine.get("foo")).thenReturn(null);
 
-    Optional<byte[]> read = raftStoreInstance.read("foo");
-
-    Assertions.assertThat(read).isPresent();
-    assertThat(read.get()).isEqualTo(new byte[] { 0x42 });
-  }
-
-  @Test
-  public void applyingWriteReturnsOldValueGivenKeyIsAlreadyMapped() throws Exception {
-    raftStoreInstance.applyOperation(wrap(serializer.serialize(write)));
-
-    byte[] old = (byte[]) raftStoreInstance.applyOperation(wrap(serializer.serialize(new Write("foo", new byte[] { 0x43 }))));
-
-    assertThat(old).isEqualTo(new byte[] { 0x42 });
-  }
-
-  @Test
-  public void applyingWriteReturnsNullValueGivenKeyIsNotMapped() throws Exception {
-    byte[] old = (byte[]) raftStoreInstance.applyOperation(wrap(serializer.serialize(new Write("foo", new byte[] { 0x43 }))));
-
-    assertThat(old).isNull();
+    Assertions.assertThat(raftStoreInstance.read("foo")).isAbsent();
   }
 }
