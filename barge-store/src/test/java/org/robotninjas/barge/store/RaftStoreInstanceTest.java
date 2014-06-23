@@ -28,7 +28,7 @@ public class RaftStoreInstanceTest {
 
   @Test
   public void commitSerializedWriteOperationToRaftThenReturnOldValueWhenWritingKeyValuePair() throws Exception {
-    when(raft.commitOperation(serializer.serialize(write))).thenReturn(Futures.<Object>immediateFuture(oldValue));
+    when(raft.commitOperation(serializer.serialize(write))).thenReturn(Futures.<Object>immediateFuture(Futures.immediateFuture(oldValue)));
 
     assertThat(raftStoreInstance.write(write)).isEqualTo(oldValue);
   }

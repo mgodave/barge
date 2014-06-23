@@ -5,7 +5,6 @@ import com.google.common.base.Optional;
 import javax.inject.Inject;
 
 import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
 import javax.ws.rs.core.Response;
 import static javax.ws.rs.core.Response.created;
@@ -14,7 +13,6 @@ import javax.ws.rs.core.UriInfo;
 
 
 @Path("/store")
-@Produces(MediaType.APPLICATION_JSON)
 public class StoreResource {
 
   private RaftStore raftStore;

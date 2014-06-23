@@ -3,6 +3,7 @@ package org.robotninjas.barge.store;
 import com.google.common.base.Optional;
 import static com.google.common.base.Optional.fromNullable;
 import static com.google.common.base.Throwables.propagate;
+import com.google.common.util.concurrent.ListenableFuture;
 
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.state.Raft;
@@ -31,7 +32,9 @@ public class RaftStoreInstance implements RaftStore {
   public byte[] write(Write write) {
 
     try {
-      return (byte[]) raft.commitOperation(operationsSerializer.serialize(write)).get();
+
+      // TODO this is ugly...
+      return ((ListenableFuture<byte[]>) raft.commitOperation(operationsSerializer.serialize(write)).get()).get();
     } catch (RaftException | InterruptedException | ExecutionException e) {
       throw propagate(e);
     }

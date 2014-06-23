@@ -10,6 +10,8 @@ import org.junit.Test;
 
 import org.robotninjas.barge.jaxrs.Leaders;
 
+import java.io.File;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -25,11 +27,12 @@ public class StoreServerTest {
 
   private RaftStoreServer raftStoreServer;
   private URI[] clusterURIs;
+  private File logDir = new File(new File(StoreServerTest.class.getResource("/marker").getFile()).getParentFile(), "log" + System.nanoTime());
 
   @Before
   public void startServer() throws URISyntaxException {
     clusterURIs = new URI[] { serverURI() };
-    raftStoreServer = new RaftStoreServer(0, clusterURIs);
+    raftStoreServer = new RaftStoreServer(0, clusterURIs, logDir);
 
     raftStoreServer.start(56789);
   }
