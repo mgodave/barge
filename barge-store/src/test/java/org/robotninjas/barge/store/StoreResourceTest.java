@@ -55,6 +55,15 @@ public class StoreResourceTest extends JerseyTest {
     assertThat(response.readEntity(byte[].class)).isEqualTo(value);
   }
 
+  @Test
+  public void onGETReturns404GivenStoreDoesNotContainRequestedKey() throws Exception {
+    when(raftStore.read("foo")).thenReturn(Optional.<byte[]>absent());
+
+    Response response = client().target("/foo").request().get(Response.class);
+
+    assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND_404);
+  }
+
   @Override
   protected Application configure() {
     raftStore = mock(RaftStore.class);

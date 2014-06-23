@@ -42,6 +42,10 @@ public class StoreResource {
   public Response read(@PathParam("key") String key) {
     Optional<byte[]> bytes = raftStore.read(key);
 
-    return ok(bytes.get()).type(APPLICATION_OCTET_STREAM).build();
+    if (bytes.isPresent()) {
+      return ok(bytes.get()).type(APPLICATION_OCTET_STREAM).build();
+    }
+
+    throw new NotFoundException("key " + key + " is not mapped in this store");
   }
 }
