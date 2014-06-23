@@ -1,9 +1,9 @@
 package org.robotninjas.barge.jaxrs.ws;
 
 import com.google.common.base.Throwables;
-
 import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
+
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -51,6 +51,14 @@ public class RaftJettyServer implements RaftServer<RaftJettyServer> {
   private final Server server;
   private final RaftApplication raftApplication;
   private final WsEventListener events;
+
+  public RaftJettyServer(int serverIndex, URI[] uris, File logDir) {
+    server = new Server();
+    events = new WsEventListener();
+    raftApplication = new RaftApplication.Builder().setServerIndex(serverIndex).setUris(uris).setLogDir(logDir)
+        .setListeners(events)
+        .build();
+  }
 
   public static void main(String[] args) throws IOException, URISyntaxException {
     muteJul();
@@ -102,6 +110,7 @@ public class RaftJettyServer implements RaftServer<RaftJettyServer> {
   }
 
   private static void waitForInput() throws IOException {
+
     //noinspection ResultOfMethodCallIgnored
     System.in.read();
   }
