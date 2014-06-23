@@ -55,9 +55,7 @@ public class RaftStoreInstance implements RaftStore, StateMachine {
   public Object applyOperation(@Nonnull ByteBuffer entry) {
     Write write = operationsSerializer.deserialize(entry.array());
 
-    store.put(write.getKey(), write.getValue());
-
-    return write.getValue();
+    return store.put(write.getKey(), write.getValue());
   }
 
 

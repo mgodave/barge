@@ -1,5 +1,6 @@
 package org.robotninjas.barge.store;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,6 +45,15 @@ public class StoreResourceTest extends JerseyTest {
     assertThat(response.readEntity(byte[].class)).isEqualTo(oldValue);
   }
 
+  @Test
+  public void onGETReturns200WithFoundValueGivenStoreContainsRequestedKey() throws Exception {
+    when(raftStore.read("foo")).thenReturn(Optional.of(value));
+
+    Response response = client().target("/foo").request().get(Response.class);
+
+    assertThat(response.getStatus()).isEqualTo(HttpStatus.OK_200);
+    assertThat(response.readEntity(byte[].class)).isEqualTo(value);
+  }
 
   @Override
   protected Application configure() {

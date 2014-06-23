@@ -43,4 +43,20 @@ public class RaftStoreInstanceTest {
     Assertions.assertThat(read).isPresent();
     assertThat(read.get()).isEqualTo(new byte[] { 0x42 });
   }
+
+  @Test
+  public void applyingWriteReturnsOldValueGivenKeyIsAlreadyMapped() throws Exception {
+    raftStoreInstance.applyOperation(wrap(serializer.serialize(write)));
+
+    byte[] old = (byte[]) raftStoreInstance.applyOperation(wrap(serializer.serialize(new Write("foo", new byte[] { 0x43 }))));
+
+    assertThat(old).isEqualTo(new byte[] { 0x42 });
+  }
+
+  @Test
+  public void applyingWriteReturnsNullValueGivenKeyIsNotMapped() throws Exception {
+    byte[] old = (byte[]) raftStoreInstance.applyOperation(wrap(serializer.serialize(new Write("foo", new byte[] { 0x43 }))));
+
+    assertThat(old).isNull();
+  }
 }
