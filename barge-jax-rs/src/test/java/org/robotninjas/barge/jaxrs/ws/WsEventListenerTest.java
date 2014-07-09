@@ -37,7 +37,7 @@ public class WsEventListenerTest {
 
     fiber.executeAllPending();
 
-    verify(listener).send(anyString());
+    verify(listener).send(contains("state.change"));
   }
 
   @Test
@@ -47,7 +47,7 @@ public class WsEventListenerTest {
 
     fiber.executeAllPending();
 
-    verify(listener).send(anyString());
+    verify(listener).send(contains("invalid.transition"));
   }
 
   @Test
@@ -57,7 +57,7 @@ public class WsEventListenerTest {
 
     fiber.executeAllPending();
 
-    verify(listener).send(anyString());
+    verify(listener).send(contains("stopping"));
   }
 
   @Test

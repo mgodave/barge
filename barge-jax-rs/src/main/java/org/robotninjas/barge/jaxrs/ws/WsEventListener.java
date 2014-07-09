@@ -1,22 +1,19 @@
 package org.robotninjas.barge.jaxrs.ws;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
-
 import org.jetlang.core.RunnableExecutorImpl;
-
 import org.jetlang.fibers.Fiber;
 import org.jetlang.fibers.ThreadFiber;
-
 import org.robotninjas.barge.state.Raft;
 import org.robotninjas.barge.state.StateTransitionListener;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Set;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Set;
 
 
 /**
@@ -25,8 +22,10 @@ public class WsEventListener implements StateTransitionListener {
 
   private final Logger logger = LoggerFactory.getLogger(WsEventListener.class);
 
-  private Set<Listener> remotes = Sets.newConcurrentHashSet();
   private final Fiber executor;
+  private final ObjectMapper json = new ObjectMapper();
+
+  private Set<Listener> remotes = Sets.newConcurrentHashSet();
 
   public WsEventListener() {
     this(new ThreadFiber(new RunnableExecutorImpl(), "ws-events", true));
@@ -47,48 +46,44 @@ public class WsEventListener implements StateTransitionListener {
   @Override
   public void changeState(@Nonnull final Raft context, @Nullable final Raft.StateType from, @Nonnull final Raft.StateType to) {
     executor.execute(new Runnable() {
-        @Override
-        public void run() {
-          String message = "changing state of " + context + " " + from + " -> " + to;
+      @Override
+      public void run() {
+        WsMessage message = WsMessages.stateChange(context, from, to);
 
-          for (Listener remote : remotes) {
-            logger.trace("dispatching state changing: {}, {} -> {}", remote, from, to);
-            remote.send(message);
-          }
+        for (Listener remote : remotes) {
+          send(message, remote);
         }
-      });
+      }
+    });
   }
 
   @Override
   public void invalidTransition(@Nonnull final Raft context, @Nonnull final Raft.StateType actual,
-      @Nullable final Raft.StateType expected) {
+                                @Nullable final Raft.StateType expected) {
     executor.execute(new Runnable() {
-        @Override
-        public void run() {
-          String message = "invalid transition in " + context + " expected: " + expected + ", actual: " + actual;
+      @Override
+      public void run() {
+        WsMessage message = WsMessages.invalidTransition(context, expected, actual);
 
-          for (Listener remote : remotes) {
-            logger.trace("dispatching invalid transition to: {}, actual: {}, expected: {}", remote, actual, expected);
-            remote.send(message);
-          }
+        for (Listener remote : remotes) {
+          send(message, remote);
         }
-      });
+      }
+    });
   }
 
   @Override
   public void stop(@Nonnull final Raft raft) {
     executor.execute(new Runnable() {
-        @Override
-        public void run() {
+      @Override
+      public void run() {
+        WsMessage message = WsMessages.stopping(raft);
 
-          String message = "stopping " + raft;
-
-          for (Listener remote : remotes) {
-            logger.trace("dispatching stop: {}", raft);
-            remote.send(message);
-          }
+        for (Listener remote : remotes) {
+          send(message, remote);
         }
-      });
+      }
+    });
   }
 
   public void addClient(Listener listener) {
@@ -107,4 +102,13 @@ public class WsEventListener implements StateTransitionListener {
   public void error(EventSocket socket, Throwable error) {
     logger.warn("caught error on socket {}", socket, error);
   }
+
+  private void send(WsMessage message, Listener remote) {
+    try {
+      remote.send(json.writeValueAsString(message));
+    } catch (JsonProcessingException e) {
+      logger.warn("fail to convert {} to json", message, e);
+    }
+  }
+
 }

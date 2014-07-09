@@ -36,14 +36,14 @@ public abstract class Jackson {
   /**
    * @return a new Object mapper with configured deserializer for barge' object model.
    */
-  static ObjectMapper objectMapper() {
+  public static ObjectMapper objectMapper() {
     ObjectMapper mapper = new ObjectMapper();
-    SimpleModule testModule = new SimpleModule("MyModule", new Version(0, 1, 0, null, "org.robotninjas", "barge"))
+    SimpleModule raftMessagesModule = new SimpleModule("MyModule", new Version(0, 1, 0, null, "org.robotninjas", "barge"))
       .addDeserializer(RequestVote.class, new RequestVoteDeserializer())
       .addDeserializer(RequestVoteResponse.class, new RequestVoteResponseDeserializer())
       .addDeserializer(AppendEntries.class, new AppendEntriesDeserializer())
       .addDeserializer(AppendEntriesResponse.class, new AppendEntriesResponseDeserializer());
-    mapper.registerModule(testModule);
+    mapper.registerModule(raftMessagesModule);
     return mapper;
   }
 
@@ -74,14 +74,19 @@ public abstract class Jackson {
 
         jsonParser.nextToken();
 
-        if (fieldName.equals("term")) {
-          builder.setTerm(jsonParser.getLongValue());
-        } else if (fieldName.equals("candidateId")) {
-          builder.setCandidateId(jsonParser.getText());
-        } else if (fieldName.equals("lastLogIndex")) {
-          builder.setLastLogIndex(jsonParser.getLongValue());
-        } else if (fieldName.equals("lastLogTerm")) {
-          builder.setLastLogTerm(jsonParser.getLongValue());
+        switch (fieldName) {
+          case "term":
+            builder.setTerm(jsonParser.getLongValue());
+            break;
+          case "candidateId":
+            builder.setCandidateId(jsonParser.getText());
+            break;
+          case "lastLogIndex":
+            builder.setLastLogIndex(jsonParser.getLongValue());
+            break;
+          case "lastLogTerm":
+            builder.setLastLogTerm(jsonParser.getLongValue());
+            break;
         }
       }
       jsonParser.close();
@@ -136,23 +141,30 @@ public abstract class Jackson {
 
         JsonToken token = jsonParser.nextToken();
 
-        if (fieldName.equals("term")) {
-          builder.setTerm(jsonParser.getLongValue());
-        } else if (fieldName.equals("prevLogIndex")) {
-          builder.setPrevLogIndex(jsonParser.getLongValue());
-        }else if (fieldName.equals("prevLogTerm")) {
-          builder.setPrevLogTerm(jsonParser.getLongValue());
-        }else if (fieldName.equals("commitIndex")) {
-          builder.setCommitIndex(jsonParser.getLongValue());
-        }else if (fieldName.equals("leaderId")) {
-          builder.setLeaderId(jsonParser.getText());
-        }else if (fieldName.equals("entriesList")) {
-          if(token != JsonToken.START_ARRAY) {
+        switch (fieldName) {
+          case "term":
+            builder.setTerm(jsonParser.getLongValue());
+            break;
+          case "prevLogIndex":
+            builder.setPrevLogIndex(jsonParser.getLongValue());
+            break;
+          case "prevLogTerm":
+            builder.setPrevLogTerm(jsonParser.getLongValue());
+            break;
+          case "commitIndex":
+            builder.setCommitIndex(jsonParser.getLongValue());
+            break;
+          case "leaderId":
+            builder.setLeaderId(jsonParser.getText());
+            break;
+          case "entriesList":
+            if (token != JsonToken.START_ARRAY) {
               throw new IOException("entriesList should be an array, got " + token);
-          }
-          while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
-            builder.addEntry(deserializeEntry(jsonParser));
-          }
+            }
+            while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
+              builder.addEntry(deserializeEntry(jsonParser));
+            }
+            break;
         }
       }
       jsonParser.close();
@@ -193,12 +205,16 @@ public abstract class Jackson {
 
         jsonParser.nextToken();
 
-        if (fieldName.equals("term")) {
-          builder.setTerm(jsonParser.getLongValue());
-        } else if (fieldName.equals("success")) {
-          builder.setSuccess(jsonParser.getBooleanValue());
-        }else if (fieldName.equals("lastLogIndex")) {
-          builder.setLastLogIndex(jsonParser.getLongValue());
+        switch (fieldName) {
+          case "term":
+            builder.setTerm(jsonParser.getLongValue());
+            break;
+          case "success":
+            builder.setSuccess(jsonParser.getBooleanValue());
+            break;
+          case "lastLogIndex":
+            builder.setLastLogIndex(jsonParser.getLongValue());
+            break;
         }
       }
 

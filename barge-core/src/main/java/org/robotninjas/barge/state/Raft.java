@@ -29,6 +29,8 @@ import javax.annotation.Nonnull;
  */
 public interface Raft {
 
+  public static enum StateType {START, FOLLOWER, CANDIDATE, LEADER, STOPPED}
+
   ListenableFuture<StateType> init();
 
   @Nonnull
@@ -44,8 +46,6 @@ public interface Raft {
 
   @Nonnull
   StateType type();
-
-  public static enum StateType {START, FOLLOWER, CANDIDATE, LEADER, STOPPED}
 
   void stop();
 }

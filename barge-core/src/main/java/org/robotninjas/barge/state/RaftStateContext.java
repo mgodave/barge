@@ -16,14 +16,11 @@
 
 package org.robotninjas.barge.state;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
-
 import org.jetlang.fibers.Fiber;
-
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.RaftExecutor;
 import org.robotninjas.barge.api.AppendEntries;
@@ -31,17 +28,16 @@ import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.api.RequestVote;
 import org.robotninjas.barge.api.RequestVoteResponse;
 import org.robotninjas.barge.log.RaftLog;
-
 import org.slf4j.MDC;
 
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.inject.Inject;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.NotThreadSafe;
-
-import javax.inject.Inject;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 
 @NotThreadSafe
@@ -50,6 +46,7 @@ class RaftStateContext implements Raft {
   private final StateFactory stateFactory;
   private final Executor executor;
   private final Set<StateTransitionListener> listeners = Sets.newConcurrentHashSet();
+  private final String name;
 
   private volatile StateType state;
   private volatile State delegate;
@@ -68,19 +65,20 @@ class RaftStateContext implements Raft {
     this.executor = executor;
     this.listeners.add(new LogListener());
     this.listeners.addAll(listeners);
+    this.name = name;
   }
 
   @Override
   public ListenableFuture<StateType> init() {
 
     ListenableFutureTask<StateType> init = ListenableFutureTask.create(new Callable<StateType>() {
-        @Override
-        public StateType call() {
-          setState(null, StateType.START);
+      @Override
+      public StateType call() {
+        setState(null, StateType.START);
 
-          return StateType.START;
-        }
-      });
+        return StateType.START;
+      }
+    });
 
     executor.execute(init);
 
@@ -95,11 +93,11 @@ class RaftStateContext implements Raft {
     checkNotNull(request);
 
     ListenableFutureTask<RequestVoteResponse> response = ListenableFutureTask.create(new Callable<RequestVoteResponse>() {
-        @Override
-        public RequestVoteResponse call() throws Exception {
-          return delegate.requestVote(RaftStateContext.this, request);
-        }
-      });
+      @Override
+      public RequestVoteResponse call() throws Exception {
+        return delegate.requestVote(RaftStateContext.this, request);
+      }
+    });
 
     executor.execute(response);
 
@@ -118,11 +116,11 @@ class RaftStateContext implements Raft {
     checkNotNull(request);
 
     ListenableFutureTask<AppendEntriesResponse> response = ListenableFutureTask.create(new Callable<AppendEntriesResponse>() {
-        @Override
-        public AppendEntriesResponse call() throws Exception {
-          return delegate.appendEntries(RaftStateContext.this, request);
-        }
-      });
+      @Override
+      public AppendEntriesResponse call() throws Exception {
+        return delegate.appendEntries(RaftStateContext.this, request);
+      }
+    });
 
     executor.execute(response);
 
@@ -141,11 +139,11 @@ class RaftStateContext implements Raft {
     checkNotNull(op);
 
     ListenableFutureTask<Object> response = ListenableFutureTask.create(new Callable<Object>() {
-        @Override
-        public Object call() throws Exception {
-          return delegate.commitOperation(RaftStateContext.this, op);
-        }
-      });
+      @Override
+      public Object call() throws Exception {
+        return delegate.commitOperation(RaftStateContext.this, op);
+      }
+    });
 
     executor.execute(response);
 
@@ -221,4 +219,8 @@ class RaftStateContext implements Raft {
     }
   }
 
+  @Override
+  public String toString() {
+    return name;
+  }
 }
