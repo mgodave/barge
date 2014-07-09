@@ -80,10 +80,9 @@ ordered from newest to latest"
 
 (defn disconnect [st node]
   "disconnect node and updates state accordingly"
-  (let [ws (:ws ((keyword node) st))]
+  (if-let [ws (:ws ((keyword node) st))]
     (.close ws)
-    (assoc-in st [(keyword node) :ws] nil)
-    ))
+    (assoc-in st [(keyword node) :ws] nil)))
 
 
 (defn toggle-connect [owner node connected]
@@ -92,8 +91,7 @@ ordered from newest to latest"
                       (if connected
                         (disconnect st node)
                         (connect st node))))
-  (om/set-state! owner :connected (not connected))
-  )
+  (om/set-state! owner :connected (not connected)))
 
 (defn node-view [id]
   (fn [app owner]
@@ -106,7 +104,8 @@ ordered from newest to latest"
         (dom/div #js {:id id}
           (dom/h1 nil id)
           (dom/button
-             #js {:onClick #(toggle-connect owner id (om/get-state owner :connected))}
+             #js {:onClick #(toggle-connect owner id (om/get-state owner :connected))
+                  :class "btn-primary btn btn-large"}
             (if connected
               "Disconnect"
              "Connect"
@@ -115,10 +114,10 @@ ordered from newest to latest"
             (map #(dom/li nil (:msg %)) (:msgs ((keyword id) app)))))))))
 
 
-(defn set-root [name]
-  (om/root (node-view name)
-           node-state
-    {:target (. js/document (getElementById name))}))
+(defn set-root
+  [name] (om/root (node-view name)
+             node-state
+          {:target (. js/document (getElementById name))}))
 
 (set-root "node1")
 (set-root "node2")

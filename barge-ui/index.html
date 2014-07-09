@@ -1,6 +1,42 @@
-<html>
-<body>
-<div id="my-app"></div>
-<script src="app.js" type="text/javascript"></script>
-</body>
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Barge: A Raft Implementation in Java</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+        <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
+        <link rel="stylesheet" href="css/styles.css">
+    </head>
+    <body>
+        <div class="navbar navbar-fixed-top">
+            <div class="navbar-inner">
+                <div class="container-fluid">
+                    <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"> <span class="icon-bar"></span>
+                        <span class="icon-bar"></span> <span class="icon-bar"></span>
+                    </a>
+                    <a class="brand" href="/">Barge</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- displays messages from all nodes in the cluster (presently 3) -->
+        <div id="raft-demo" class="container-fluid">
+            <!--  shows up when error happens, click to remove -->
+            <div id="error-panel" class="alert alert-error" style="display: none"></div>
+
+           <div class="row-fluid">
+               <div id="node1" class="node well span4">
+               </div>
+               <div id="node2" class="node well span4">
+               </div>
+               <div id="node3" class="node well span4">
+                </div>
+            </div>
+       </div>
+
+        <script src="react.min.js"></script>
+        <script src="out/goog/base.js" type="text/javascript"></script>
+        <script src="app.js" type="text/javascript"></script>
+        <script type="text/javascript">goog.require("barge.core");</script>
+    </body>
 </html>
