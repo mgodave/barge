@@ -61,10 +61,6 @@ public class RaftStoreServer {
 
   private RaftJettyServer server;
 
-  public RaftStoreServer(int serverIndex, URI[] clusterURIs) {
-    this(serverIndex, clusterURIs, new File("log" + serverIndex));
-  }
-
   public RaftStoreServer(int serverIndex, URI[] clusterURIs, File logDir) {
     this.serverIndex = serverIndex;
     this.clusterURIs = clusterURIs;
@@ -116,19 +112,6 @@ public class RaftStoreServer {
     RaftStoreServer server = new RaftStoreServer(index, uris, logDir);
 
     server.start(uris[index].getPort());
-
-    waitForInput();
-
-    server.stop();
-
-    System.out.println("Bye!");
-    System.exit(0);
-  }
-
-  private static void waitForInput() throws IOException {
-
-    //noinspection ResultOfMethodCallIgnored
-    System.in.read();
   }
 
   private static void muteJul() {
