@@ -120,12 +120,12 @@ public class RaftStoreServer {
     SLF4JBridgeHandler.install();
   }
 
-  private static URI[] readConfiguration(File clusterConfiguration) throws IOException, URISyntaxException {
+  private static URI[] readConfiguration(File clusterConfigurationFile) throws IOException, URISyntaxException {
     List<URI> uris = Lists.newArrayList();
 
     int lineNumber = 1;
 
-    for (String line : CharStreams.readLines(new FileReader(clusterConfiguration))) {
+    for (String line : CharStreams.readLines(new FileReader(clusterConfigurationFile))) {
       String[] pair = line.split("=");
 
       if (pair.length != 2)
