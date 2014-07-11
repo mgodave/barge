@@ -1,19 +1,3 @@
-/**
- * Copyright 2013 David Rusek <dave dot rusek at gmail dot com>
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package org.robotninjas.barge.state;
 
 import com.google.common.base.Throwables;
@@ -33,6 +17,7 @@ import org.slf4j.MDC;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
+import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
@@ -45,13 +30,27 @@ class RaftStateContext implements Raft {
 
   private final StateFactory stateFactory;
   private final Executor executor;
-  private final Set<StateTransitionListener> listeners = Sets.newConcurrentHashSet();
   private final String name;
+
+  private final Set<StateTransitionListener> listeners = Sets.newConcurrentHashSet();
+  private final Set<RaftProtocolListener> protocolListeners = Sets.newConcurrentHashSet();
 
   private volatile StateType state;
   private volatile State delegate;
 
   private boolean stop;
+
+  public RaftStateContext(String name, StateFactory stateFactory, Fiber executor, Set<StateTransitionListener> listeners, Set<RaftProtocolListener> protocolListeners) {
+    MDC.put("self", name);
+
+    this.stateFactory = stateFactory;
+    this.executor = executor;
+    this.name = name;
+
+    this.listeners.add(new LogListener());
+    this.listeners.addAll(listeners);
+    this.protocolListeners.addAll(protocolListeners);
+  }
 
   @Inject
   RaftStateContext(RaftLog log, StateFactory stateFactory, @RaftExecutor Fiber executor, Set<StateTransitionListener> listeners) {
@@ -59,18 +58,11 @@ class RaftStateContext implements Raft {
   }
 
   RaftStateContext(String name, StateFactory stateFactory, Fiber executor, Set<StateTransitionListener> listeners) {
-    MDC.put("self", name);
-
-    this.stateFactory = stateFactory;
-    this.executor = executor;
-    this.listeners.add(new LogListener());
-    this.listeners.addAll(listeners);
-    this.name = name;
+    this(name, stateFactory, executor, listeners, Collections.<RaftProtocolListener>emptySet());
   }
 
   @Override
   public ListenableFuture<StateType> init() {
-
     ListenableFutureTask<StateType> init = ListenableFutureTask.create(new Callable<StateType>() {
       @Override
       public StateType call() {
@@ -82,8 +74,9 @@ class RaftStateContext implements Raft {
 
     executor.execute(init);
 
-    return init;
+    notifiesInit();
 
+    return init;
   }
 
   @Override
@@ -105,6 +98,8 @@ class RaftStateContext implements Raft {
       return response.get();
     } catch (Exception e) {
       throw Throwables.propagate(e);
+    } finally {
+      notifyRequestVote(request);
     }
 
   }
@@ -128,9 +123,12 @@ class RaftStateContext implements Raft {
       return response.get();
     } catch (Exception e) {
       throw Throwables.propagate(e);
+    } finally {
+      notifyAppendEntries(request);
     }
 
   }
+
 
   @Override
   @Nonnull
@@ -147,8 +145,9 @@ class RaftStateContext implements Raft {
 
     executor.execute(response);
 
+    notifyCommit(op);
+    
     return response;
-
   }
 
   public synchronized void setState(State oldState, @Nonnull StateType state) {
@@ -178,6 +177,34 @@ class RaftStateContext implements Raft {
     delegate.init(this);
   }
 
+  @Override
+  public void addTransitionListener(@Nonnull StateTransitionListener transitionListener) {
+    listeners.add(transitionListener);
+  }
+
+  @Override public void addRaftProtocolListener(@Nonnull RaftProtocolListener protocolListener) {
+    protocolListeners.add(protocolListener);
+  }
+
+  @Override
+  @Nonnull
+  public StateType type() {
+    return state;
+  }
+
+  public synchronized void stop() {
+    stop = true;
+
+    if (this.delegate != null) {
+      this.delegate.doStop(this);
+    }
+  }
+
+  @Override
+  public String toString() {
+    return name;
+  }
+
   private void notifiesStop() {
 
     for (StateTransitionListener listener : listeners) {
@@ -200,27 +227,28 @@ class RaftStateContext implements Raft {
     }
   }
 
-  @Override
-  public void addTransitionListener(@Nonnull StateTransitionListener transitionListener) {
-    listeners.add(transitionListener);
-  }
-
-  @Override
-  @Nonnull
-  public StateType type() {
-    return state;
-  }
-
-  public synchronized void stop() {
-    stop = true;
-
-    if (this.delegate != null) {
-      this.delegate.doStop(this);
+  private void notifiesInit() {
+    for (RaftProtocolListener protocolListener : protocolListeners) {
+      protocolListener.init(this);
     }
   }
 
-  @Override
-  public String toString() {
-    return name;
+  private void notifyAppendEntries(AppendEntries request) {
+    for (RaftProtocolListener protocolListener : protocolListeners) {
+      protocolListener.appendEntries(this,request);
+    }
   }
+
+  private void notifyRequestVote(RequestVote vote) {
+    for (RaftProtocolListener protocolListener : protocolListeners) {
+      protocolListener.requestVote(this,vote);
+    }
+  }
+
+  private void notifyCommit(byte[] bytes) {
+    for (RaftProtocolListener protocolListener : protocolListeners) {
+      protocolListener.commit(this,bytes);
+    }
+  }
+
 }
