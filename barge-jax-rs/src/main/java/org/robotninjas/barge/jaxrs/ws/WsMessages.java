@@ -1,5 +1,7 @@
 package org.robotninjas.barge.jaxrs.ws;
 
+import org.robotninjas.barge.api.AppendEntries;
+import org.robotninjas.barge.api.RequestVote;
 import org.robotninjas.barge.state.Raft;
 
 import javax.annotation.concurrent.Immutable;
@@ -19,6 +21,22 @@ public class WsMessages {
 
   public static WsMessage stopping(Raft raft) {
     return new StoppingMessage(raft.toString());
+  }
+
+  public static WsMessage init(Raft raft) {
+    return new InitMessage(raft.toString());
+  }
+
+  public static WsMessage appendEntries(Raft raft, AppendEntries entries) {
+    return new AppendEntriesMessage(raft.toString(),entries);
+  }
+
+  public static WsMessage requestVote(Raft raft, RequestVote vote) {
+    return new RequestVoteMessage(raft.toString(),vote);
+  }
+
+  public static WsMessage commit(Raft raft, byte[] operation) {
+    return new CommitMessage(raft.toString(),operation);
   }
 
   @Immutable
@@ -162,6 +180,167 @@ public class WsMessages {
     public String toString() {
       return com.google.common.base.Objects.toStringHelper(this)
           .add("target", target)
+          .toString();
+    }
+  }
+
+  @SuppressWarnings("UnusedDeclaration")
+  private static class InitMessage extends WsMessage {
+    private final String name;
+
+    public InitMessage(String name) {
+      super("init");
+      this.name = name;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    @Override public int hashCode() {
+      return Objects.hash(name);
+    }
+
+    @Override public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null || getClass() != obj.getClass()) {
+        return false;
+      }
+      final InitMessage other = (InitMessage) obj;
+      return Objects.equals(this.name, other.name);
+    }
+
+    @Override public String toString() {
+      return com.google.common.base.Objects.toStringHelper(this)
+          .add("name", name)
+          .toString();
+    }
+  }
+
+  @SuppressWarnings("UnusedDeclaration")
+  private static class AppendEntriesMessage extends WsMessage {
+    private final String name;
+    private final AppendEntries entries;
+
+    public AppendEntriesMessage(String name, AppendEntries entries) {
+      super("append.entries");
+      this.name = name;
+      this.entries = entries;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public AppendEntries getEntries() {
+      return entries;
+    }
+
+    @Override public int hashCode() {
+      return Objects.hash(name, entries);
+    }
+
+    @Override public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null || getClass() != obj.getClass()) {
+        return false;
+      }
+      final AppendEntriesMessage other = (AppendEntriesMessage) obj;
+      return Objects.equals(this.name, other.name) && Objects.equals(this.entries, other.entries);
+    }
+
+    @Override public String toString() {
+      return com.google.common.base.Objects.toStringHelper(this)
+          .add("name", name)
+          .add("entries", entries)
+          .toString();
+    }
+  }
+
+  @SuppressWarnings("UnusedDeclaration")
+  private static class RequestVoteMessage extends WsMessage {
+    private final String name;
+    private final RequestVote vote;
+
+    public RequestVoteMessage(String name, RequestVote vote) {
+      super("request.vote");
+      this.name = name;
+      this.vote = vote;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public RequestVote getVote() {
+      return vote;
+    }
+
+    @Override public int hashCode() {
+      return Objects.hash(name, vote);
+    }
+
+    @Override public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null || getClass() != obj.getClass()) {
+        return false;
+      }
+      final RequestVoteMessage other = (RequestVoteMessage) obj;
+      return Objects.equals(this.name, other.name) && Objects.equals(this.vote, other.vote);
+    }
+
+    @Override public String toString() {
+      return com.google.common.base.Objects.toStringHelper(this)
+          .add("name", name)
+          .add("vote", vote)
+          .toString();
+    }
+  }
+
+  @SuppressWarnings("UnusedDeclaration")
+  private static class CommitMessage extends WsMessage {
+    private final String name;
+    private final byte[] operation;
+
+    public CommitMessage(String name, byte[] operation) {
+      super("commit");
+      this.name = name;
+      this.operation = operation;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public byte[] getOperation() {
+      return operation;
+    }
+
+    @Override public int hashCode() {
+      return Objects.hash(name, operation);
+    }
+
+    @Override public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null || getClass() != obj.getClass()) {
+        return false;
+      }
+      final CommitMessage other = (CommitMessage) obj;
+      return Objects.equals(this.name, other.name) && Objects.equals(this.operation, other.operation);
+    }
+
+    @Override public String toString() {
+      return com.google.common.base.Objects.toStringHelper(this)
+          .add("name", name)
+          .add("operation", operation)
           .toString();
     }
   }

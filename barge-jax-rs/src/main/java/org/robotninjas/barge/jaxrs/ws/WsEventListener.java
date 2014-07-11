@@ -48,63 +48,36 @@ public class WsEventListener implements StateTransitionListener, RaftProtocolLis
 
   @Override
   public void changeState(@Nonnull final Raft context, @Nullable final Raft.StateType from, @Nonnull final Raft.StateType to) {
-    executor.execute(new Runnable() {
-      @Override
-      public void run() {
-        WsMessage message = WsMessages.stateChange(context, from, to);
-
-        for (Listener remote : remotes) {
-          send(message, remote);
-        }
-      }
-    });
+    dispatch(WsMessages.stateChange(context, from, to));
   }
 
   @Override
   public void invalidTransition(@Nonnull final Raft context, @Nonnull final Raft.StateType actual,
                                 @Nullable final Raft.StateType expected) {
-    executor.execute(new Runnable() {
-      @Override
-      public void run() {
-        WsMessage message = WsMessages.invalidTransition(context, expected, actual);
-
-        for (Listener remote : remotes) {
-          send(message, remote);
-        }
-      }
-    });
+    dispatch(WsMessages.invalidTransition(context, expected, actual));
   }
 
   @Override
   public void stop(@Nonnull final Raft raft) {
-    executor.execute(new Runnable() {
-      @Override
-      public void run() {
-        WsMessage message = WsMessages.stopping(raft);
-
-        for (Listener remote : remotes) {
-          send(message, remote);
-        }
-      }
-    });
+    dispatch(WsMessages.stopping(raft));
   }
 
-  @Override public void init(Raft raft) {
-    
+  @Override
+  public void init(final Raft raft) {
+    dispatch(WsMessages.init(raft));
   }
 
-  @Override public void appendEntries(@Nonnull Raft raft, @Nonnull AppendEntries entries) {
-
+  @Override public void appendEntries(@Nonnull final Raft raft, @Nonnull final AppendEntries entries) {
+    dispatch(WsMessages.appendEntries(raft, entries));
   }
 
-  @Override public void requestVote(@Nonnull Raft raft, @Nonnull RequestVote vote) {
-
+  @Override public void requestVote(@Nonnull final Raft raft, @Nonnull final RequestVote vote) {
+    dispatch(WsMessages.requestVote(raft, vote));
   }
 
-  @Override public void commit(@Nonnull Raft raft, @Nonnull byte[] operation) {
-
+  @Override public void commit(@Nonnull final Raft raft, @Nonnull final byte[] operation) {
+    dispatch(WsMessages.commit(raft, operation));
   }
-
 
   public void addClient(Listener listener) {
     logger.info("adding listener: {}", listener);
@@ -130,5 +103,18 @@ public class WsEventListener implements StateTransitionListener, RaftProtocolLis
       logger.warn("fail to convert {} to json", message, e);
     }
   }
+
+  private void dispatch(final WsMessage message) {
+    executor.execute(new Runnable() {
+      @Override public void run() {
+
+        for (Listener remote : remotes) {
+          send(message, remote);
+        }
+
+      }
+    });
+  }
+
 
 }

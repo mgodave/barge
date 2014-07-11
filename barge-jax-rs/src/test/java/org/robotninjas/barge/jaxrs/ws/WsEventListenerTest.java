@@ -2,6 +2,8 @@ package org.robotninjas.barge.jaxrs.ws;
 
 import org.jetlang.fibers.FiberStub;
 import org.junit.Test;
+import org.robotninjas.barge.api.AppendEntries;
+import org.robotninjas.barge.api.RequestVote;
 import org.robotninjas.barge.state.Raft;
 
 import static org.mockito.Mockito.*;
@@ -61,11 +63,58 @@ public class WsEventListenerTest {
   }
 
   @Test
+  public void dispatch_runnable_notifying_init_to_registered_listener_when_initialized() throws Exception {
+    wsEventListener.addClient(listener);
+    wsEventListener.init(raft);
+
+    fiber.executeAllPending();
+
+    verify(listener).send(contains("init"));
+  }
+
+  @Test
+  public void dispatch_runnable_notifying_append_entries_to_registered_listener() throws Exception {
+    AppendEntries entries = AppendEntries.getDefaultInstance();
+
+    wsEventListener.addClient(listener);
+    wsEventListener.appendEntries(raft, entries);
+
+    fiber.executeAllPending();
+
+    verify(listener).send(contains("append.entries"));
+  }
+
+  @Test
+  public void dispatch_runnable_notifying_request_vote_to_registered_listener() throws Exception {
+    RequestVote vote = RequestVote.getDefaultInstance();
+
+    wsEventListener.addClient(listener);
+    wsEventListener.requestVote(raft, vote);
+
+    fiber.executeAllPending();
+
+    verify(listener).send(contains("request.vote"));
+  }
+
+  @Test
+  public void dispatch_runnable_notifying_commit_to_registered_listener() throws Exception {
+    byte[] bytes = "foo".getBytes();
+
+    wsEventListener.addClient(listener);
+    wsEventListener.commit(raft, bytes);
+
+    fiber.executeAllPending();
+
+    verify(listener).send(contains("commit"));
+  }
+
+
+  @Test
   public void removed_listener_does_not_receive_notifications_after_its_removal() throws Exception {
     wsEventListener.addClient(listener);
     wsEventListener.changeState(raft, CANDIDATE, LEADER);
     fiber.executeAllPending();
-    
+
     wsEventListener.removeClient(listener);
 
     wsEventListener.changeState(raft, CANDIDATE, LEADER);
