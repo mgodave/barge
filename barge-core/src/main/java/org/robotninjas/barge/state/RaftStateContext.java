@@ -40,7 +40,8 @@ class RaftStateContext implements Raft {
 
   private boolean stop;
 
-  public RaftStateContext(String name, StateFactory stateFactory, Fiber executor, Set<StateTransitionListener> listeners, Set<RaftProtocolListener> protocolListeners) {
+  @Inject
+  RaftStateContext(String name, StateFactory stateFactory, @RaftExecutor Fiber executor, Set<StateTransitionListener> listeners, Set<RaftProtocolListener> protocolListeners) {
     MDC.put("self", name);
 
     this.stateFactory = stateFactory;
@@ -52,8 +53,7 @@ class RaftStateContext implements Raft {
     this.protocolListeners.addAll(protocolListeners);
   }
 
-  @Inject
-  RaftStateContext(RaftLog log, StateFactory stateFactory, @RaftExecutor Fiber executor, Set<StateTransitionListener> listeners) {
+  RaftStateContext(RaftLog log, StateFactory stateFactory, Fiber executor, Set<StateTransitionListener> listeners) {
     this(log.self().toString(), stateFactory, executor, listeners);
   }
 
@@ -146,7 +146,7 @@ class RaftStateContext implements Raft {
     executor.execute(response);
 
     notifyCommit(op);
-    
+
     return response;
   }
 
@@ -235,19 +235,19 @@ class RaftStateContext implements Raft {
 
   private void notifyAppendEntries(AppendEntries request) {
     for (RaftProtocolListener protocolListener : protocolListeners) {
-      protocolListener.appendEntries(this,request);
+      protocolListener.appendEntries(this, request);
     }
   }
 
   private void notifyRequestVote(RequestVote vote) {
     for (RaftProtocolListener protocolListener : protocolListeners) {
-      protocolListener.requestVote(this,vote);
+      protocolListener.requestVote(this, vote);
     }
   }
 
   private void notifyCommit(byte[] bytes) {
     for (RaftProtocolListener protocolListener : protocolListeners) {
-      protocolListener.commit(this,bytes);
+      protocolListener.commit(this, bytes);
     }
   }
 

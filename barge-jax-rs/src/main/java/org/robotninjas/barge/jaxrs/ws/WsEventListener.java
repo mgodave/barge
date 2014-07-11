@@ -6,7 +6,10 @@ import com.google.common.collect.Sets;
 import org.jetlang.core.RunnableExecutorImpl;
 import org.jetlang.fibers.Fiber;
 import org.jetlang.fibers.ThreadFiber;
+import org.robotninjas.barge.api.AppendEntries;
+import org.robotninjas.barge.api.RequestVote;
 import org.robotninjas.barge.state.Raft;
+import org.robotninjas.barge.state.RaftProtocolListener;
 import org.robotninjas.barge.state.StateTransitionListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +21,7 @@ import java.util.Set;
 
 /**
  */
-public class WsEventListener implements StateTransitionListener {
+public class WsEventListener implements StateTransitionListener, RaftProtocolListener {
 
   private final Logger logger = LoggerFactory.getLogger(WsEventListener.class);
 
@@ -85,6 +88,23 @@ public class WsEventListener implements StateTransitionListener {
       }
     });
   }
+
+  @Override public void init(Raft raft) {
+    
+  }
+
+  @Override public void appendEntries(@Nonnull Raft raft, @Nonnull AppendEntries entries) {
+
+  }
+
+  @Override public void requestVote(@Nonnull Raft raft, @Nonnull RequestVote vote) {
+
+  }
+
+  @Override public void commit(@Nonnull Raft raft, @Nonnull byte[] operation) {
+
+  }
+
 
   public void addClient(Listener listener) {
     logger.info("adding listener: {}", listener);

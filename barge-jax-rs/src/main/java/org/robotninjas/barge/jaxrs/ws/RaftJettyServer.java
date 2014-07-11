@@ -13,6 +13,8 @@ import org.glassfish.jersey.servlet.ServletContainer;
 
 import org.robotninjas.barge.jaxrs.RaftApplication;
 import org.robotninjas.barge.jaxrs.RaftServer;
+import org.robotninjas.barge.state.RaftProtocolListener;
+import org.robotninjas.barge.state.StateTransitionListener;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import java.io.File;
@@ -21,6 +23,7 @@ import java.io.IOException;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -133,7 +136,7 @@ public class RaftJettyServer implements RaftServer<RaftJettyServer> {
   public RaftJettyServer(int serverIndex, URI[] uris, File logDir) {
     server = new Server();
     events = new WsEventListener();
-    raftApplication = new RaftApplication(serverIndex, uris, logDir, events);
+    raftApplication = new RaftApplication(serverIndex, uris, logDir, Collections.<StateTransitionListener>singleton(events), Collections.<RaftProtocolListener>singleton(events));
   }
 
   public RaftJettyServer start(int port) {

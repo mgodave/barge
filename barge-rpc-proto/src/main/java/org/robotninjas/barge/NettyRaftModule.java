@@ -2,7 +2,7 @@ package org.robotninjas.barge;
 
 import com.google.inject.PrivateModule;
 
-import org.robotninjas.barge.jaxrs.AbstractListenersModule;
+import org.robotninjas.barge.state.AbstractListenersModule;
 
 import java.io.File;
 

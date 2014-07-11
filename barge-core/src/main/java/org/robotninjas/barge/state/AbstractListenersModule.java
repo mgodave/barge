@@ -1,10 +1,8 @@
-package org.robotninjas.barge.jaxrs;
+package org.robotninjas.barge.state;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.binder.LinkedBindingBuilder;
 import com.google.inject.multibindings.Multibinder;
-
-import org.robotninjas.barge.state.StateTransitionListener;
 
 
 /**
@@ -27,17 +25,23 @@ import org.robotninjas.barge.state.StateTransitionListener;
 public abstract class AbstractListenersModule extends AbstractModule {
 
   private Multibinder<StateTransitionListener> listenerBinder;
+  private Multibinder<RaftProtocolListener> protocolListenerBinder;
 
   @Override
   protected void configure() {
     listenerBinder = Multibinder.newSetBinder(binder(), StateTransitionListener.class);
+    protocolListenerBinder = Multibinder.newSetBinder(binder(), RaftProtocolListener.class);
     configureListeners();
   }
 
   protected abstract void configureListeners();
 
-  protected final LinkedBindingBuilder<StateTransitionListener> bindListener() {
+  protected final LinkedBindingBuilder<StateTransitionListener> bindTransitionListener() {
     return listenerBinder.addBinding();
+  }
+  
+  protected final LinkedBindingBuilder<RaftProtocolListener> bindProtocolListener() {
+    return protocolListenerBinder.addBinding();
   }
 
 }
