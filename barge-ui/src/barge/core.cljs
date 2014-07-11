@@ -15,20 +15,17 @@ ordered from newest to latest"
     {:node1 {
       :uri "ws://127.0.0.1:56789/events"
       :ws nil
-      :msgs [{:msg "this is a message" :timestamp "2014-06-11"}
-        {:msg "this is another message" :timestamp "2014-06-11"}]
+      :msgs []
       }
      :node2 {
       :uri "ws://127.0.0.1:56790/events"
       :ws nil
-      :msgs [{:msg "this is a message" :timestamp "2014-06-11"}]
+      :msgs []
       }
      :node3 {
       :uri "ws://127.0.0.1:56791/events"
       :ws nil
-      :msgs [{:msg "this is a message" :timestamp "2014-06-11"}
-       {:msg "this is a message" :timestamp "2014-06-11"}
-       {:msg "this is another message" :timestamp "2014-06-11"}]
+      :msgs []
       }
      }))
 
