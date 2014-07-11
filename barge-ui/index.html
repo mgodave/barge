@@ -3,40 +3,35 @@
     <head>
         <title>Barge: A Raft Implementation in Java</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="css/bootstrap.min.css">
-        <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
+        <link rel="stylesheet" href="css/pure-release-0.5.0/pure-min.css">
         <link rel="stylesheet" href="css/styles.css">
     </head>
     <body>
-        <div class="navbar navbar-fixed-top">
-            <div class="navbar-inner">
-                <div class="container-fluid">
-                    <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"> <span class="icon-bar"></span>
-                        <span class="icon-bar"></span> <span class="icon-bar"></span>
-                    </a>
-                    <a class="brand" href="/">Barge</a>
-                </div>
+        <div class="header">
+            <div class="pure-menu">
+                <a class="pure-menu-heading" href="http://github.com/mgodave/barge">Barge</a>
             </div>
         </div>
 
-        <!-- displays messages from all nodes in the cluster (presently 3) -->
-        <div id="raft-demo" class="container-fluid">
-            <!--  shows up when error happens, click to remove -->
-            <div id="error-panel" class="alert alert-error" style="display: none"></div>
-
-           <div class="row-fluid">
-               <div id="node1" class="node well span4">
-               </div>
-               <div id="node2" class="node well span4">
-               </div>
-               <div id="node3" class="node well span4">
-                </div>
+        <!-- displays messages from all nodes in the cluster (presently hardwired to 3) -->
+        <div id="raft-demo" class="pure-g">
+            <div class="pure-u-1-3">
+            <div id="node1" class="node">
             </div>
+               </div>
+            <div class="pure-u-1-3">
+               <div id="node2" class="node">
+               </div>
+               </div>
+            <div class="pure-u-1-3">
+               <div id="node3" class="node">
+               </div>
+                </div>
        </div>
 
-        <script src="react.min.js"></script>
+        <script src="js/react.min.js"></script>
         <script src="out/goog/base.js" type="text/javascript"></script>
-        <script src="app.js" type="text/javascript"></script>
+        <script src="out/app.js" type="text/javascript"></script>
         <script type="text/javascript">goog.require("barge.core");</script>
     </body>
 </html>

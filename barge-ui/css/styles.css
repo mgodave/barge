@@ -1,4 +1,19 @@
-body {
-  padding-top: 60px;
-  padding-bottom: 40px;
+.node {
+  margin: 1em;
+  padding: 1em;
+  border: thin solid #000;
+}
+
+.header {
+  background-color: #000;
+  color: white;
+}
+
+.pure-menu {
+  font-size: 200%;
+  font-weight: bold;
+}
+
+.pure-table {
+  margin-top: 1em;
 }

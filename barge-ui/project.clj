@@ -18,7 +18,7 @@
     :builds [{:id "dev"
               :source-paths ["src"]
               :compiler {
-                :output-to "app.js"
+                :output-to "out/app.js"
                 :output-dir "out"
                 :pretty-print true
                 :optimizations :none

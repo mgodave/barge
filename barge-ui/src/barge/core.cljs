@@ -32,12 +32,23 @@ ordered from newest to latest"
       }
      }))
 
+(defn parse-msg
+  "parse message into a clojure object."
+  [msg]
+  (cond
+   (string? msg)
+   (js->clj (js/eval msg))
+
+   true
+   msg))
+
+
 (defn update-msgs [node msg]
   "update the messages list for given node, appending a new message
 
   state is updated asynchronously"
   (swap! node-state (fn [st]
-                      (update-in st [(keyword node) :msgs] #(conj % {:msg msg :timestamp "2014-06-11"})))))
+                      (update-in st [(keyword node) :msgs] #(cons {:msg msg :timestamp "2014-06-11"} %)))))
 
 ;; message handlers
 (defn on-msg [node e]
@@ -98,20 +109,30 @@ ordered from newest to latest"
     (reify
       om/IInitState
       (init-state [_]
-        {:connected false})
+        {:connected false
+         :count     15})
       om/IRenderState
-      (render-state [_ {:keys [connected]}]
+      (render-state [_ {:keys [connected count]}]
         (dom/div #js {:id id}
-          (dom/h1 nil id)
           (dom/button
              #js {:onClick #(toggle-connect owner id (om/get-state owner :connected))
-                  :class "btn-primary btn btn-large"}
+                  :className "pure-button pure-button-primary"}
             (if connected
-              "Disconnect"
-             "Connect"
+              (str "Disconnect " id)
+             (str "Connect " id)
               ))
-          (apply dom/ul nil
-            (map #(dom/li nil (:msg %)) (:msgs ((keyword id) app)))))))))
+          (dom/table #js {:className "pure-table"}
+              (dom/thead nil
+                (dom/tr nil
+                  (dom/th nil "Timestamp")
+                  (dom/th nil "Message")))
+              (apply dom/tbody nil
+                 (map (fn [{:keys [msg timestamp]}]
+                         (dom/tr nil
+                            (dom/td nil timestamp)
+                            (dom/td nil msg)))
+                     (take count (:msgs ((keyword id) app)))))))))))
+
 
 
 (defn set-root
