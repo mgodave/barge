@@ -1,8 +1,5 @@
 package org.robotninjas.barge.store;
 
-import com.google.common.collect.Lists;
-import com.google.common.io.CharStreams;
-
 import org.glassfish.hk2.utilities.Binder;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
@@ -13,13 +10,11 @@ import org.robotninjas.barge.jaxrs.ws.RaftJettyServer;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import java.util.List;
 import java.util.logging.Level;
 
 import javax.inject.Singleton;
@@ -54,11 +49,11 @@ public class RaftStoreServer {
       "                            Default is './barge.conf'\n" +
       "<server index>            : Index of this server in the cluster configuration\n";
 
+  private static final ClusterConfiguration cluster = new ClusterConfiguration();
 
   private final int serverIndex;
   private final URI[] clusterURIs;
   private final File logDir;
-
   private RaftJettyServer server;
 
   public RaftStoreServer(int serverIndex, URI[] clusterURIs, File logDir) {
@@ -105,7 +100,7 @@ public class RaftStoreServer {
       System.exit(1);
     }
 
-    URI[] uris = readConfiguration(clusterConfiguration);
+    URI[] uris = cluster.readConfiguration(clusterConfiguration);
 
     final File logDir = new File("log" + index);
 
@@ -118,23 +113,6 @@ public class RaftStoreServer {
     java.util.logging.Logger.getLogger("").setLevel(Level.ALL);
     SLF4JBridgeHandler.removeHandlersForRootLogger();
     SLF4JBridgeHandler.install();
-  }
-
-  private static URI[] readConfiguration(File clusterConfigurationFile) throws IOException, URISyntaxException {
-    List<URI> uris = Lists.newArrayList();
-
-    int lineNumber = 1;
-
-    for (String line : CharStreams.readLines(new FileReader(clusterConfigurationFile))) {
-      String[] pair = line.split("=");
-
-      if (pair.length != 2)
-        throw new IOException("Invalid cluster configuration at line " + lineNumber);
-
-      uris.add(Integer.parseInt(pair[0].trim()), new URI(pair[1].trim()));
-    }
-
-    return uris.toArray(new URI[uris.size()]);
   }
 
   private static void usage() {
