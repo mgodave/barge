@@ -34,18 +34,36 @@ ordered from newest to latest"
   [msg]
   (cond
    (string? msg)
-   (js->clj (js/eval msg))
+   (js->clj (JSON/parse msg) :keywordize-keys true)
 
    true
    msg))
 
+(parse-msg "{\"foo\" : \"bar\"}")
+
+(defn coalesce
+  "prepend msg to msgs, coalescing msgs which differ only by their timestamps"
+  [msg msgs]
+  (cond
+    (nil? msgs)
+    [msg]
+
+    true
+    (let [m1 (assoc-in msg [:timestamp] nil)
+          m2 (assoc-in (first msgs) [:timestamp] nil)]
+      (if (= m1 m2)
+        (cons msg (rest msgs))
+      (cons msg msgs))
+      )
+    )
+  )
 
 (defn update-msgs [node msg]
   "update the messages list for given node, appending a new message
 
   state is updated asynchronously"
   (swap! node-state (fn [st]
-                      (update-in st [(keyword node) :msgs] #(cons {:msg msg :timestamp "2014-06-11"} %)))))
+                      (update-in st [(keyword node) :msgs] (partial coalesce (parse-msg msg))))))
 
 ;; message handlers
 (defn on-msg [node e]
@@ -89,8 +107,8 @@ ordered from newest to latest"
 (defn disconnect [st node]
   "disconnect node and updates state accordingly"
   (if-let [ws (:ws ((keyword node) st))]
-    (.close ws)
-    (assoc-in st [(keyword node) :ws] nil)))
+    (do (.close ws)
+        (assoc-in st [(keyword node) :ws] nil))))
 
 
 (defn toggle-connect [owner node connected]
@@ -124,12 +142,38 @@ ordered from newest to latest"
                   (dom/th nil "Timestamp")
                   (dom/th nil "Message")))
               (apply dom/tbody nil
-                 (map (fn [{:keys [msg timestamp]}]
-                         (dom/tr nil
-                            (dom/td nil timestamp)
-                            (dom/td nil msg)))
+                 (map format-msg
                      (take count (:msgs ((keyword id) app)))))))))))
 
+(defn format-msg
+ "format a message received from a Raft instance as a DOM node"
+   [msg]
+  (dom/tr nil
+       (dom/td nil (:timestamp msg))
+       (dom/td #js {:className (:type msg)}
+               (case (:type msg)
+                 "init"
+                 "INIT"
+
+                 "stateChange"
+                 (str (:from msg) " -> " (:to msg))
+
+                 "invalidTransition"
+                 (str (:expected msg) " vs. " (:actual msg))
+
+                 "stopping"
+                 "STOP"
+
+                 "appendEntries"
+                 (str (count (:entriesList (:entries msg))) " entries, term: " (:term (:entries msg)))
+
+                 "requestVote"
+                 (str (:candidateId (:vote msg)) ", term: " (:term (:vote msg)))
+
+                 "commit"
+                 (str (:operation msg))
+
+                 "" ))))
 
 
 (defn set-root

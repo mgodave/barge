@@ -17,3 +17,33 @@
 .pure-table {
   margin-top: 1em;
 }
+
+td.appendEntries {
+  background-color: #FEE0C6;
+}
+
+td.requestVote {
+  background-color: #FDF2EE;
+}
+
+td.commit {
+  background-color:#EEF3E2;
+}
+
+td.init {
+  background-color: #EBECE4;
+}
+
+td.stateChange {
+  background-color: #FEFFF1;
+}
+
+td.invalidTransition {
+ background-color: #8B8378;
+ color: white;
+}
+
+td.stopping {
+ background-color: #8B0000;
+ color: lightgray;
+}

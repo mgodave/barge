@@ -1,5 +1,6 @@
 package org.robotninjas.barge.jaxrs.ws;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -19,7 +20,7 @@ public class WsMessage {
     return type;
   }
 
-  public Date getTimestamp() {
-    return timestamp;
+  public String getTimestamp() {
+    return SimpleDateFormat.getDateTimeInstance().format(timestamp);
   }
 }

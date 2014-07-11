@@ -39,7 +39,7 @@ public class WsEventListenerTest {
 
     fiber.executeAllPending();
 
-    verify(listener).send(contains("state.change"));
+    verify(listener).send(contains("stateChange"));
   }
 
   @Test
@@ -49,7 +49,7 @@ public class WsEventListenerTest {
 
     fiber.executeAllPending();
 
-    verify(listener).send(contains("invalid.transition"));
+    verify(listener).send(contains("invalidTransition"));
   }
 
   @Test
@@ -81,7 +81,7 @@ public class WsEventListenerTest {
 
     fiber.executeAllPending();
 
-    verify(listener).send(contains("append.entries"));
+    verify(listener).send(contains("appendEntries"));
   }
 
   @Test
@@ -93,7 +93,7 @@ public class WsEventListenerTest {
 
     fiber.executeAllPending();
 
-    verify(listener).send(contains("request.vote"));
+    verify(listener).send(contains("requestVote"));
   }
 
   @Test

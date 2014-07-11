@@ -47,7 +47,7 @@ public class WsMessages {
     private final Raft.StateType to;
 
     public StateChangeMessage(String target, Raft.StateType from, Raft.StateType to) {
-      super("state.change");
+      super("stateChange");
       this.target = target;
       this.from = from;
       this.to = to;
@@ -100,7 +100,7 @@ public class WsMessages {
     private final Raft.StateType actual;
 
     public InvalidTransitionMessage(String target, Raft.StateType expected, Raft.StateType actual) {
-      super("invalid.transition");
+      super("invalidTransition");
       this.target = target;
       this.expected = expected;
       this.actual = actual;
@@ -225,7 +225,7 @@ public class WsMessages {
     private final AppendEntries entries;
 
     public AppendEntriesMessage(String name, AppendEntries entries) {
-      super("append.entries");
+      super("appendEntries");
       this.name = name;
       this.entries = entries;
     }
@@ -267,7 +267,7 @@ public class WsMessages {
     private final RequestVote vote;
 
     public RequestVoteMessage(String name, RequestVote vote) {
-      super("request.vote");
+      super("requestVote");
       this.name = name;
       this.vote = vote;
     }
