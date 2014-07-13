@@ -67,15 +67,36 @@ ordered from newest to latest"
                  "" ))))
 
 
-(defn node-view [id]
+(defn messages-view
+  "A view for list of messages, displaying them in a table with timestamp and content.
+
+  Messages are formatted according to their type, and the type is also used as class name for the `td` cell
+  each messages'content is put in"
+  [cursor owner]
+  (reify
+
+    om/IRenderState
+    (render-state [this {:keys [count]}]
+        (dom/table #js {:className "pure-table"}
+              (dom/thead nil
+                (dom/tr nil
+                  (dom/th nil "Timestamp")
+                  (dom/th nil "Message")))
+              (apply dom/tbody nil
+                 (map format-msg
+                     (take count cursor)))
+                  ))))
+
+(defn node-view
+  "A view for a single node, eg. a server instance."
+  [id]
   (fn [app owner]
     (reify
       om/IInitState
       (init-state [_]
-        {:connected false
-         :count     15})
+        {:connected false})
       om/IRenderState
-      (render-state [_ {:keys [connected count]}]
+      (render-state [_ {:keys [connected]}]
         (dom/div #js {:id id}
           (dom/button
              #js {:onClick #(toggle-connect owner id (om/get-state owner :connected))
@@ -84,14 +105,10 @@ ordered from newest to latest"
               (str "Disconnect " id)
              (str "Connect " id)
               ))
-          (dom/table #js {:className "pure-table"}
-              (dom/thead nil
-                (dom/tr nil
-                  (dom/th nil "Timestamp")
-                  (dom/th nil "Message")))
-              (apply dom/tbody nil
-                 (map format-msg
-                     (take count (:msgs ((keyword id) app)))))))))))
+          (om/build messages-view
+                    (:msgs ((keyword id) app))
+                    {:init-state {:count 15}})
+          )))))
 
 
 (defn set-root
