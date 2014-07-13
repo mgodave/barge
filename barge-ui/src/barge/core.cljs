@@ -82,6 +82,9 @@ ordered from newest to latest"
                 (dom/tr nil
                   (dom/th nil "Timestamp")
                   (dom/th nil "Message")))
+
+              ;; not sure why we have to use apply here? means that tbody is actually a function, but then
+              ;; why can't I call it directly?
               (apply dom/tbody nil
                  (map format-msg
                      (take count cursor)))
@@ -102,22 +105,22 @@ ordered from newest to latest"
              #js {:onClick #(toggle-connect owner id (om/get-state owner :connected))
                   :className "pure-button pure-button-primary"}
             (if connected
-              (str "Disconnect " id)
-             (str "Connect " id)
+              (str "Disconnect " (name id))
+             (str "Connect " (name id))
               ))
           (om/build messages-view
-                    (:msgs ((keyword id) app))
+                    (-> app id :msgs)
                     {:init-state {:count 15}})
           )))))
 
 
 (defn set-root
-  [name] (om/root (node-view name)
+  [id] (om/root (node-view id)
              node-state
-          {:target (. js/document (getElementById name))}))
+          {:target (. js/document (getElementById (name id)))}))
 
-(set-root "node1")
-(set-root "node2")
-(set-root "node3")
+(set-root :node1)
+(set-root :node2)
+(set-root :node3)
 
 
