@@ -1,3 +1,7 @@
+body {
+ font-size: 80%;
+}
+
 .node {
   margin: 1em;
   padding: 1em;
