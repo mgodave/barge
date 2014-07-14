@@ -69,5 +69,6 @@ public class JaxRsRaftModule extends PrivateModule {
 
     expose(RaftClientProvider.class);
     expose(Raft.class);
+    expose(ClusterConfig.class);
   }
 }

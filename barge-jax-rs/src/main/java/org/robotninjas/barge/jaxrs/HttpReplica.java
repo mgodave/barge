@@ -54,7 +54,7 @@ public class HttpReplica implements Replica {
     return this.uri.equals(uri);
   }
 
-  public URI getURI() {
+  public URI getUri() {
     return uri;
   }
 }

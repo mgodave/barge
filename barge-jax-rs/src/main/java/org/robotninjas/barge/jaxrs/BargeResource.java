@@ -16,7 +16,7 @@
 package org.robotninjas.barge.jaxrs;
 
 import com.google.common.base.Throwables;
-
+import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.NotLeaderException;
 import org.robotninjas.barge.api.AppendEntries;
 import org.robotninjas.barge.api.AppendEntriesResponse;
@@ -25,7 +25,6 @@ import org.robotninjas.barge.api.RequestVoteResponse;
 import org.robotninjas.barge.state.Raft;
 
 import javax.inject.Inject;
-
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -45,10 +44,12 @@ import javax.ws.rs.core.Response;
 public class BargeResource {
 
   private final Raft raft;
+  private final ClusterConfig clusterConfig;
 
   @Inject
-  public BargeResource(Raft raft) {
+  public BargeResource(Raft raft, ClusterConfig clusterConfig) {
     this.raft = raft;
+    this.clusterConfig = clusterConfig;
   }
 
   @Path("/init")
@@ -62,6 +63,12 @@ public class BargeResource {
     }
   }
 
+  @Path("/config")
+  @GET
+  public ClusterConfig config(){
+    return clusterConfig;
+  }
+  
   @Path("/state")
   @GET
   public Raft.StateType state() {
@@ -90,7 +97,7 @@ public class BargeResource {
 
       return Response.noContent().build();
     } catch (NotLeaderException e) {
-      return Response.status(Response.Status.FOUND).location(((HttpReplica) e.getLeader()).getURI()).build();
+      return Response.status(Response.Status.FOUND).location(((HttpReplica) e.getLeader()).getUri()).build();
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }

@@ -16,16 +16,23 @@
 package org.robotninjas.barge.jaxrs;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
+import com.google.common.collect.Lists;
+import jersey.repackaged.com.google.common.collect.Iterables;
 import org.robotninjas.barge.api.*;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
 
 /**
  * Utility methods for configuring Jackson.
@@ -39,10 +46,12 @@ public abstract class Jackson {
   public static ObjectMapper objectMapper() {
     ObjectMapper mapper = new ObjectMapper();
     SimpleModule raftMessagesModule = new SimpleModule("MyModule", new Version(0, 1, 0, null, "org.robotninjas", "barge"))
-      .addDeserializer(RequestVote.class, new RequestVoteDeserializer())
-      .addDeserializer(RequestVoteResponse.class, new RequestVoteResponseDeserializer())
-      .addDeserializer(AppendEntries.class, new AppendEntriesDeserializer())
-      .addDeserializer(AppendEntriesResponse.class, new AppendEntriesResponseDeserializer());
+        .addDeserializer(RequestVote.class, new RequestVoteDeserializer())
+        .addDeserializer(HttpClusterConfig.class, new HttpClusterConfigDeserializer())
+        .addDeserializer(HttpReplica.class, new HttpReplicaDeserializer())
+        .addDeserializer(RequestVoteResponse.class, new RequestVoteResponseDeserializer())
+        .addDeserializer(AppendEntries.class, new AppendEntriesDeserializer())
+        .addDeserializer(AppendEntriesResponse.class, new AppendEntriesResponseDeserializer());
     mapper.registerModule(raftMessagesModule);
     return mapper;
   }
@@ -89,7 +98,7 @@ public abstract class Jackson {
             break;
         }
       }
-      jsonParser.close();
+      
       return builder.build();
     }
 
@@ -120,9 +129,8 @@ public abstract class Jackson {
           builder.setVoteGranted(jsonParser.getBooleanValue());
         }
       }
-      jsonParser.close();
-      return builder.build();
 
+      return builder.build();
     }
   }
 
@@ -167,7 +175,7 @@ public abstract class Jackson {
             break;
         }
       }
-      jsonParser.close();
+
       return builder.build();
     }
 
@@ -218,8 +226,60 @@ public abstract class Jackson {
         }
       }
 
-      jsonParser.close();
       return builder.build();
+    }
+  }
+
+  private static class HttpClusterConfigDeserializer extends JsonDeserializer<HttpClusterConfig> {
+    @Override
+    public HttpClusterConfig deserialize(JsonParser jsonParser, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+      List<HttpReplica> replicas = Lists.newArrayList();
+
+      while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
+        String fieldName = jsonParser.getCurrentName();
+
+        JsonToken token = jsonParser.nextToken();
+
+        switch (fieldName) {
+          case "cluster":
+            if (token != JsonToken.START_ARRAY) {
+              throw new IOException("cluster should be an array, got " + token);
+            }
+            while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
+              replicas.add(jsonParser.readValueAs(HttpReplica.class));
+            }
+            break;
+        }
+      }
+
+      return new HttpClusterConfig(replicas.get(0), Iterables.toArray(Iterables.skip(replicas, 1), HttpReplica.class));
+    }
+  }
+
+  private static class HttpReplicaDeserializer extends JsonDeserializer<HttpReplica> {
+    @Override
+    public HttpReplica deserialize(JsonParser jsonParser, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+      URI uri = null;
+
+      while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
+        String fieldName = jsonParser.getCurrentName();
+
+        jsonParser.nextToken();
+
+        switch (fieldName) {
+          case "uri":
+            String uriString = jsonParser.getValueAsString();
+            try {
+              uri = new URI(uriString);
+            } catch (URISyntaxException e) {
+              throw new IllegalStateException("failed to build proper URI from parsed uri field " + uriString);
+            }
+            break;
+        }
+      }
+
+      return new HttpReplica(uri);
+
     }
   }
 }

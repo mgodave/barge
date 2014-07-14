@@ -26,6 +26,6 @@ public class HttpRaftClientProvider implements RaftClientProvider{
 
   @Override
   public RaftClient get(Replica replica) {
-    return new BargeJaxRsClient(((HttpReplica)replica).getURI());
+    return new BargeJaxRsClient(((HttpReplica)replica).getUri());
   }
 }

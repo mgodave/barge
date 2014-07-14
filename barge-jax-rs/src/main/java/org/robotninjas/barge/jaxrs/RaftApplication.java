@@ -90,6 +90,15 @@ public class RaftApplication {
               public void dispose(Raft raft) {
               }
             }).to(Raft.class);
+        
+        bindFactory(new Factory<ClusterConfig>() {
+          @Override public ClusterConfig provide() {
+            return injector.get().getInstance(ClusterConfig.class);
+          }
+
+          @Override public void dispose(ClusterConfig instance) {
+          }
+        }).to(ClusterConfig.class);
       }
     };
 
