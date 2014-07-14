@@ -1,31 +1,34 @@
 package org.robotninjas.barge.jaxrs;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
+
+import static org.robotninjas.barge.jaxrs.Logs.uniqueLog;
 import org.robotninjas.barge.state.Raft;
 import org.robotninjas.barge.utils.Prober;
+
+import java.io.File;
+
+import java.net.URI;
+
+import java.util.concurrent.Callable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.File;
-import java.net.URI;
-import java.util.concurrent.Callable;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 
 /**
  */
 public abstract class ServerTest<T extends RaftServer<T>> {
-
-  private static final File target = new File(ServerTest.class.getResource("/marker").getFile()).getParentFile();
 
   @ClassRule
   public static MuteJUL muteJUL = new MuteJUL();
@@ -44,9 +47,9 @@ public abstract class ServerTest<T extends RaftServer<T>> {
     uris[1] = new URI("http://localhost:56790/");
     uris[2] = new URI("http://localhost:56791/");
 
-    httpServer1 = createServer(0, uris, new File(target, "log" + System.nanoTime())).start(56789);
-    httpServer2 = createServer(1, uris, new File(target, "log" + System.nanoTime())).start(56790);
-    httpServer3 = createServer(2, uris, new File(target, "log" + System.nanoTime())).start(56791);
+    httpServer1 = createServer(0, uris, uniqueLog()).start(56789);
+    httpServer2 = createServer(1, uris, uniqueLog()).start(56790);
+    httpServer3 = createServer(2, uris, uniqueLog()).start(56791);
   }
 
   @After

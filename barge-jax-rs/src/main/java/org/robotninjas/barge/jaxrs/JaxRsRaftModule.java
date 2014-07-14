@@ -24,8 +24,12 @@ import org.robotninjas.barge.jaxrs.client.HttpRaftClientProvider;
 import org.robotninjas.barge.jaxrs.ws.WsEventListenersModule;
 import org.robotninjas.barge.rpc.RaftClientProvider;
 import org.robotninjas.barge.state.Raft;
+import org.robotninjas.barge.state.RaftProtocolListener;
+import org.robotninjas.barge.state.StateTransitionListener;
 
 import java.io.File;
+
+import java.util.List;
 
 
 /**
@@ -36,18 +40,23 @@ public class JaxRsRaftModule extends PrivateModule {
   private final File logDir;
   private final StateMachine stateMachine;
   private final long timeoutInMs;
+  private final List<StateTransitionListener> transitionListeners;
+  private final List<RaftProtocolListener> protocolListeners;
 
-  public JaxRsRaftModule(ClusterConfig clusterConfig, File logDir, StateMachine stateMachine, long timeoutInMs) {
+  public JaxRsRaftModule(ClusterConfig clusterConfig, File logDir, StateMachine stateMachine, long timeoutInMs,
+                         List<StateTransitionListener> transitionListeners, List<RaftProtocolListener> protocolListeners) {
     this.clusterConfig = clusterConfig;
     this.logDir = logDir;
     this.stateMachine = stateMachine;
     this.timeoutInMs = timeoutInMs;
+    this.transitionListeners = transitionListeners;
+    this.protocolListeners = protocolListeners;
   }
 
   @Override
   protected void configure() {
 
-    install(new WsEventListenersModule());
+    install(new WsEventListenersModule(transitionListeners, protocolListeners));
 
     install(RaftCoreModule.builder()
         .withTimeout(timeoutInMs)
@@ -60,5 +69,6 @@ public class JaxRsRaftModule extends PrivateModule {
 
     expose(RaftClientProvider.class);
     expose(Raft.class);
+    expose(ClusterConfig.class);
   }
 }

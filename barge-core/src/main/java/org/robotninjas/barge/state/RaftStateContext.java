@@ -1,29 +1,10 @@
-/**
- * Copyright 2013 David Rusek <dave dot rusek at gmail dot com>
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package org.robotninjas.barge.state;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
-
 import org.jetlang.fibers.Fiber;
-
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.RaftExecutor;
 import org.robotninjas.barge.api.AppendEntries;
@@ -31,17 +12,17 @@ import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.api.RequestVote;
 import org.robotninjas.barge.api.RequestVoteResponse;
 import org.robotninjas.barge.log.RaftLog;
-
 import org.slf4j.MDC;
 
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.inject.Inject;
+import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.NotThreadSafe;
-
-import javax.inject.Inject;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 
 @NotThreadSafe
@@ -49,7 +30,10 @@ class RaftStateContext implements Raft {
 
   private final StateFactory stateFactory;
   private final Executor executor;
+  private final String name;
+
   private final Set<StateTransitionListener> listeners = Sets.newConcurrentHashSet();
+  private final Set<RaftProtocolListener> protocolListeners = Sets.newConcurrentHashSet();
 
   private volatile StateType state;
   private volatile State delegate;
@@ -57,35 +41,42 @@ class RaftStateContext implements Raft {
   private boolean stop;
 
   @Inject
-  RaftStateContext(RaftLog log, StateFactory stateFactory, @RaftExecutor Fiber executor, Set<StateTransitionListener> listeners) {
-    this(log.self().toString(), stateFactory, executor, listeners);
-  }
-
-  RaftStateContext(String name, StateFactory stateFactory, Fiber executor, Set<StateTransitionListener> listeners) {
+  RaftStateContext(String name, StateFactory stateFactory, @RaftExecutor Fiber executor, Set<StateTransitionListener> listeners, Set<RaftProtocolListener> protocolListeners) {
     MDC.put("self", name);
 
     this.stateFactory = stateFactory;
     this.executor = executor;
+    this.name = name;
+
     this.listeners.add(new LogListener());
     this.listeners.addAll(listeners);
+    this.protocolListeners.addAll(protocolListeners);
+  }
+
+  RaftStateContext(RaftLog log, StateFactory stateFactory, Fiber executor, Set<StateTransitionListener> listeners) {
+    this(log.self().toString(), stateFactory, executor, listeners);
+  }
+
+  RaftStateContext(String name, StateFactory stateFactory, Fiber executor, Set<StateTransitionListener> listeners) {
+    this(name, stateFactory, executor, listeners, Collections.<RaftProtocolListener>emptySet());
   }
 
   @Override
   public ListenableFuture<StateType> init() {
-
     ListenableFutureTask<StateType> init = ListenableFutureTask.create(new Callable<StateType>() {
-        @Override
-        public StateType call() {
-          setState(null, StateType.START);
+      @Override
+      public StateType call() {
+        setState(null, StateType.START);
 
-          return StateType.START;
-        }
-      });
+        return StateType.START;
+      }
+    });
 
     executor.execute(init);
 
-    return init;
+    notifiesInit();
 
+    return init;
   }
 
   @Override
@@ -95,11 +86,11 @@ class RaftStateContext implements Raft {
     checkNotNull(request);
 
     ListenableFutureTask<RequestVoteResponse> response = ListenableFutureTask.create(new Callable<RequestVoteResponse>() {
-        @Override
-        public RequestVoteResponse call() throws Exception {
-          return delegate.requestVote(RaftStateContext.this, request);
-        }
-      });
+      @Override
+      public RequestVoteResponse call() throws Exception {
+        return delegate.requestVote(RaftStateContext.this, request);
+      }
+    });
 
     executor.execute(response);
 
@@ -107,6 +98,8 @@ class RaftStateContext implements Raft {
       return response.get();
     } catch (Exception e) {
       throw Throwables.propagate(e);
+    } finally {
+      notifyRequestVote(request);
     }
 
   }
@@ -118,11 +111,11 @@ class RaftStateContext implements Raft {
     checkNotNull(request);
 
     ListenableFutureTask<AppendEntriesResponse> response = ListenableFutureTask.create(new Callable<AppendEntriesResponse>() {
-        @Override
-        public AppendEntriesResponse call() throws Exception {
-          return delegate.appendEntries(RaftStateContext.this, request);
-        }
-      });
+      @Override
+      public AppendEntriesResponse call() throws Exception {
+        return delegate.appendEntries(RaftStateContext.this, request);
+      }
+    });
 
     executor.execute(response);
 
@@ -130,9 +123,12 @@ class RaftStateContext implements Raft {
       return response.get();
     } catch (Exception e) {
       throw Throwables.propagate(e);
+    } finally {
+      notifyAppendEntries(request);
     }
 
   }
+
 
   @Override
   @Nonnull
@@ -141,16 +137,17 @@ class RaftStateContext implements Raft {
     checkNotNull(op);
 
     ListenableFutureTask<Object> response = ListenableFutureTask.create(new Callable<Object>() {
-        @Override
-        public Object call() throws Exception {
-          return delegate.commitOperation(RaftStateContext.this, op);
-        }
-      });
+      @Override
+      public Object call() throws Exception {
+        return delegate.commitOperation(RaftStateContext.this, op);
+      }
+    });
 
     executor.execute(response);
 
-    return response;
+    notifyCommit(op);
 
+    return response;
   }
 
   public synchronized void setState(State oldState, @Nonnull StateType state) {
@@ -180,6 +177,34 @@ class RaftStateContext implements Raft {
     delegate.init(this);
   }
 
+  @Override
+  public void addTransitionListener(@Nonnull StateTransitionListener transitionListener) {
+    listeners.add(transitionListener);
+  }
+
+  @Override public void addRaftProtocolListener(@Nonnull RaftProtocolListener protocolListener) {
+    protocolListeners.add(protocolListener);
+  }
+
+  @Override
+  @Nonnull
+  public StateType type() {
+    return state;
+  }
+
+  public synchronized void stop() {
+    stop = true;
+
+    if (this.delegate != null) {
+      this.delegate.doStop(this);
+    }
+  }
+
+  @Override
+  public String toString() {
+    return name;
+  }
+
   private void notifiesStop() {
 
     for (StateTransitionListener listener : listeners) {
@@ -202,22 +227,27 @@ class RaftStateContext implements Raft {
     }
   }
 
-  @Override
-  public void addTransitionListener(@Nonnull StateTransitionListener transitionListener) {
-    listeners.add(transitionListener);
+  private void notifiesInit() {
+    for (RaftProtocolListener protocolListener : protocolListeners) {
+      protocolListener.init(this);
+    }
   }
 
-  @Override
-  @Nonnull
-  public StateType type() {
-    return state;
+  private void notifyAppendEntries(AppendEntries request) {
+    for (RaftProtocolListener protocolListener : protocolListeners) {
+      protocolListener.appendEntries(this, request);
+    }
   }
 
-  public synchronized void stop() {
-    stop = true;
+  private void notifyRequestVote(RequestVote vote) {
+    for (RaftProtocolListener protocolListener : protocolListeners) {
+      protocolListener.requestVote(this, vote);
+    }
+  }
 
-    if (this.delegate != null) {
-      this.delegate.doStop(this);
+  private void notifyCommit(byte[] bytes) {
+    for (RaftProtocolListener protocolListener : protocolListeners) {
+      protocolListener.commit(this, bytes);
     }
   }
 

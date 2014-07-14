@@ -2,6 +2,7 @@ package org.robotninjas.barge.jaxrs;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.glassfish.hk2.api.Factory;
@@ -11,6 +12,8 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.StateMachine;
 import org.robotninjas.barge.state.Raft;
+import org.robotninjas.barge.state.RaftProtocolListener;
+import org.robotninjas.barge.state.StateTransitionListener;
 import org.robotninjas.barge.utils.Files;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +24,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.List;
 
 
 /**
@@ -32,13 +37,22 @@ public class RaftApplication {
   private final int serverIndex;
   private final URI[] uris;
   private final File logDir;
+  
+  private final List<StateTransitionListener> transitionListeners;
+  private final List<RaftProtocolListener> protocolListeners;
 
   private Optional<Injector> injector = Optional.absent();
 
-  public RaftApplication(int serverIndex, URI[] uris, File logDir) {
+  public RaftApplication(int serverIndex, URI[] uris, File logDir, Iterable<StateTransitionListener> transitionListener, Iterable<RaftProtocolListener> protocolListener) {
     this.serverIndex = serverIndex;
     this.uris = uris;
     this.logDir = logDir;
+    this.transitionListeners = Lists.newArrayList(transitionListener);
+    this.protocolListeners = Lists.newArrayList(protocolListener);
+  }
+
+  public RaftApplication(int serverIndex, URI[] uris, File logDir) {
+    this(serverIndex,uris,logDir, Collections.<StateTransitionListener>emptyList(),Collections.<RaftProtocolListener>emptyList());
   }
 
   public ResourceConfig makeResourceConfig() {
@@ -57,7 +71,7 @@ public class RaftApplication {
       }
     };
 
-    final JaxRsRaftModule raftModule = new JaxRsRaftModule(clusterConfig, logDir, stateMachine, 1500);
+    final JaxRsRaftModule raftModule = new JaxRsRaftModule(clusterConfig, logDir, stateMachine, 1500, transitionListeners, protocolListeners);
 
     injector = Optional.of(Guice.createInjector(raftModule));
 
@@ -76,6 +90,15 @@ public class RaftApplication {
               public void dispose(Raft raft) {
               }
             }).to(Raft.class);
+        
+        bindFactory(new Factory<ClusterConfig>() {
+          @Override public ClusterConfig provide() {
+            return injector.get().getInstance(ClusterConfig.class);
+          }
+
+          @Override public void dispose(ClusterConfig instance) {
+          }
+        }).to(ClusterConfig.class);
       }
     };
 

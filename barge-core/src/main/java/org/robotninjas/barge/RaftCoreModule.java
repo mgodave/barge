@@ -17,25 +17,21 @@
 package org.robotninjas.barge;
 
 import com.google.common.base.Optional;
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
-
 import com.google.inject.PrivateModule;
-
 import org.jetlang.fibers.Fiber;
 import org.jetlang.fibers.PoolFiberFactory;
-
 import org.robotninjas.barge.log.LogModule;
 import org.robotninjas.barge.rpc.Client;
 import org.robotninjas.barge.state.Raft;
 import org.robotninjas.barge.state.StateModule;
 
-import java.io.File;
-
-import java.util.concurrent.Executor;
-import static java.util.concurrent.Executors.newCachedThreadPool;
-
 import javax.annotation.concurrent.Immutable;
+import java.io.File;
+import java.util.concurrent.Executor;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
+import static java.util.concurrent.Executors.newCachedThreadPool;
 
 
 @Immutable
@@ -77,7 +73,7 @@ public class RaftCoreModule extends PrivateModule {
     bind(Client.class).asEagerSingleton();
 
     expose(Raft.class);
-
+    expose(ClusterConfig.class);
   }
 
   public static Builder builder() {

@@ -1,37 +1,19 @@
-/**
- * Copyright 2013-2014 David Rusek <dave dot rusek at gmail dot com>
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package org.robotninjas.barge.state;
 
 import org.jetlang.fibers.Fiber;
 import org.jetlang.fibers.ThreadFiber;
-
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-
-import static org.mockito.Mockito.*;
-
 import org.robotninjas.barge.api.AppendEntries;
 import org.robotninjas.barge.api.RequestVote;
-import static org.robotninjas.barge.state.Raft.StateType.*;
 
 import java.util.Collections;
 
+import static org.mockito.Mockito.*;
+import static org.robotninjas.barge.state.Raft.StateType.*;
 
-//@Ignore
+
 public class RaftStateContextTest {
 
   private final StateFactory factory = mock(StateFactory.class);
@@ -42,9 +24,9 @@ public class RaftStateContextTest {
   private final Fiber executor = new ThreadFiber();
 
   private final StateTransitionListener transitionListener = mock(StateTransitionListener.class);
+  private final RaftProtocolListener protocolListener = mock(RaftProtocolListener.class);
 
-  private final RaftStateContext context = new RaftStateContext("mockstatecontext", factory, executor,
-    Collections.<StateTransitionListener>emptySet());
+  private final RaftStateContext context = new RaftStateContext("mockstatecontext", factory, executor, Collections.<StateTransitionListener>emptySet(), Collections.<RaftProtocolListener>emptySet());
 
   @Before
   public void setup() {
@@ -60,6 +42,48 @@ public class RaftStateContextTest {
     context.setState(null, START);
 
     verify(transitionListener).changeState(context, null, START);
+  }
+
+  @Test
+  public void notifiesInitToRegisteredProtocolListenerWhenInitialized() throws Exception {
+    context.addRaftProtocolListener(protocolListener);
+
+    context.init();
+
+    verify(protocolListener).init(context);
+  }
+
+  @Test
+  public void notifiesAppendEntriesToRegisteredProtocolListenerWhenReceivingAppendEntries() throws Exception {
+    AppendEntries entries = AppendEntries.getDefaultInstance();
+
+    context.addRaftProtocolListener(protocolListener);
+    context.setState(null, FOLLOWER);
+    context.appendEntries(entries);
+
+    verify(protocolListener).appendEntries(context, entries);
+  }
+
+  @Test
+  public void notifiesRequestVoteToRegisteredProtocolListenersWhenReceivingRequestVote() throws Exception {
+    RequestVote vote = RequestVote.getDefaultInstance();
+    
+    context.addRaftProtocolListener(protocolListener);
+    context.setState(null, FOLLOWER);
+    context.requestVote(vote);
+    
+    verify(protocolListener).requestVote(context, vote);
+  }
+
+  @Test
+  public void notifiesCommitToRegisteredProtocolListenerWhenReceivingCommit() throws Exception {
+    byte[] bytes = new byte[]{(byte) 0xca, (byte) 0xfe, (byte) 0xba, (byte) 0xbe};
+
+    context.addRaftProtocolListener(protocolListener);
+    context.setState(null, FOLLOWER);
+    context.commitOperation(bytes);
+
+    verify(protocolListener).commit(context, bytes);   
   }
 
   @Test
@@ -106,7 +130,7 @@ public class RaftStateContextTest {
   @Test
   @Ignore
   public void delegateCommitOperationToCurrentState() throws Exception {
-    byte[] bytes = new byte[] { 1 };
+    byte[] bytes = new byte[]{1};
     context.setState(null, FOLLOWER);
 
     context.commitOperation(bytes);

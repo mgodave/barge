@@ -15,46 +15,46 @@
  */
 package org.robotninjas.barge.jaxrs;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
-
 import org.junit.ClassRule;
 import org.junit.Test;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
+import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.NotLeaderException;
 import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.api.RequestVoteResponse;
 import org.robotninjas.barge.state.Raft;
 
-import java.net.URI;
-
-import java.util.Set;
-
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Set;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 
 /**
  */
 public class BargeResourceTest extends JerseyTest {
 
+  private static final ClusterConfig CLUSTER_CONFIG = HttpClusterConfig.from(new HttpReplica(uri("http://localhost:123")), new HttpReplica(uri("http://localhost:234")));
+ 
   @ClassRule
   public static MuteJUL muteJUL = new MuteJUL();
 
   private Raft raftService;
+
 
   @Test
   public void onPOSTRequestVoteReturn200WithResponseGivenServiceReturnsResponse() throws Exception {
@@ -111,9 +111,9 @@ public class BargeResourceTest extends JerseyTest {
     assertThat(client().target("/state").request().get(Raft.StateType.class)).isEqualTo(Raft.StateType.LEADER);
   }
 
-  @Override
-  protected void configureClient(ClientConfig config) {
-    super.configureClient(config.property(ClientProperties.FOLLOW_REDIRECTS, false).register(Jackson.customJacksonProvider()));
+  @Test
+  public void onGETConfigReturnsCurrentClusterConfiguration() throws Exception {
+    assertThat(client().target("/config").request().get(HttpClusterConfig.class)).isEqualTo(CLUSTER_CONFIG);
   }
 
   @Test
@@ -122,23 +122,37 @@ public class BargeResourceTest extends JerseyTest {
     when(raftService.init()).thenReturn(future);
 
     assertThat(client().target("/init").request().post(Entity.json("")).readEntity(Raft.StateType.class)).isEqualTo(
-      Raft.StateType.START);
+        Raft.StateType.START);
+  }
+
+  @Override
+  protected void configureClient(ClientConfig config) {
+    super.configureClient(config.property(ClientProperties.FOLLOW_REDIRECTS, false).register(Jackson.customJacksonProvider()));
   }
 
   @Override
   protected Application configure() {
     raftService = mock(Raft.class);
 
+
     ResourceConfig resourceConfig = ResourceConfig.forApplication(new Application() {
-        @Override
-        public Set<Object> getSingletons() {
-          return Sets.newHashSet((Object) new BargeResource(raftService));
-        }
-      });
+      @Override
+      public Set<Object> getSingletons() {
+        return Sets.newHashSet((Object) new BargeResource(raftService, CLUSTER_CONFIG));
+      }
+    });
 
     resourceConfig.register(Jackson.customJacksonProvider());
 
     return resourceConfig;
+  }
+
+  private static URI uri(String uri) {
+    try {
+      return new URI(uri);
+    } catch (URISyntaxException e) {
+      throw Throwables.propagate(e);
+    }
   }
 
 }

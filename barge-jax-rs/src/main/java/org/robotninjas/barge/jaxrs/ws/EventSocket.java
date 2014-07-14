@@ -8,28 +8,45 @@ import org.eclipse.jetty.websocket.api.WebSocketAdapter;
  */
 public class EventSocket extends WebSocketAdapter {
 
+  private final WsEventListener events;
+  private final SessionToListener listenerFactory;
+
+  private volatile Listener listener;
+
+  public EventSocket(WsEventListener events) {
+    this(events,new SessionToListener());
+  }
+
+  public EventSocket(WsEventListener events, SessionToListener listenerFactory) {
+    this.events = events;
+    this.listenerFactory = listenerFactory;
+  }
 
   @Override
   public void onWebSocketConnect(Session sess) {
     super.onWebSocketConnect(sess);
-    System.out.println("Socket Connected: " + sess);
+
+    listener = listenerFactory.createListener(sess);
+
+    events.addClient(listener);
   }
 
   @Override
   public void onWebSocketText(String message) {
-    super.onWebSocketText(message);
-    System.out.println("Received TEXT message: " + message);
+    // do nothing
   }
 
   @Override
   public void onWebSocketClose(int statusCode, String reason) {
+    events.removeClient(listener);
+
     super.onWebSocketClose(statusCode, reason);
-    System.out.println("Socket Closed: [" + statusCode + "] " + reason);
   }
 
   @Override
   public void onWebSocketError(Throwable cause) {
-    super.onWebSocketError(cause);
-    cause.printStackTrace(System.err);
+    events.removeClient(listener);
+    
+    events.error(this, cause);
   }
 }

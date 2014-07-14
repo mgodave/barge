@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Barge: A Raft Implementation in Java</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="css/pure-release-0.5.0/pure-min.css">
+        <link rel="stylesheet" href="css/styles.css">
+    </head>
+    <body>
+        <div class="header">
+            <div class="pure-menu">
+                <a class="pure-menu-heading" href="http://github.com/mgodave/barge">Barge</a>
+            </div>
+        </div>
+
+        <!-- displays messages from all nodes in the cluster (presently hardwired to 3) -->
+        <div id="raft-demo" class="pure-g">
+            <div class="pure-u-1-3">
+            <div id="node1" class="node">
+            </div>
+               </div>
+            <div class="pure-u-1-3">
+               <div id="node2" class="node">
+               </div>
+               </div>
+            <div class="pure-u-1-3">
+               <div id="node3" class="node">
+               </div>
+                </div>
+       </div>
+
+        <script src="js/react.min.js"></script>
+        <script src="out/goog/base.js" type="text/javascript"></script>
+        <script src="out/app.js" type="text/javascript"></script>
+        <script type="text/javascript">goog.require("barge.core");</script>
+    </body>
+</html>
