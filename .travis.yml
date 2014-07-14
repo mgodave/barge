@@ -1,7 +1,6 @@
 language: java
 script: "mvn package -Ptravis --settings travis-settings.xml"
 jdk:
-    - openjdk6
     - openjdk7
     - sunjdk7
 

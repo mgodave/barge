@@ -16,10 +16,12 @@
 package org.robotninjas.barge.jaxrs;
 
 import com.google.inject.PrivateModule;
+
 import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.RaftCoreModule;
 import org.robotninjas.barge.StateMachine;
 import org.robotninjas.barge.jaxrs.client.HttpRaftClientProvider;
+import org.robotninjas.barge.jaxrs.ws.WsEventListenersModule;
 import org.robotninjas.barge.rpc.RaftClientProvider;
 import org.robotninjas.barge.state.Raft;
 
@@ -45,16 +47,16 @@ public class JaxRsRaftModule extends PrivateModule {
   @Override
   protected void configure() {
 
-    install(RaftCoreModule.builder()
-      .withTimeout(timeoutInMs)
-      .withConfig(clusterConfig)
-      .withLogDir(logDir)
-      .withStateMachine(stateMachine)
-      .build());
+    install(new WsEventListenersModule());
 
-    bind(RaftClientProvider.class)
-      .to(HttpRaftClientProvider.class)
-      .asEagerSingleton();
+    install(RaftCoreModule.builder()
+        .withTimeout(timeoutInMs)
+        .withConfig(clusterConfig)
+        .withLogDir(logDir)
+        .withStateMachine(stateMachine)
+        .build());
+
+    bind(RaftClientProvider.class).to(HttpRaftClientProvider.class).asEagerSingleton();
 
     expose(RaftClientProvider.class);
     expose(Raft.class);

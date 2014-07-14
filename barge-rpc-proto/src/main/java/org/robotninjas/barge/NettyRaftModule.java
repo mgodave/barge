@@ -2,7 +2,10 @@ package org.robotninjas.barge;
 
 import com.google.inject.PrivateModule;
 
+import org.robotninjas.barge.jaxrs.AbstractListenersModule;
+
 import java.io.File;
+
 
 public class NettyRaftModule extends PrivateModule {
 
@@ -20,6 +23,11 @@ public class NettyRaftModule extends PrivateModule {
 
   @Override
   protected void configure() {
+    install(new AbstractListenersModule() {
+        @Override
+        protected void configureListeners() {
+        }
+      });
 
     install(RaftCoreModule.builder()
         .withTimeout(timeout)

@@ -15,6 +15,8 @@
  */
 package org.robotninjas.barge.jaxrs;
 
+import org.robotninjas.barge.jaxrs.ws.RaftJettyServer;
+
 import java.io.File;
 
 import java.net.URI;
@@ -22,10 +24,11 @@ import java.net.URI;
 
 /**
  */
-public class JdkHttpDeploymentTest extends ServerTest<RaftJdkServer> {
+public class JettyDeploymentTest extends ServerTest<RaftJettyServer> {
 
-  protected RaftJdkServer createServer(int serverIndex, URI[] uris1, File logDir) {
-    return new RaftJdkServer(serverIndex, uris1, logDir);
+  @Override
+  protected RaftJettyServer createServer(int serverIndex, URI[] uris1, File logDir) {
+    return new RaftJettyServer(serverIndex, uris1, logDir);
   }
 
 }
