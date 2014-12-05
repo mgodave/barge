@@ -15,9 +15,11 @@
  */
 package org.robotninjas.barge.jaxrs;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.NotLeaderException;
+import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.api.AppendEntries;
 import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.api.RequestVote;
@@ -97,7 +99,11 @@ public class BargeResource {
 
       return Response.noContent().build();
     } catch (NotLeaderException e) {
-      return Response.status(Response.Status.FOUND).location(((HttpReplica) e.getLeader()).getUri()).build();
+      Optional<Replica> leader = e.getLeader();
+      if (leader.isPresent() == false) {
+          return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build(); // FIXME find better solution for missing leader
+      }
+      return Response.status(Response.Status.FOUND).location(((HttpReplica) leader.get()).getUri()).build();
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }

@@ -26,7 +26,7 @@ public abstract class BaseState implements State {
 
   private final StateType type;
   private final RaftLog log;
-  private Optional<Replica> leader;
+  private Optional<Replica> leader = Optional.absent();
 
   protected BaseState(@Nullable StateType type, @Nonnull RaftLog log) {
     this.log = checkNotNull(log);
@@ -41,6 +41,10 @@ public abstract class BaseState implements State {
 
   protected RaftLog getLog() {
     return log;
+  }
+
+  public Optional<Replica> getLeader() {
+    return leader;
   }
 
   @Override
@@ -173,7 +177,7 @@ public abstract class BaseState implements State {
     StateType stateType = ctx.type();
     Preconditions.checkNotNull(stateType);
     if (stateType.equals(FOLLOWER)) {
-      throw new NotLeaderException(leader.get());
+      throw new NotLeaderException(leader);
     } else if (stateType.equals(CANDIDATE)) {
       throw new NoLeaderException();
     }
@@ -183,6 +187,7 @@ public abstract class BaseState implements State {
   @Override
   public void doStop(RaftStateContext ctx) {
     ctx.setState(this, STOPPED);
+    log.close();
   }
 
 }

@@ -22,6 +22,8 @@ import com.google.inject.Singleton;
 import journal.io.api.Journal;
 import journal.io.api.JournalBuilder;
 import org.robotninjas.barge.StateMachine;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -32,6 +34,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Throwables.propagate;
 
 public class LogModule extends PrivateModule {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(LogModule.class);
 
   private final File logDirectory;
   private final StateMachine stateMachine;
@@ -68,11 +72,10 @@ public class LogModule extends PrivateModule {
       Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
         @Override
         public void run() {
-          //noinspection EmptyCatchBlock
           try {
             journal.close();
           } catch (IOException e) {
-            //TODO log it
+            LOGGER.error("Error closing journal", e);
           }
         }
       }));

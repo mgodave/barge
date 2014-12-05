@@ -33,6 +33,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Throwables.propagate;
@@ -129,6 +130,7 @@ public class NettyRaftService extends AbstractService implements RaftService {
     private final NettyClusterConfig config;
     private File logDir = Files.createTempDir();
     private long timeout = TIMEOUT;
+    private Executor executor;
     private StateTransitionListener listener;
 
     protected Builder(NettyClusterConfig config) {
@@ -145,9 +147,14 @@ public class NettyRaftService extends AbstractService implements RaftService {
       return this;
     }
 
+    public Builder executor(Executor executor) {
+      this.executor = executor;
+      return this;
+    }
+
     public NettyRaftService build(StateMachine stateMachine) {
       NettyRaftService nettyRaftService = Guice.createInjector(
-        new NettyRaftModule(config, logDir, stateMachine, timeout))
+        new NettyRaftModule(config, logDir, stateMachine, timeout, executor))
         .getInstance(NettyRaftService.class);
 
       if (listener != null) {
