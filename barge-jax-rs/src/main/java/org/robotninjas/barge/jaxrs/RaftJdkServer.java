@@ -15,14 +15,11 @@
  */
 package org.robotninjas.barge.jaxrs;
 
-import com.google.common.base.Throwables;
 import com.sun.net.httpserver.HttpServer;
-import org.glassfish.jersey.jdkhttp.JdkHttpServerFactory;
-
-import javax.ws.rs.core.UriBuilder;
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
+import javax.ws.rs.core.UriBuilder;
+import org.glassfish.jersey.jdkhttp.JdkHttpServerFactory;
 
 
 /**
@@ -57,12 +54,7 @@ public class RaftJdkServer implements RaftServer<RaftJdkServer> {
 
   @Override
   public void clean() {
-
-    try {
-      application.clean();
-    } catch (IOException e) {
-      throw Throwables.propagate(e);
-    }
+    application.clean();
   }
 
 

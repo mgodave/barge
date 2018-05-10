@@ -1,7 +1,13 @@
 package org.robotninjas.barge.state;
 
-import com.google.common.base.Optional;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.when;
+
 import com.google.common.util.concurrent.ListenableFuture;
+import java.util.Optional;
+import javax.annotation.Nonnull;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -18,13 +24,6 @@ import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.api.RequestVote;
 import org.robotninjas.barge.api.RequestVoteResponse;
 import org.robotninjas.barge.log.RaftLog;
-
-import javax.annotation.Nonnull;
-
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertTrue;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.when;
 
 public class BaseStateTest {
 
@@ -65,7 +64,7 @@ public class BaseStateTest {
       .setTerm(2)
       .build();
 
-    when(mockRaftLog.votedFor()).thenReturn(Optional.<Replica>absent());
+    when(mockRaftLog.votedFor()).thenReturn(Optional.<Replica>empty());
     boolean shouldVote = state.shouldVoteFor(mockRaftLog, requestVote);
 
     assertTrue(shouldVote);

@@ -184,12 +184,7 @@ public class RaftJettyServer implements RaftServer<RaftJettyServer> {
 
   @Override
   public void clean() {
-
-    try {
-      raftApplication.clean();
-    } catch (IOException e) {
-      throw Throwables.propagate(e);
-    }
+    raftApplication.clean();
   }
 
 }

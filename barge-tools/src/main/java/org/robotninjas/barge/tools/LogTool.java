@@ -1,15 +1,20 @@
 package org.robotninjas.barge.tools;
 
-import com.google.common.base.Optional;
-import journal.io.api.Journal;
-import journal.io.api.JournalBuilder;
-import journal.io.api.Location;
-import org.robotninjas.barge.api.*;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import journal.io.api.Journal;
+import journal.io.api.JournalBuilder;
+import journal.io.api.Location;
+import org.robotninjas.barge.api.Append;
+import org.robotninjas.barge.api.Commit;
+import org.robotninjas.barge.api.JournalEntry;
+import org.robotninjas.barge.api.Membership;
+import org.robotninjas.barge.api.Snapshot;
+import org.robotninjas.barge.api.Term;
+import org.robotninjas.barge.api.Vote;
 
 /**
  * For now this is just a simple program to print the contents of the log. I envision
@@ -27,8 +32,7 @@ public class LogTool {
     long term = 0;
     long index = 0;
     long committed = 0;
-    List<String> membership = Collections.emptyList();
-    Optional<String> lastVotedFor = Optional.absent();
+    Optional<String> lastVotedFor;
     Type lastEntryType = Type.EMPTY;
 
     for (Location loc : journal.redo()) {
@@ -52,7 +56,6 @@ public class LogTool {
       } else if (entry.hasMembership()) {
 
         Membership m = entry.getMembership();
-        membership = m.getMembersList();
         lastEntryType = Type.MEMBERSHIP;
 
       } else if (entry.hasSnapshot()) {
@@ -71,10 +74,10 @@ public class LogTool {
       } else if (entry.hasVote()) {
 
         Vote v = entry.getVote();
-        lastVotedFor = Optional.fromNullable(v.getVotedFor());
+        lastVotedFor = Optional.ofNullable(v.getVotedFor());
         lastEntryType = Type.VOTE;
 
-        System.out.println("Vote: " + lastVotedFor.orNull());
+        System.out.println("Vote: " + lastVotedFor.orElse(null));
 
       }
 

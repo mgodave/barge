@@ -15,25 +15,21 @@
  */
 package org.robotninjas.barge;
 
-import com.google.common.base.Optional;
+import static org.robotninjas.barge.state.Raft.StateType;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-
-import org.junit.rules.ExternalResource;
-
-import org.robotninjas.barge.state.Raft;
-import static org.robotninjas.barge.state.Raft.StateType;
-import org.robotninjas.barge.state.StateTransitionListener;
-import org.robotninjas.barge.utils.Prober;
-
 import java.io.File;
-
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Callable;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import org.junit.rules.ExternalResource;
+import org.robotninjas.barge.state.Raft;
+import org.robotninjas.barge.state.StateTransitionListener;
+import org.robotninjas.barge.utils.Prober;
 
 
 public class GroupOfCounters extends ExternalResource implements StateTransitionListener {
@@ -86,7 +82,7 @@ public class GroupOfCounters extends ExternalResource implements StateTransition
       }
     }
 
-    return Optional.absent();
+    return Optional.empty();
   }
 
   /**
