@@ -80,7 +80,7 @@ public class BargeResourceTest extends JerseyTest {
 
   @Test
   public void onPOSTCommitReturn204GivenServiceReturnsResponse() throws Exception {
-    when(raftService.commitOperation("foo".getBytes())).thenReturn(Futures.<Object>immediateFuture("42"));
+    when(raftService.commitOperation("foo".getBytes())).thenReturn(Futures.immediateFuture("42"));
 
     Response value = client().target("/commit")
         .request()

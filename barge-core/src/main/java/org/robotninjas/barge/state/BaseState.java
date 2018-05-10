@@ -167,7 +167,7 @@ public abstract class BaseState implements State {
     StateType stateType = ctx.type();
     Preconditions.checkNotNull(stateType);
     if (stateType.equals(FOLLOWER)) {
-      throw new NotLeaderException(leader.get());
+      throw new NotLeaderException(leader.orElse(null));
     } else if (stateType.equals(CANDIDATE)) {
       throw new NoLeaderException();
     }

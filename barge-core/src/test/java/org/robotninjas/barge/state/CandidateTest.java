@@ -53,7 +53,7 @@ public class CandidateTest {
     MockitoAnnotations.initMocks(this);
 
     when(mockRaftLog.self()).thenReturn(self);
-    when(mockRaftLog.votedFor()).thenReturn(java.util.Optional.<Replica>empty());
+    when(mockRaftLog.votedFor()).thenReturn(java.util.Optional.empty());
     when(mockRaftLog.lastLogTerm()).thenReturn(0L);
     when(mockRaftLog.lastLogIndex()).thenReturn(0L);
     when(mockRaftLog.currentTerm()).thenReturn(term);

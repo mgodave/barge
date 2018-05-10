@@ -20,7 +20,7 @@ public class EventServlet extends WebSocketServlet {
     factory.setCreator((req, resp) -> {
 
       // remove all compressions extensions that might be requested by the browser...
-      resp.setExtensions(Collections.<ExtensionConfig>emptyList());
+      resp.setExtensions(Collections.emptyList());
 
       return new EventSocket(events);
     });

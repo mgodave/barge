@@ -56,7 +56,7 @@ class StateMachineProxy {
   @Nonnull
   public ListenableFuture takeSnapshot(@Nonnull final OutputStream out) throws IOException {
     checkNotNull(out);
-    return submit((Callable) () -> {
+    return submit(() -> {
       //stateMachine.takeSnapshot(out);
       return null;
     });

@@ -55,7 +55,7 @@ class RaftStateContext implements Raft {
   }
 
   RaftStateContext(String name, StateFactory stateFactory, Fiber executor, Set<StateTransitionListener> listeners) {
-    this(name, stateFactory, executor, listeners, Collections.<RaftProtocolListener>emptySet());
+    this(name, stateFactory, executor, listeners, Collections.emptySet());
   }
 
   @Override

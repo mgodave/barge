@@ -61,7 +61,7 @@ public class ReplicaManagerTest {
     ListenableFuture<AppendEntriesResponse> mockResponse = mock(ListenableFuture.class);
     when(mockClient.appendEntries(eq(FOLLOWER), any(AppendEntries.class))).thenReturn(mockResponse);
 
-    GetEntriesResult entriesResult = new GetEntriesResult(0L, 0L, Collections.<Entry>emptyList());
+    GetEntriesResult entriesResult = new GetEntriesResult(0L, 0L, Collections.emptyList());
     when(mockRaftLog.getEntriesFrom(anyLong(), anyInt())).thenReturn(entriesResult);
 
     ReplicaManager replicaManager = new ReplicaManager(mockClient, mockRaftLog, FOLLOWER);
@@ -101,7 +101,7 @@ public class ReplicaManagerTest {
       .thenReturn(mock(ListenableFuture.class));
 
 
-    GetEntriesResult entriesResult = new GetEntriesResult(0L, 0L, Collections.<Entry>emptyList());
+    GetEntriesResult entriesResult = new GetEntriesResult(0L, 0L, Collections.emptyList());
     when(mockRaftLog.getEntriesFrom(anyLong(), anyInt())).thenReturn(entriesResult);
 
     ReplicaManager replicaManager = new ReplicaManager(mockClient, mockRaftLog, FOLLOWER);

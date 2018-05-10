@@ -54,7 +54,7 @@ public class Client {
     checkNotNull(request);
 
     ListenableFuture<RequestVoteResponse> response = clientProvider.get(replica).requestVote(request);
-    return Futures.transform(response, Functions.<RequestVoteResponse>identity(), executor);
+    return Futures.transform(response, Functions.identity(), executor);
   }
 
   @Nonnull
@@ -64,7 +64,7 @@ public class Client {
     checkNotNull(request);
 
     ListenableFuture<AppendEntriesResponse> response = clientProvider.get(replica).appendEntries(request);
-    return Futures.transform(response, Functions.<AppendEntriesResponse>identity(), executor);
+    return Futures.transform(response, Functions.identity(), executor);
   }
 
 }

@@ -60,7 +60,7 @@ public class BaseStateTest {
       .setTerm(2)
       .build();
 
-    when(mockRaftLog.votedFor()).thenReturn(Optional.<Replica>empty());
+    when(mockRaftLog.votedFor()).thenReturn(Optional.empty());
     boolean shouldVote = state.shouldVoteFor(mockRaftLog, requestVote);
 
     assertTrue(shouldVote);

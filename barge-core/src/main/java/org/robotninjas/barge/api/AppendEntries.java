@@ -115,7 +115,7 @@ public class AppendEntries {
   }
 
   public static AppendEntries getDefaultInstance() {
-    return new AppendEntries(0, "", 0, 0, 0, Collections.<Entry>emptyList());
+    return new AppendEntries(0, "", 0, 0, 0, Collections.emptyList());
   }
 
   public static class Builder {

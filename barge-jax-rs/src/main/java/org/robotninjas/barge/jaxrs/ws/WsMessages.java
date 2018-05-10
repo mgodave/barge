@@ -1,6 +1,7 @@
 package org.robotninjas.barge.jaxrs.ws;
 
 import com.google.common.base.MoreObjects;
+import java.util.Arrays;
 import java.util.Objects;
 import javax.annotation.concurrent.Immutable;
 import org.robotninjas.barge.api.AppendEntries;
@@ -325,19 +326,25 @@ public class WsMessages {
       return operation;
     }
 
-    @Override public int hashCode() {
-      return Objects.hash(name, operation);
-    }
-
-    @Override public boolean equals(Object obj) {
-      if (this == obj) {
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
         return true;
       }
-      if (obj == null || getClass() != obj.getClass()) {
+      if (o == null || getClass() != o.getClass()) {
         return false;
       }
-      final CommitMessage other = (CommitMessage) obj;
-      return Objects.equals(this.name, other.name) && Objects.equals(this.operation, other.operation);
+      CommitMessage that = (CommitMessage) o;
+      return Objects.equals(name, that.name) &&
+          Arrays.equals(operation, that.operation);
+    }
+
+    @Override
+    public int hashCode() {
+
+      int result = Objects.hash(name);
+      result = 31 * result + Arrays.hashCode(operation);
+      return result;
     }
 
     @Override

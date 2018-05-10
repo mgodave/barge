@@ -30,7 +30,7 @@ public class RaftStateContextTest {
   private final StateTransitionListener transitionListener = mock(StateTransitionListener.class);
   private final RaftProtocolListener protocolListener = mock(RaftProtocolListener.class);
 
-  private final RaftStateContext context = new RaftStateContext("mockstatecontext", factory, executor, Collections.<StateTransitionListener>emptySet(), Collections.<RaftProtocolListener>emptySet());
+  private final RaftStateContext context = new RaftStateContext("mockstatecontext", factory, executor, Collections.emptySet(), Collections.emptySet());
 
   @Before
   public void setup() {

@@ -143,7 +143,7 @@ class Candidate extends BaseState {
     return new FutureCallback<RequestVoteResponse>() {
       @Override
       public void onSuccess(@Nullable RequestVoteResponse response) {
-        if (response.getTerm() > getLog().currentTerm()) {
+        if (response != null && response.getTerm() > getLog().currentTerm()) {
           getLog().currentTerm(response.getTerm());
           ctx.setState(Candidate.this, FOLLOWER);
         }

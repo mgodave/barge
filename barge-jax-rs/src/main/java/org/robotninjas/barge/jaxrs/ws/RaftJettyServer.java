@@ -130,7 +130,7 @@ public class RaftJettyServer implements RaftServer<RaftJettyServer> {
   public RaftJettyServer(int serverIndex, URI[] uris, File logDir) {
     server = new Server();
     events = new WsEventListener();
-    raftApplication = new RaftApplication(serverIndex, uris, logDir, Collections.<StateTransitionListener>singleton(events), Collections.<RaftProtocolListener>singleton(events));
+    raftApplication = new RaftApplication(serverIndex, uris, logDir, Collections.singleton(events), Collections.singleton(events));
   }
 
   public RaftJettyServer start(int port) {
