@@ -15,8 +15,7 @@
  */
 package org.robotninjas.barge.api;
 
-import com.google.common.base.Objects;
-
+import com.google.common.base.MoreObjects;
 import javax.annotation.concurrent.Immutable;
 
 /**
@@ -63,10 +62,10 @@ public class RequestVoteResponse {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
-      .add("term", term)
-      .add("voteGranted", voteGranted)
-      .toString();
+    return MoreObjects.toStringHelper(this)
+        .add("term", term)
+        .add("voteGranted", voteGranted)
+        .toString();
   }
 
   public static class Builder {

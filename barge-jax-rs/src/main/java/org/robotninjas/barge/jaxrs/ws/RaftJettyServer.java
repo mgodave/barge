@@ -1,31 +1,25 @@
 package org.robotninjas.barge.jaxrs.ws;
 
-import com.google.common.base.Throwables;
-
 import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-
-import org.glassfish.jersey.servlet.ServletContainer;
-
-import org.robotninjas.barge.jaxrs.RaftApplication;
-import org.robotninjas.barge.jaxrs.RaftServer;
-import org.robotninjas.barge.state.RaftProtocolListener;
-import org.robotninjas.barge.state.StateTransitionListener;
-import org.slf4j.bridge.SLF4JBridgeHandler;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.glassfish.jersey.servlet.ServletContainer;
+import org.robotninjas.barge.jaxrs.RaftApplication;
+import org.robotninjas.barge.jaxrs.RaftServer;
+import org.robotninjas.barge.state.RaftProtocolListener;
+import org.robotninjas.barge.state.StateTransitionListener;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 
 /**
@@ -163,7 +157,7 @@ public class RaftJettyServer implements RaftServer<RaftJettyServer> {
 
       return this;
     } catch (Throwable t) {
-      throw Throwables.propagate(t);
+      throw new RuntimeException(t);
     }
   }
 
@@ -174,7 +168,7 @@ public class RaftJettyServer implements RaftServer<RaftJettyServer> {
       events.stop();
       server.stop();
     } catch (Exception e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 

@@ -16,41 +16,36 @@
 
 package org.robotninjas.barge.state;
 
-import com.google.common.annotations.VisibleForTesting;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.robotninjas.barge.state.Raft.StateType.FOLLOWER;
+import static org.robotninjas.barge.state.Raft.StateType.LEADER;
+
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.inject.Inject;
 import org.jetlang.core.Disposable;
-
 import org.jetlang.fibers.Fiber;
-
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.RaftExecutor;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.log.RaftLog;
-import static org.robotninjas.barge.state.Raft.StateType.FOLLOWER;
-import static org.robotninjas.barge.state.Raft.StateType.LEADER;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-
-import javax.annotation.Nonnegative;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
-
-import javax.inject.Inject;
 
 
 @NotThreadSafe
@@ -109,13 +104,10 @@ class Leader extends BaseState {
       heartbeatTask.dispose();
     }
 
-    heartbeatTask = scheduler.scheduleAtFixedRate(new Runnable() {
-          @Override
-          public void run() {
-            LOGGER.debug("Sending heartbeat");
-            sendRequests(ctx);
-          }
-        }, timeout, timeout, MILLISECONDS);
+    heartbeatTask = scheduler.scheduleAtFixedRate(() -> {
+      LOGGER.debug("Sending heartbeat");
+      sendRequests(ctx);
+    }, timeout, timeout, MILLISECONDS);
 
   }
 
@@ -189,7 +181,7 @@ class Leader extends BaseState {
           public void onFailure(@Nonnull Throwable t) {
           }
 
-        });
+        }, directExecutor());
 
     }
 

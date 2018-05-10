@@ -16,30 +16,27 @@
 
 package org.robotninjas.barge.state;
 
+import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
-
 import com.google.inject.assistedinject.Assisted;
-
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.inject.Inject;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.api.AppendEntries;
 import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.log.GetEntriesResult;
 import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.rpc.Client;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
-
-import javax.inject.Inject;
 
 
 /**
@@ -125,7 +122,7 @@ class ReplicaManager {
           previousResponse.setException(t);
         }
 
-      });
+      }, directExecutor());
 
     nextResponse = SettableFuture.create();
 
@@ -194,6 +191,17 @@ class ReplicaManager {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(getClass()).add("nextIndex", nextIndex).add("matchIndex", matchIndex).toString();
+    return MoreObjects.toStringHelper(this)
+        .add("client", client)
+        .add("log", log)
+        .add("remote", remote)
+        .add("nextIndex", nextIndex)
+        .add("matchIndex", matchIndex)
+        .add("requested", requested)
+        .add("waitingForResponse", waitingForResponse)
+        .add("forwards", forwards)
+        .add("shutdown", shutdown)
+        .add("nextResponse", nextResponse)
+        .toString();
   }
 }

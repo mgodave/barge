@@ -16,27 +16,27 @@
 
 package org.robotninjas.barge.state;
 
-import com.google.common.base.Predicate;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+
 import com.google.common.util.concurrent.AbstractFuture;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-
+import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Predicate;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 
 @ThreadSafe
 class MajorityCollector<T> extends AbstractFuture<Boolean> implements FutureCallback<T> {
 
   private final ReentrantLock lock = new ReentrantLock();
-  private final Predicate<T> isSuccess;
+  private final java.util.function.Predicate<T> isSuccess;
   private final int totalNum;
   @GuardedBy("lock")
   private int numSuccess = 0;
@@ -50,9 +50,9 @@ class MajorityCollector<T> extends AbstractFuture<Boolean> implements FutureCall
 
   @Nonnull
   public static <U> ListenableFuture<Boolean> majorityResponse(@Nonnull List<? extends ListenableFuture<U>> responses, @Nonnull Predicate<U> isSuccess) {
-    MajorityCollector collector = new MajorityCollector(responses.size(), isSuccess);
+    MajorityCollector<U> collector = new MajorityCollector<>(responses.size(), isSuccess);
     for (ListenableFuture<U> response : responses) {
-      Futures.addCallback(response, collector);
+      Futures.addCallback(response, collector, directExecutor());
     }
     if (responses.isEmpty()) {
       collector.checkComplete();
@@ -78,7 +78,7 @@ class MajorityCollector<T> extends AbstractFuture<Boolean> implements FutureCall
 
     lock.lock();
     try {
-      if (isSuccess.apply(result)) {
+      if (isSuccess.test(result)) {
         numSuccess++;
       } else {
         numFailed++;

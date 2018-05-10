@@ -23,7 +23,6 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.Callable;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.junit.rules.ExternalResource;
@@ -99,12 +98,7 @@ public class GroupOfCounters extends ExternalResource implements StateTransition
   }
 
   void waitForLeaderElection() throws InterruptedException {
-    new Prober(new Callable<Boolean>() {
-        @Override
-        public Boolean call() throws Exception {
-          return thereIsOneLeader();
-        }
-      }).probe(10000);
+    new Prober(this::thereIsOneLeader).probe(10000);
   }
 
   private Boolean thereIsOneLeader() {

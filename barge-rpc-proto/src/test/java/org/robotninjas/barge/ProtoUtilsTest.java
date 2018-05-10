@@ -15,16 +15,19 @@
  */
 package org.robotninjas.barge;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
+import java.util.List;
 import org.junit.Test;
-import org.robotninjas.barge.api.*;
+import org.robotninjas.barge.api.AppendEntries;
+import org.robotninjas.barge.api.AppendEntriesResponse;
+import org.robotninjas.barge.api.Entry;
+import org.robotninjas.barge.api.RequestVote;
+import org.robotninjas.barge.api.RequestVoteResponse;
 import org.robotninjas.barge.proto.RaftEntry;
 import org.robotninjas.barge.proto.RaftProto;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  */

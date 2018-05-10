@@ -13,7 +13,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.ClusterConfigStub;
@@ -42,12 +41,9 @@ public class BaseStateTest {
     when(mockRaftLog.lastLogTerm()).thenReturn(2l);
     when(mockRaftLog.self()).thenReturn(self);
     when(mockRaftLog.config()).thenReturn(config);
-    when(mockRaftLog.getReplica(anyString())).thenAnswer(new Answer<Replica>() {
-      @Override
-      public Replica answer(InvocationOnMock invocation) throws Throwable {
-        String arg = (String) invocation.getArguments()[0];
-        return config.getReplica(arg);
-      }
+    when(mockRaftLog.getReplica(anyString())).thenAnswer((Answer<Replica>) invocation -> {
+      String arg = (String) invocation.getArguments()[0];
+      return config.getReplica(arg);
     });
 
   }

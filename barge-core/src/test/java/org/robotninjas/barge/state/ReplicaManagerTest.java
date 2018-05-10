@@ -1,23 +1,27 @@
 package org.robotninjas.barge.state;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertNotSame;
+import static junit.framework.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
-
-import static junit.framework.Assert.*;
-
+import java.util.Collections;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-
 import org.mockito.Mock;
-
-import static org.mockito.Mockito.*;
-
 import org.mockito.MockitoAnnotations;
-
 import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.ClusterConfigStub;
 import org.robotninjas.barge.Replica;
@@ -27,8 +31,6 @@ import org.robotninjas.barge.api.Entry;
 import org.robotninjas.barge.log.GetEntriesResult;
 import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.rpc.Client;
-
-import java.util.Collections;
 
 
 @SuppressWarnings("unchecked")

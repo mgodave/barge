@@ -1,7 +1,11 @@
 package org.robotninjas.barge.state;
 
+import static org.robotninjas.barge.state.Raft.StateType.FOLLOWER;
+import static org.robotninjas.barge.state.Raft.StateType.START;
+
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Inject;
+import javax.annotation.Nonnull;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.api.AppendEntries;
 import org.robotninjas.barge.api.AppendEntriesResponse;
@@ -9,11 +13,6 @@ import org.robotninjas.barge.api.RequestVote;
 import org.robotninjas.barge.api.RequestVoteResponse;
 import org.robotninjas.barge.log.RaftLog;
 import org.slf4j.MDC;
-
-import javax.annotation.Nonnull;
-
-import static org.robotninjas.barge.state.Raft.StateType.FOLLOWER;
-import static org.robotninjas.barge.state.Raft.StateType.START;
 
 class Start extends BaseState {
 

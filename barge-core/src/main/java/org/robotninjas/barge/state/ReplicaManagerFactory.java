@@ -16,9 +16,8 @@
 
 package org.robotninjas.barge.state;
 
-import org.robotninjas.barge.Replica;
-
 import javax.annotation.Nonnull;
+import org.robotninjas.barge.Replica;
 
 interface ReplicaManagerFactory {
 

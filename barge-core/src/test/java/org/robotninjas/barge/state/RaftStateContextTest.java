@@ -1,5 +1,14 @@
 package org.robotninjas.barge.state;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.robotninjas.barge.state.Raft.StateType.CANDIDATE;
+import static org.robotninjas.barge.state.Raft.StateType.FOLLOWER;
+import static org.robotninjas.barge.state.Raft.StateType.LEADER;
+import static org.robotninjas.barge.state.Raft.StateType.START;
+
+import java.util.Collections;
 import org.jetlang.fibers.Fiber;
 import org.jetlang.fibers.ThreadFiber;
 import org.junit.Before;
@@ -7,11 +16,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.robotninjas.barge.api.AppendEntries;
 import org.robotninjas.barge.api.RequestVote;
-
-import java.util.Collections;
-
-import static org.mockito.Mockito.*;
-import static org.robotninjas.barge.state.Raft.StateType.*;
 
 
 public class RaftStateContextTest {

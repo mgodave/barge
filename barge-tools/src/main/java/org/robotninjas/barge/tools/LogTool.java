@@ -2,8 +2,6 @@ package org.robotninjas.barge.tools;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import journal.io.api.Journal;
 import journal.io.api.JournalBuilder;
@@ -23,7 +21,7 @@ import org.robotninjas.barge.api.Vote;
  */
 public class LogTool {
 
-  private static enum Type {EMPTY, APPEND, COMMIT, MEMBERSHIP, SNAPSHOT, TERM, VOTE}
+  private enum Type {EMPTY, APPEND, COMMIT, MEMBERSHIP, SNAPSHOT, TERM, VOTE}
 
   public static void main(String... args) throws IOException {
 

@@ -18,6 +18,7 @@ package org.robotninjas.barge.state;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.util.concurrent.Futures.addCallback;
+import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 import static org.robotninjas.barge.state.MajorityCollector.majorityResponse;
 import static org.robotninjas.barge.state.Raft.StateType.CANDIDATE;
 import static org.robotninjas.barge.state.Raft.StateType.FOLLOWER;
@@ -88,12 +89,9 @@ class Candidate extends BaseState {
     electionResult = majorityResponse(responses, voteGranted());
 
     long timeout = electionTimeout + (RAND.nextLong() % electionTimeout);
-    electionTimer = DeadlineTimer.start(scheduler, new Runnable() {
-      @Override
-      public void run() {
-        LOGGER.debug("Election timeout");
-        ctx.setState(Candidate.this, CANDIDATE);
-      }
+    electionTimer = DeadlineTimer.start(scheduler, () -> {
+      LOGGER.debug("Election timeout");
+      ctx.setState(Candidate.this, CANDIDATE);
     }, timeout);
 
     addCallback(electionResult, new FutureCallback<Boolean>() {
@@ -113,7 +111,7 @@ class Candidate extends BaseState {
         }
       }
 
-    });
+    }, directExecutor());
 
   }
 
@@ -136,7 +134,7 @@ class Candidate extends BaseState {
         .build();
 
     ListenableFuture<RequestVoteResponse> response = client.requestVote(replica, request);
-    Futures.addCallback(response, checkTerm(ctx));
+    Futures.addCallback(response, checkTerm(ctx), directExecutor());
 
     return response;
   }

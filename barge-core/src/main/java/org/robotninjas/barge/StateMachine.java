@@ -16,8 +16,8 @@
 
 package org.robotninjas.barge;
 
-import javax.annotation.Nonnull;
 import java.nio.ByteBuffer;
+import javax.annotation.Nonnull;
 
 public interface StateMachine {
 

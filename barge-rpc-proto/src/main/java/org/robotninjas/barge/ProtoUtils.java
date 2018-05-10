@@ -15,44 +15,39 @@
  */
 package org.robotninjas.barge;
 
+import static java.util.stream.Collectors.toList;
+
 import com.google.common.base.Function;
-import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.ByteString;
-import org.robotninjas.barge.api.*;
+import javax.annotation.Nullable;
+import org.robotninjas.barge.api.AppendEntries;
+import org.robotninjas.barge.api.AppendEntriesResponse;
+import org.robotninjas.barge.api.Entry;
+import org.robotninjas.barge.api.RequestVote;
+import org.robotninjas.barge.api.RequestVoteResponse;
 import org.robotninjas.barge.proto.RaftEntry;
 import org.robotninjas.barge.proto.RaftProto;
-
-import javax.annotation.Nullable;
 
 /**
  */
 public class ProtoUtils {
 
-  public static AsyncFunction<? super RaftProto.AppendEntriesResponse, ? extends AppendEntriesResponse> convertAppendResponse = new AsyncFunction<RaftProto.AppendEntriesResponse, AppendEntriesResponse>() {
-    @Override
-    public ListenableFuture<AppendEntriesResponse> apply(RaftProto.AppendEntriesResponse input) throws Exception {
-      return Futures.immediateFuture(ProtoUtils.convert(input));
-    }
-  };
+  public static AsyncFunction<? super RaftProto.AppendEntriesResponse, ? extends AppendEntriesResponse> convertAppendResponse =
+      (AsyncFunction<RaftProto.AppendEntriesResponse, AppendEntriesResponse>) input -> Futures.immediateFuture(ProtoUtils.convert(input));
 
-  public static AsyncFunction<? super RaftProto.RequestVoteResponse, ? extends RequestVoteResponse> convertVoteResponse = new AsyncFunction<RaftProto.RequestVoteResponse, RequestVoteResponse>() {
-    @Override
-    public ListenableFuture<RequestVoteResponse> apply(RaftProto.RequestVoteResponse input) throws Exception {
-      return Futures.immediateFuture(ProtoUtils.convert(input));
-    }
-  };
+  public static AsyncFunction<? super RaftProto.RequestVoteResponse, ? extends RequestVoteResponse> convertVoteResponse =
+      (AsyncFunction<RaftProto.RequestVoteResponse, RequestVoteResponse>) input -> Futures.immediateFuture(ProtoUtils.convert(input));
 
-  private static Function<Entry, RaftEntry.Entry> convertEntry = new Function<Entry, RaftEntry.Entry>() {
+  private static java.util.function.Function<Entry, RaftEntry.Entry> convertEntry = new Function<Entry, RaftEntry.Entry>() {
     @Nullable
     @Override
     public RaftEntry.Entry apply(@Nullable Entry input) {
       return convert(input);
     }
   };
-  private static Function<RaftEntry.Entry,Entry> convertEntryProto = new Function<RaftEntry.Entry, Entry>() {
+  private static java.util.function.Function<RaftEntry.Entry, Entry> convertEntryProto = new Function<RaftEntry.Entry, Entry>() {
     @Nullable
     @Override
     public Entry apply(@Nullable RaftEntry.Entry input) {
@@ -96,7 +91,7 @@ public class ProtoUtils {
       request.getPrevLogIndex(),
       request.getPrevLogTerm(),
       request.getCommitIndex(),
-      Lists.transform(request.getEntriesList(), convertEntryProto));
+      request.getEntriesList().stream().map(convertEntryProto).collect(toList()));
   }
 
 
@@ -107,7 +102,7 @@ public class ProtoUtils {
       .setPrevLogIndex(request.getPrevLogIndex())
       .setPrevLogTerm(request.getPrevLogTerm())
       .setLeaderId(request.getLeaderId())
-      .addAllEntries(Lists.transform(request.getEntriesList(), convertEntry))
+      .addAllEntries(request.getEntriesList().stream().map(convertEntry).collect(toList()))
       .build();
   }
 

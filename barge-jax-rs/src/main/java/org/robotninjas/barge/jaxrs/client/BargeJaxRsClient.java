@@ -18,20 +18,19 @@ package org.robotninjas.barge.jaxrs.client;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
-import org.robotninjas.barge.api.AppendEntries;
-import org.robotninjas.barge.api.AppendEntriesResponse;
-import org.robotninjas.barge.api.RequestVote;
-import org.robotninjas.barge.api.RequestVoteResponse;
-import org.robotninjas.barge.jaxrs.Jackson;
-import org.robotninjas.barge.rpc.RaftClient;
-
+import java.net.URI;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.InvocationCallback;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.net.URI;
+import org.robotninjas.barge.api.AppendEntries;
+import org.robotninjas.barge.api.AppendEntriesResponse;
+import org.robotninjas.barge.api.RequestVote;
+import org.robotninjas.barge.api.RequestVoteResponse;
+import org.robotninjas.barge.jaxrs.Jackson;
+import org.robotninjas.barge.rpc.RaftClient;
 
 /**
  */

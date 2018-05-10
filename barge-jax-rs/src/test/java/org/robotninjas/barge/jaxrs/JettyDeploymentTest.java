@@ -15,11 +15,9 @@
  */
 package org.robotninjas.barge.jaxrs;
 
-import org.robotninjas.barge.jaxrs.ws.RaftJettyServer;
-
 import java.io.File;
-
 import java.net.URI;
+import org.robotninjas.barge.jaxrs.ws.RaftJettyServer;
 
 
 /**

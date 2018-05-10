@@ -1,13 +1,9 @@
 package org.robotninjas.barge.jaxrs.ws;
 
 import com.google.common.base.Charsets;
-import com.google.common.base.Throwables;
-
-import org.eclipse.jetty.websocket.api.Session;
-
 import java.io.IOException;
-
 import java.nio.ByteBuffer;
+import org.eclipse.jetty.websocket.api.Session;
 
 
 /**
@@ -30,7 +26,7 @@ public class SessionToListener {
       try {
         session.getRemote().sendBytes(ByteBuffer.wrap(message.getBytes(Charsets.UTF_8)));
       } catch (IOException e) {
-        throw Throwables.propagate(e);
+        throw new RuntimeException(e);
       }
     }
 

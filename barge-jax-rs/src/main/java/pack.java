@@ -1,7 +1,9 @@
 import com.google.common.io.ByteStreams;
-
-import java.io.*;
-
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 
 
@@ -15,10 +17,7 @@ public class pack {
 
     URL url = pack.class.getProtectionDomain().getCodeSource().getLocation();
 
-    OutputStream fos = null;
-
-    try {
-      fos = new FileOutputStream(script);
+    try (OutputStream fos = new FileOutputStream(script)) {
 
       InputStream headerStream = pack.class.getClassLoader().getResourceAsStream("script-header");
       InputStream inputStream = url.openStream();
@@ -27,10 +26,6 @@ public class pack {
       ByteStreams.copy(inputStream, fos);
 
       script.setExecutable(true);
-    } finally {
-
-      if (fos != null)
-        fos.close();
     }
 
   }

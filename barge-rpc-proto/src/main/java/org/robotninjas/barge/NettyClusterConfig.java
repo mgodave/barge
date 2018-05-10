@@ -1,10 +1,11 @@
 package org.robotninjas.barge;
 
-import com.google.common.base.Objects;
-import com.google.common.collect.Iterables;
-
 import static com.google.common.collect.Iterables.unmodifiableIterable;
 import static com.google.common.collect.Lists.newArrayList;
+
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
+import com.google.common.collect.Iterables;
 
 public class NettyClusterConfig implements ClusterConfig {
 
@@ -64,9 +65,9 @@ public class NettyClusterConfig implements ClusterConfig {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
-      .add("local", local)
-      .add("remote", remote)
-      .toString();
+    return MoreObjects.toStringHelper(this)
+        .add("local", local)
+        .add("remote", remote)
+        .toString();
   }
 }

@@ -1,12 +1,13 @@
 package org.robotninjas.barge.state;
 
+import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import org.robotninjas.barge.api.AppendEntriesResponse;
-
-import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.annotation.Nullable;
+import org.robotninjas.barge.api.AppendEntriesResponse;
 
 public class ReplicaState {
 
@@ -51,7 +52,7 @@ public class ReplicaState {
             running.set(false);
           }
 
-        });
+        }, directExecutor());
 
       }
 

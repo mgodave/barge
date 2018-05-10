@@ -15,13 +15,13 @@
  */
 package org.robotninjas.barge.api;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-
-import javax.annotation.concurrent.Immutable;
 import java.util.Collections;
 import java.util.List;
+import javax.annotation.concurrent.Immutable;
 
 /**
  */
@@ -104,14 +104,14 @@ public class AppendEntries {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
-      .add("prevLogIndex", prevLogIndex)
-      .add("prevLogTerm", prevLogTerm)
-      .add("entriesList", entriesList)
-      .add("term", term)
-      .add("leaderId", leaderId)
-      .add("commitIndex", commitIndex)
-      .toString();
+    return MoreObjects.toStringHelper(this)
+        .add("prevLogIndex", prevLogIndex)
+        .add("prevLogTerm", prevLogTerm)
+        .add("entriesList", entriesList)
+        .add("term", term)
+        .add("leaderId", leaderId)
+        .add("commitIndex", commitIndex)
+        .toString();
   }
 
   public static AppendEntries getDefaultInstance() {

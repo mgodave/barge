@@ -1,11 +1,9 @@
 package org.robotninjas.barge;
 
-import com.google.common.base.Function;
-import com.google.common.base.Objects;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Lists;
+import static java.util.stream.Collectors.toList;
 
-import javax.annotation.Nullable;
+import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
 
 public class ClusterConfigStub implements ClusterConfig {
 
@@ -17,12 +15,7 @@ public class ClusterConfigStub implements ClusterConfig {
   }
 
   public static ClusterConfigStub getStub(String... ids) {
-    return new ClusterConfigStub(FluentIterable.from(Lists.newArrayList(ids))
-        .transform(new Function<String, Replica>() {
-          public Replica apply(@Nullable String input) {
-            return new ReplicaStub(input);
-          }
-        }));
+    return new ClusterConfigStub(Lists.newArrayList(ids).stream().map(ReplicaStub::new).collect(toList()));
   }
 
   @Override

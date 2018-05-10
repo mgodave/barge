@@ -16,21 +16,20 @@
 
 package org.robotninjas.barge.state;
 
-import com.google.inject.Inject;
-import org.jetlang.fibers.Fiber;
-import org.robotninjas.barge.*;
-import org.robotninjas.barge.log.RaftLog;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nonnegative;
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.NotThreadSafe;
-
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.robotninjas.barge.state.Raft.StateType.CANDIDATE;
 import static org.robotninjas.barge.state.Raft.StateType.FOLLOWER;
+
+import com.google.inject.Inject;
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.NotThreadSafe;
+import org.jetlang.fibers.Fiber;
+import org.robotninjas.barge.RaftExecutor;
+import org.robotninjas.barge.log.RaftLog;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @NotThreadSafe
 class Follower extends BaseState {
@@ -54,12 +53,9 @@ class Follower extends BaseState {
 
   @Override
   public void init(@Nonnull final RaftStateContext ctx) {
-    timeoutTask = DeadlineTimer.start(scheduler, new Runnable() {
-      @Override
-      public void run() {
-        LOGGER.debug("DeadlineTimer expired, starting election");
-        ctx.setState(Follower.this, CANDIDATE);
-      }
+    timeoutTask = DeadlineTimer.start(scheduler, () -> {
+      LOGGER.debug("DeadlineTimer expired, starting election");
+      ctx.setState(Follower.this, CANDIDATE);
     }, timeout * 2);
   }
 

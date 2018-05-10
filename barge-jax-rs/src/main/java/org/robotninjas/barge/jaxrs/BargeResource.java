@@ -15,7 +15,14 @@
  */
 package org.robotninjas.barge.jaxrs;
 
-import com.google.common.base.Throwables;
+import javax.inject.Inject;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.NotLeaderException;
 import org.robotninjas.barge.api.AppendEntries;
@@ -23,11 +30,6 @@ import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.api.RequestVote;
 import org.robotninjas.barge.api.RequestVoteResponse;
 import org.robotninjas.barge.state.Raft;
-
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 
 /**
@@ -59,7 +61,7 @@ public class BargeResource {
     try {
       return raft.init().get();
     } catch (Exception e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -99,7 +101,7 @@ public class BargeResource {
     } catch (NotLeaderException e) {
       return Response.status(Response.Status.FOUND).location(((HttpReplica) e.getLeader()).getUri()).build();
     } catch (Exception e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 }

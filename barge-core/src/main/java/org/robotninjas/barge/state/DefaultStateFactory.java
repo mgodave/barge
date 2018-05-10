@@ -15,13 +15,12 @@
  */
 package org.robotninjas.barge.state;
 
+import javax.annotation.Nonnegative;
+import javax.inject.Inject;
 import org.jetlang.fibers.Fiber;
 import org.robotninjas.barge.RaftExecutor;
 import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.rpc.Client;
-
-import javax.annotation.Nonnegative;
-import javax.inject.Inject;
 
 class DefaultStateFactory implements StateFactory {
 

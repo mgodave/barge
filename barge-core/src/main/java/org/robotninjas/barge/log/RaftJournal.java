@@ -1,14 +1,14 @@
 package org.robotninjas.barge.log;
 
 import static com.google.common.base.Functions.toStringFunction;
-import static com.google.common.base.Throwables.propagate;
 import static journal.io.api.Journal.ReadType;
 import static journal.io.api.Journal.WriteType;
 
-import com.google.common.collect.FluentIterable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import journal.io.api.Journal;
 import journal.io.api.Location;
 import org.robotninjas.barge.ClusterConfig;
@@ -36,7 +36,7 @@ class RaftJournal {
       byte[] data = journal.read(loc, ReadType.SYNC);
       return JournalEntry.parseFrom(data);
     } catch (IOException e) {
-      throw propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -44,7 +44,7 @@ class RaftJournal {
     try {
       journal.delete(loc);
     } catch (IOException e) {
-      propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -52,7 +52,7 @@ class RaftJournal {
     try {
       return journal.write(entry.toByteArray(), WriteType.SYNC);
     } catch (IOException e) {
-      throw propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -67,7 +67,7 @@ class RaftJournal {
         delete(loc);
       }
     } catch (IOException e) {
-      throw propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -75,16 +75,14 @@ class RaftJournal {
     try {
 
       Location location = mark.getLocation();
-      Iterable<Location> locations = FluentIterable
-          .from(journal.redo(location))
-          .skip(1);
+      Iterable<Location> locations = StreamSupport.stream(journal.redo(location).spliterator(), false).skip(1).collect(Collectors.toList());
 
       for (Location loc : locations) {
         delete(loc);
       }
 
     } catch (IOException e) {
-      throw propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -170,12 +168,12 @@ class RaftJournal {
 
       }
     } catch (IOException e) {
-      propagate(e);
+      throw new RuntimeException(e);
     }
 
   }
 
-  static interface Visitor {
+  interface Visitor {
 
     void term(Mark mark, long term);
 

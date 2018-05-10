@@ -70,21 +70,13 @@ public abstract class BaseState implements State {
     if (request.getLastLogTerm() > log.lastLogTerm()) {
       logIsComplete = true;
     } else if (request.getLastLogTerm() == log.lastLogTerm()) {
-      if (request.getLastLogIndex() >= log.lastLogIndex()) {
-        logIsComplete = true;
-      } else {
-        logIsComplete = false;
-      }
+      logIsComplete = request.getLastLogIndex() >= log.lastLogIndex();
     } else {
       logIsComplete = false;
     }
-    
-    if (logIsComplete) {
-      // Requestor has an up-to-date log, we haven't voted for anyone else => OK
-      return true;
-    }
-   
-    return false;
+
+    return logIsComplete;
+
   }
 
   protected void resetTimer() {

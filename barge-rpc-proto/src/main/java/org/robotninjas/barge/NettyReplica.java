@@ -16,19 +16,17 @@
 
 package org.robotninjas.barge;
 
-import com.google.common.base.Objects;
-import com.google.common.base.Throwables;
-import com.google.common.net.HostAndPort;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.Immutable;
-import javax.annotation.concurrent.ThreadSafe;
+import com.google.common.base.Objects;
+import com.google.common.net.HostAndPort;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.Immutable;
+import javax.annotation.concurrent.ThreadSafe;
 
 @Immutable
 @ThreadSafe
@@ -45,11 +43,11 @@ public class NettyReplica implements Replica {
     try {
       checkNotNull(info);
       HostAndPort hostAndPort = HostAndPort.fromString(info);
-      InetAddress addr = InetAddress.getByName(hostAndPort.getHostText());
+      InetAddress addr = InetAddress.getByName(hostAndPort.getHost());
       InetSocketAddress saddr = new InetSocketAddress(addr, hostAndPort.getPort());
       return new NettyReplica(saddr);
     } catch (UnknownHostException e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 

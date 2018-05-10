@@ -1,11 +1,11 @@
 package org.robotninjas.barge.jaxrs.ws;
 
+import com.google.common.base.MoreObjects;
+import java.util.Objects;
+import javax.annotation.concurrent.Immutable;
 import org.robotninjas.barge.api.AppendEntries;
 import org.robotninjas.barge.api.RequestVote;
 import org.robotninjas.barge.state.Raft;
-
-import javax.annotation.concurrent.Immutable;
-import java.util.Objects;
 
 /**
  */
@@ -84,7 +84,7 @@ public class WsMessages {
 
     @Override
     public String toString() {
-      return com.google.common.base.Objects.toStringHelper(this)
+      return MoreObjects.toStringHelper(this)
           .add("target", target)
           .add("from", from)
           .add("to", to)
@@ -137,7 +137,7 @@ public class WsMessages {
 
     @Override
     public String toString() {
-      return com.google.common.base.Objects.toStringHelper(this)
+      return MoreObjects.toStringHelper(this)
           .add("target", target)
           .add("expected", expected)
           .add("actual", actual)
@@ -178,7 +178,7 @@ public class WsMessages {
 
     @Override
     public String toString() {
-      return com.google.common.base.Objects.toStringHelper(this)
+      return MoreObjects.toStringHelper(this)
           .add("target", target)
           .toString();
     }
@@ -212,8 +212,9 @@ public class WsMessages {
       return Objects.equals(this.name, other.name);
     }
 
-    @Override public String toString() {
-      return com.google.common.base.Objects.toStringHelper(this)
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
           .add("name", name)
           .toString();
     }
@@ -253,8 +254,9 @@ public class WsMessages {
       return Objects.equals(this.name, other.name) && Objects.equals(this.entries, other.entries);
     }
 
-    @Override public String toString() {
-      return com.google.common.base.Objects.toStringHelper(this)
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
           .add("name", name)
           .add("entries", entries)
           .toString();
@@ -295,8 +297,9 @@ public class WsMessages {
       return Objects.equals(this.name, other.name) && Objects.equals(this.vote, other.vote);
     }
 
-    @Override public String toString() {
-      return com.google.common.base.Objects.toStringHelper(this)
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
           .add("name", name)
           .add("vote", vote)
           .toString();
@@ -337,8 +340,9 @@ public class WsMessages {
       return Objects.equals(this.name, other.name) && Objects.equals(this.operation, other.operation);
     }
 
-    @Override public String toString() {
-      return com.google.common.base.Objects.toStringHelper(this)
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
           .add("name", name)
           .add("operation", operation)
           .toString();

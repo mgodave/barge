@@ -15,10 +15,20 @@
  */
 package org.robotninjas.barge.jaxrs;
 
-import com.google.common.base.Throwables;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Set;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -30,18 +40,6 @@ import org.robotninjas.barge.NotLeaderException;
 import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.api.RequestVoteResponse;
 import org.robotninjas.barge.state.Raft;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 
 /**
@@ -151,7 +149,7 @@ public class BargeResourceTest extends JerseyTest {
     try {
       return new URI(uri);
     } catch (URISyntaxException e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 

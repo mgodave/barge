@@ -15,11 +15,10 @@
  */
 package org.robotninjas.barge.jaxrs;
 
-import org.junit.rules.ExternalResource;
-import org.slf4j.bridge.SLF4JBridgeHandler;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.junit.rules.ExternalResource;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 /**
  */
