@@ -1,15 +1,28 @@
 package org.robotninjas.barge.state;
 
-import com.google.common.base.Optional;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
+import static org.robotninjas.barge.state.Raft.StateType.CANDIDATE;
+import static org.robotninjas.barge.state.Raft.StateType.LEADER;
+
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import java.util.Optional;
+import java.util.concurrent.ScheduledFuture;
 import org.jetlang.fibers.Fiber;
 import org.jetlang.fibers.FiberStub;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.ClusterConfigStub;
@@ -20,14 +33,6 @@ import org.robotninjas.barge.api.RequestVote;
 import org.robotninjas.barge.api.RequestVoteResponse;
 import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.rpc.Client;
-
-import java.util.concurrent.ScheduledFuture;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Mockito.*;
-import static org.robotninjas.barge.state.Raft.StateType.CANDIDATE;
-import static org.robotninjas.barge.state.Raft.StateType.LEADER;
 
 public class CandidateTest {
 
@@ -48,17 +53,14 @@ public class CandidateTest {
     MockitoAnnotations.initMocks(this);
 
     when(mockRaftLog.self()).thenReturn(self);
-    when(mockRaftLog.votedFor()).thenReturn(Optional.<Replica>absent());
+    when(mockRaftLog.votedFor()).thenReturn(Optional.empty());
     when(mockRaftLog.lastLogTerm()).thenReturn(0L);
     when(mockRaftLog.lastLogIndex()).thenReturn(0L);
     when(mockRaftLog.currentTerm()).thenReturn(term);
     when(mockRaftLog.config()).thenReturn(config);
-    when(mockRaftLog.getReplica(anyString())).thenAnswer(new Answer<Replica>() {
-      @Override
-      public Replica answer(InvocationOnMock invocation) throws Throwable {
-        String arg = (String) invocation.getArguments()[0];
-        return config.getReplica(arg);
-      }
+    when(mockRaftLog.getReplica(anyString())).thenAnswer((Answer<Replica>) invocation -> {
+      String arg = (String) invocation.getArguments()[0];
+      return config.getReplica(arg);
     });
 
     ScheduledFuture mockScheduledFuture = mock(ScheduledFuture.class);
@@ -92,8 +94,8 @@ public class CandidateTest {
     verify(mockRaftLog).currentTerm(4L);
     verify(mockRaftLog, times(2)).currentTerm(anyLong());
 
-    verify(mockRaftLog).votedFor(Optional.of(self));
-    verify(mockRaftLog).votedFor(Optional.of(mockCandidate));
+    verify(mockRaftLog).votedFor(java.util.Optional.of(self));
+    verify(mockRaftLog).votedFor(java.util.Optional.of(mockCandidate));
     verify(mockRaftLog, times(2)).votedFor(any(Optional.class));
 
     verify(mockRaftLog, never()).commitIndex(anyLong());
@@ -125,8 +127,8 @@ public class CandidateTest {
     verify(mockRaftLog).currentTerm(3L);
     verify(mockRaftLog, times(1)).currentTerm(anyLong());
 
-    verify(mockRaftLog).votedFor(Optional.of(self));
-    verify(mockRaftLog, never()).votedFor(Optional.of(mockCandidate));
+    verify(mockRaftLog).votedFor(java.util.Optional.of(self));
+    verify(mockRaftLog, never()).votedFor(java.util.Optional.of(mockCandidate));
     verify(mockRaftLog, times(1)).votedFor(any(Optional.class));
 
     verify(mockRaftLog, never()).commitIndex(anyLong());
@@ -156,8 +158,8 @@ public class CandidateTest {
     verify(mockRaftLog).currentTerm(3L);
     verify(mockRaftLog, times(1)).currentTerm(anyLong());
 
-    verify(mockRaftLog).votedFor(Optional.of(self));
-    verify(mockRaftLog, times(1)).votedFor(Optional.of(mockCandidate));
+    verify(mockRaftLog).votedFor(java.util.Optional.of(self));
+    verify(mockRaftLog, times(1)).votedFor(java.util.Optional.of(mockCandidate));
     verify(mockRaftLog, times(2)).votedFor(any(Optional.class));
 
     verify(mockRaftLog, never()).commitIndex(anyLong());
@@ -192,7 +194,7 @@ public class CandidateTest {
     verify(mockRaftLog).currentTerm(4L);
     verify(mockRaftLog, times(2)).currentTerm(anyLong());
 
-    verify(mockRaftLog).votedFor(Optional.of(self));
+    verify(mockRaftLog).votedFor(java.util.Optional.of(self));
     verify(mockRaftLog, times(1)).votedFor(any(Optional.class));
 
     verify(mockRaftLog, times(1)).commitIndex(anyLong());
@@ -226,7 +228,7 @@ public class CandidateTest {
     verify(mockRaftLog).currentTerm(3L);
     verify(mockRaftLog, times(1)).currentTerm(anyLong());
 
-    verify(mockRaftLog).votedFor(Optional.of(self));
+    verify(mockRaftLog).votedFor(java.util.Optional.of(self));
     verify(mockRaftLog, times(1)).votedFor(any(Optional.class));
 
     verify(mockRaftLog, never()).commitIndex(anyLong());
@@ -257,7 +259,7 @@ public class CandidateTest {
     verify(mockRaftLog).currentTerm(3L);
     verify(mockRaftLog, times(1)).currentTerm(anyLong());
 
-    verify(mockRaftLog).votedFor(Optional.of(self));
+    verify(mockRaftLog).votedFor(java.util.Optional.of(self));
     verify(mockRaftLog, times(1)).votedFor(any(Optional.class));
 
     verify(mockRaftLog, times(1)).commitIndex(anyLong());

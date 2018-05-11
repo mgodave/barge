@@ -51,23 +51,15 @@ class StateMachineProxy {
   @Nonnull
   public ListenableFuture<Object> dispatchOperation(@Nonnull final ByteBuffer op) {
     checkNotNull(op);
-    return submit(new Callable<Object>() {
-      @Override
-      public Object call() {
-        return stateMachine.applyOperation(op.asReadOnlyBuffer());
-      }
-    });
+    return submit(() -> stateMachine.applyOperation(op.asReadOnlyBuffer()));
   }
 
   @Nonnull
   public ListenableFuture takeSnapshot(@Nonnull final OutputStream out) throws IOException {
     checkNotNull(out);
-    return submit(new Callable() {
-      @Override
-      public Object call() {
-        //stateMachine.takeSnapshot(out);
-        return null;
-      }
+    return submit((Callable) () -> {
+      //stateMachine.takeSnapshot(out);
+      return null;
     });
   }
 

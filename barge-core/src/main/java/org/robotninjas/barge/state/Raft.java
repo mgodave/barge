@@ -15,7 +15,7 @@ import javax.annotation.Nonnull;
  */
 public interface Raft {
 
-  public static enum StateType {
+  public enum StateType {
     START, FOLLOWER, CANDIDATE, LEADER, STOPPED
   }
 

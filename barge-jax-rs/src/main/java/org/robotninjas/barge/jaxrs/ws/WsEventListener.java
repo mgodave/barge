@@ -105,14 +105,12 @@ public class WsEventListener implements StateTransitionListener, RaftProtocolLis
   }
 
   private void dispatch(final WsMessage message) {
-    executor.execute(new Runnable() {
-      @Override public void run() {
+    executor.execute(() -> {
 
-        for (Listener remote : remotes) {
-          send(message, remote);
-        }
-
+      for (Listener remote : remotes) {
+        send(message, remote);
       }
+
     });
   }
 

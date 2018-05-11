@@ -16,19 +16,17 @@
 package org.robotninjas.barge.jaxrs;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import org.robotninjas.barge.ClusterConfig;
-import org.robotninjas.barge.Replica;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
+import java.util.stream.StreamSupport;
+import javax.annotation.Nonnull;
+import org.robotninjas.barge.ClusterConfig;
+import org.robotninjas.barge.Replica;
 
 /**
  * Configures a cluster based on HTTP transport.
@@ -88,7 +86,7 @@ public class HttpClusterConfig implements ClusterConfig {
       if (local.match(uri))
         return local;
 
-      return Iterables.find(remote(), match(uri));
+      return StreamSupport.stream(remote().spliterator(), false).filter(match(uri)).findFirst().get();
     } catch (URISyntaxException e) {
       throw new RaftHttpException(info + " is not a valid URI, cannot find a corresponding replica", e);
     }
@@ -117,12 +115,7 @@ public class HttpClusterConfig implements ClusterConfig {
   }
 
   private Predicate<Replica> match(final URI uri) {
-    return new Predicate<Replica>() {
-      @Override
-      public boolean apply(@Nullable Replica input) {
-        return input != null && ((HttpReplica) input).match(uri);
-      }
-    };
+    return input -> input != null && ((HttpReplica) input).match(uri);
   }
 
 }

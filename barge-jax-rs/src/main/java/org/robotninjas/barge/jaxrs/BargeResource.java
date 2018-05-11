@@ -15,7 +15,6 @@
  */
 package org.robotninjas.barge.jaxrs;
 
-import com.google.common.base.Throwables;
 import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.NotLeaderException;
 import org.robotninjas.barge.api.AppendEntries;
@@ -59,7 +58,7 @@ public class BargeResource {
     try {
       return raft.init().get();
     } catch (Exception e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -99,7 +98,7 @@ public class BargeResource {
     } catch (NotLeaderException e) {
       return Response.status(Response.Status.FOUND).location(((HttpReplica) e.getLeader()).getUri()).build();
     } catch (Exception e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 }

@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import javax.annotation.Nonnull;
 
@@ -94,12 +93,7 @@ public class SimpleCounterMachine implements StateMachine {
    * @throws IllegalStateException if {@code expected} is not reached at end of timeout.
    */
   public void waitForValue(final int increments, long timeout) {
-    new Prober(new Callable<Boolean>() {
-        @Override
-        public Boolean call() throws Exception {
-          return increments == counter;
-        }
-      }).probe(timeout);
+    new Prober(() -> increments == counter).probe(timeout);
   }
 
   public boolean isLeader() {

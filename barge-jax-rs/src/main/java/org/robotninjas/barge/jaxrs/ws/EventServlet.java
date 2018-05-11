@@ -17,15 +17,12 @@ public class EventServlet extends WebSocketServlet {
 
   @Override
   public void configure(WebSocketServletFactory factory) {
-    factory.setCreator(new WebSocketCreator() {
-        @Override
-        public Object createWebSocket(ServletUpgradeRequest req, ServletUpgradeResponse resp) {
+    factory.setCreator((req, resp) -> {
 
-          // remove all compressions extensions that might be requested by the browser...
-          resp.setExtensions(Collections.<ExtensionConfig>emptyList());
+      // remove all compressions extensions that might be requested by the browser...
+      resp.setExtensions(Collections.<ExtensionConfig>emptyList());
 
-          return new EventSocket(events);
-        }
-      });
+      return new EventSocket(events);
+    });
   }
 }

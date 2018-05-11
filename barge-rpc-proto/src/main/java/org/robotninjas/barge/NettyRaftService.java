@@ -35,8 +35,7 @@ import java.io.File;
 import java.util.concurrent.ExecutionException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Throwables.propagate;
-import static com.google.common.base.Throwables.propagateIfInstanceOf;
+import static com.google.common.base.Throwables.propagateIfPossible;
 
 @ThreadSafe
 @Immutable
@@ -104,9 +103,9 @@ public class NettyRaftService extends AbstractService implements RaftService {
     try {
       return commitAsync(operation).get();
     } catch (ExecutionException e) {
-      propagateIfInstanceOf(e.getCause(), NotLeaderException.class);
-      propagateIfInstanceOf(e.getCause(), NoLeaderException.class);
-      throw propagate(e.getCause());
+      propagateIfPossible(e.getCause(), NotLeaderException.class);
+      propagateIfPossible(e.getCause(), NoLeaderException.class);
+      throw new RuntimeException(e.getCause());
     }
   }
 

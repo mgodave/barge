@@ -16,12 +16,12 @@
 
 package org.robotninjas.barge.state;
 
-import com.google.common.base.Predicate;
 import com.google.common.util.concurrent.AbstractFuture;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
+import java.util.function.Predicate;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.GuardedBy;
@@ -50,7 +50,7 @@ class MajorityCollector<T> extends AbstractFuture<Boolean> implements FutureCall
 
   @Nonnull
   public static <U> ListenableFuture<Boolean> majorityResponse(@Nonnull List<? extends ListenableFuture<U>> responses, @Nonnull Predicate<U> isSuccess) {
-    MajorityCollector collector = new MajorityCollector(responses.size(), isSuccess);
+    MajorityCollector<U> collector = new MajorityCollector<>(responses.size(), isSuccess);
     for (ListenableFuture<U> response : responses) {
       Futures.addCallback(response, collector);
     }
@@ -78,7 +78,7 @@ class MajorityCollector<T> extends AbstractFuture<Boolean> implements FutureCall
 
     lock.lock();
     try {
-      if (isSuccess.apply(result)) {
+      if (isSuccess.test(result)) {
         numSuccess++;
       } else {
         numFailed++;

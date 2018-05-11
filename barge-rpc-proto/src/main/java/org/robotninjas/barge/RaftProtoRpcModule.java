@@ -1,8 +1,8 @@
 package org.robotninjas.barge;
 
-import com.google.common.base.Optional;
 import com.google.inject.PrivateModule;
 import io.netty.channel.nio.NioEventLoopGroup;
+import java.util.Optional;
 import org.robotninjas.barge.rpc.RaftClientProvider;
 import org.robotninjas.barge.rpc.RpcModule;
 import org.robotninjas.protobuf.netty.server.RpcServer;
@@ -10,7 +10,7 @@ import org.robotninjas.protobuf.netty.server.RpcServer;
 class RaftProtoRpcModule extends PrivateModule {
 
   private final NettyReplica localEndpoint;
-  private Optional<NioEventLoopGroup> eventLoopGroup = Optional.absent();
+  private Optional<NioEventLoopGroup> eventLoopGroup = Optional.empty();
 
   public RaftProtoRpcModule(NettyReplica localEndpoint) {
     this.localEndpoint = localEndpoint;
@@ -33,11 +33,9 @@ class RaftProtoRpcModule extends PrivateModule {
       eventLoop = eventLoopGroup.get();
     } else {
       eventLoop = new NioEventLoopGroup(1);
-      Runtime.getRuntime().addShutdownHook(new Thread() {
-        public void run() {
-          eventLoop.shutdownGracefully();
-        }
-      });
+      Runtime.getRuntime().addShutdownHook(
+          new Thread(eventLoop::shutdownGracefully)
+      );
     }
     return eventLoop;
   }

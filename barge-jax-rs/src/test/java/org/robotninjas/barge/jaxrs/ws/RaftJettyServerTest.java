@@ -1,7 +1,6 @@
 package org.robotninjas.barge.jaxrs.ws;
 
 import com.google.common.base.Predicates;
-import com.google.common.collect.Iterables;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
@@ -19,7 +18,6 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import java.net.URI;
 import java.util.Queue;
-import java.util.concurrent.Callable;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.regex.Pattern;
 
@@ -63,12 +61,7 @@ public class RaftJettyServerTest {
 
     client.target(uri).path("/raft/init").request().post(Entity.json(""));
 
-    new Prober(new Callable<Boolean>() {
-        @Override
-        public Boolean call() throws Exception {
-          return Iterables.any(socket.messages, Predicates.contains(Pattern.compile(".*FOLLOWER.*")));
-        }
-      }).probe(10000);
+    new Prober(() -> socket.messages.stream().anyMatch(Predicates.contains(Pattern.compile(".*FOLLOWER.*"))::apply)).probe(10000);
   }
 
 

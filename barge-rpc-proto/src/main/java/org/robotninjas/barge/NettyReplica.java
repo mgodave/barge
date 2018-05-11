@@ -17,7 +17,6 @@
 package org.robotninjas.barge;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Throwables;
 import com.google.common.net.HostAndPort;
 
 import javax.annotation.Nonnull;
@@ -49,7 +48,7 @@ public class NettyReplica implements Replica {
       InetSocketAddress saddr = new InetSocketAddress(addr, hostAndPort.getPort());
       return new NettyReplica(saddr);
     } catch (UnknownHostException e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 

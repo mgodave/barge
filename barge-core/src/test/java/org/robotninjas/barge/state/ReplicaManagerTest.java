@@ -9,9 +9,6 @@ import static junit.framework.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-
 import org.mockito.Mock;
 
 import static org.mockito.Mockito.*;

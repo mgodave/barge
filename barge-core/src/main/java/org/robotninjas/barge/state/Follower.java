@@ -54,12 +54,9 @@ class Follower extends BaseState {
 
   @Override
   public void init(@Nonnull final RaftStateContext ctx) {
-    timeoutTask = DeadlineTimer.start(scheduler, new Runnable() {
-      @Override
-      public void run() {
-        LOGGER.debug("DeadlineTimer expired, starting election");
-        ctx.setState(Follower.this, CANDIDATE);
-      }
+    timeoutTask = DeadlineTimer.start(scheduler, () -> {
+      LOGGER.debug("DeadlineTimer expired, starting election");
+      ctx.setState(Follower.this, CANDIDATE);
     }, timeout * 2);
   }
 

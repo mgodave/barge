@@ -17,8 +17,6 @@ package org.robotninjas.barge.utils;
 
 import java.util.concurrent.Callable;
 
-import static com.google.common.base.Throwables.propagate;
-
 /**
  * Repeatedly probe for some condition to become true.
  */
@@ -49,7 +47,7 @@ public class Prober {
         throw new IllegalStateException("probe condition not true after " + timeoutInMs);
       }
     } catch (Exception e) {
-      throw propagate(e);
+      throw new RuntimeException(e);
     }
   }
 

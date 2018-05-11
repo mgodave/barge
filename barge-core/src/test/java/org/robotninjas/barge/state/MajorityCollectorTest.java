@@ -260,7 +260,7 @@ public class MajorityCollectorTest {
 
   }
 
-  static enum BooleanIdentity implements Predicate<Boolean> {
+  enum BooleanIdentity implements Predicate<Boolean> {
 
     Identity;
 

@@ -3,6 +3,7 @@
 
 package org.robotninjas.barge.proto;
 
+@SuppressWarnings("ALL")
 public final class LogProto {
   private LogProto() {}
   public static void registerAllExtensions(
@@ -116,7 +117,7 @@ public final class LogProto {
         makeExtensionsImmutable();
       }
     }
-    public static final com.google.protobuf.Descriptors.Descriptor
+    public static com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
       return org.robotninjas.barge.proto.LogProto.internal_static_Append_descriptor;
     }
@@ -317,7 +318,7 @@ public final class LogProto {
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder>
        implements org.robotninjas.barge.proto.LogProto.AppendOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
+      public static com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return org.robotninjas.barge.proto.LogProto.internal_static_Append_descriptor;
       }
@@ -747,7 +748,7 @@ public final class LogProto {
         makeExtensionsImmutable();
       }
     }
-    public static final com.google.protobuf.Descriptors.Descriptor
+    public static com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
       return org.robotninjas.barge.proto.LogProto.internal_static_Membership_descriptor;
     }
@@ -981,7 +982,7 @@ public final class LogProto {
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder>
        implements org.robotninjas.barge.proto.LogProto.MembershipOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
+      public static com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return org.robotninjas.barge.proto.LogProto.internal_static_Membership_descriptor;
       }
@@ -1384,7 +1385,7 @@ public final class LogProto {
         makeExtensionsImmutable();
       }
     }
-    public static final com.google.protobuf.Descriptors.Descriptor
+    public static com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
       return org.robotninjas.barge.proto.LogProto.internal_static_Vote_descriptor;
     }
@@ -1570,7 +1571,7 @@ public final class LogProto {
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder>
        implements org.robotninjas.barge.proto.LogProto.VoteOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
+      public static com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return org.robotninjas.barge.proto.LogProto.internal_static_Vote_descriptor;
       }
@@ -1850,7 +1851,7 @@ public final class LogProto {
         makeExtensionsImmutable();
       }
     }
-    public static final com.google.protobuf.Descriptors.Descriptor
+    public static com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
       return org.robotninjas.barge.proto.LogProto.internal_static_Term_descriptor;
     }
@@ -2013,7 +2014,7 @@ public final class LogProto {
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder>
        implements org.robotninjas.barge.proto.LogProto.TermOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
+      public static com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return org.robotninjas.barge.proto.LogProto.internal_static_Term_descriptor;
       }
@@ -2254,7 +2255,7 @@ public final class LogProto {
         makeExtensionsImmutable();
       }
     }
-    public static final com.google.protobuf.Descriptors.Descriptor
+    public static com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
       return org.robotninjas.barge.proto.LogProto.internal_static_Commit_descriptor;
     }
@@ -2417,7 +2418,7 @@ public final class LogProto {
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder>
        implements org.robotninjas.barge.proto.LogProto.CommitOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
+      public static com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return org.robotninjas.barge.proto.LogProto.internal_static_Commit_descriptor;
       }
@@ -2693,7 +2694,7 @@ public final class LogProto {
         makeExtensionsImmutable();
       }
     }
-    public static final com.google.protobuf.Descriptors.Descriptor
+    public static com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
       return org.robotninjas.barge.proto.LogProto.internal_static_Snapshot_descriptor;
     }
@@ -2939,7 +2940,7 @@ public final class LogProto {
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder>
        implements org.robotninjas.barge.proto.LogProto.SnapshotOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
+      public static com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return org.robotninjas.barge.proto.LogProto.internal_static_Snapshot_descriptor;
       }
@@ -3462,7 +3463,7 @@ public final class LogProto {
         makeExtensionsImmutable();
       }
     }
-    public static final com.google.protobuf.Descriptors.Descriptor
+    public static com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
       return org.robotninjas.barge.proto.LogProto.internal_static_JournalEntry_descriptor;
     }
@@ -3807,7 +3808,7 @@ public final class LogProto {
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder>
        implements org.robotninjas.barge.proto.LogProto.JournalEntryOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
+      public static com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return org.robotninjas.barge.proto.LogProto.internal_static_JournalEntry_descriptor;
       }

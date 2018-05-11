@@ -17,7 +17,6 @@
 package org.robotninjas.barge.rpc;
 
 import com.google.common.util.concurrent.AbstractFuture;
-import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.RpcCallback;
@@ -40,7 +39,6 @@ import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.util.concurrent.Futures.immediateFailedFuture;
-import static com.google.common.util.concurrent.Futures.transform;
 import static com.google.common.util.concurrent.Futures.transformAsync;
 import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 
@@ -74,17 +72,14 @@ class ProtoRpcRaftClient implements RaftClient {
     try {
 
       channel = channelPool.borrowObject();
-      ListenableFuture<T> response = transformAsync(channel, new AsyncFunction<NettyRpcChannel, T>() {
-          @Override
-          public ListenableFuture<T> apply(NettyRpcChannel channel) throws Exception {
-            RaftProto.RaftService.Stub stub = RaftProto.RaftService.newStub(channel);
-            ClientController controller = new ClientController(channel);
-            controller.setTimeout(DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
-            RpcHandlerFuture<T> responseHandler = new RpcHandlerFuture<T>(controller);
-            call.call(stub, controller, responseHandler);
-            return responseHandler;
-          }
-        });
+      ListenableFuture<T> response = transformAsync(channel, channel1 -> {
+        RaftProto.RaftService.Stub stub = RaftProto.RaftService.newStub(channel1);
+        ClientController controller = new ClientController(channel1);
+        controller.setTimeout(DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
+        RpcHandlerFuture<T> responseHandler = new RpcHandlerFuture<>(controller);
+        call.call(stub, controller, responseHandler);
+        return responseHandler;
+      });
 
       response.addListener(returnChannel(channel), directExecutor());
 
@@ -112,13 +107,10 @@ class ProtoRpcRaftClient implements RaftClient {
   }
 
   private Runnable returnChannel(final ListenableFuture<NettyRpcChannel> channel) {
-    return new Runnable() {
-      @Override
-      public void run() {
-        try {
-          channelPool.returnObject(channel);
-        } catch (Exception ignored) {
-        }
+    return () -> {
+      try {
+        channelPool.returnObject(channel);
+      } catch (Exception ignored) {
       }
     };
   }

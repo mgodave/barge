@@ -43,7 +43,7 @@ public class NettyClusterConfig implements ClusterConfig {
   @Override
   public int hashCode() {
     Iterable<Replica> all = Iterables.concat(newArrayList(local), remote);
-    return Objects.hashCode(Iterables.toArray(all, Replica.class));
+    return Objects.hashCode((Object[]) Iterables.toArray(all, Replica.class));
   }
 
   @Override

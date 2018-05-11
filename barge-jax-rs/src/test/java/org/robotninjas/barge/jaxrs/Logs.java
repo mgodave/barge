@@ -11,7 +11,7 @@ public class Logs {
   private static final File target = new File(Logs.class.getResource("/marker").getFile()).getParentFile();
 
 
-  public static final File uniqueLog() {
+  public static File uniqueLog() {
     long timestamp = System.nanoTime();
     File log;
 

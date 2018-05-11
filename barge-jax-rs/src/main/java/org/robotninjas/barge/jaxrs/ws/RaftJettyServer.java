@@ -1,7 +1,5 @@
 package org.robotninjas.barge.jaxrs.ws;
 
-import com.google.common.base.Throwables;
-
 import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
 import org.eclipse.jetty.server.Server;
@@ -163,7 +161,7 @@ public class RaftJettyServer implements RaftServer<RaftJettyServer> {
 
       return this;
     } catch (Throwable t) {
-      throw Throwables.propagate(t);
+      throw new RuntimeException(t);
     }
   }
 
@@ -174,7 +172,7 @@ public class RaftJettyServer implements RaftServer<RaftJettyServer> {
       events.stop();
       server.stop();
     } catch (Exception e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -188,7 +186,7 @@ public class RaftJettyServer implements RaftServer<RaftJettyServer> {
     try {
       raftApplication.clean();
     } catch (IOException e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 

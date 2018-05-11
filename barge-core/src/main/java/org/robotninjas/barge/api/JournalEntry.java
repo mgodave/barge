@@ -17,7 +17,6 @@ package org.robotninjas.barge.api;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import com.google.common.base.Throwables;
 
 import javax.annotation.concurrent.Immutable;
 import java.io.*;
@@ -48,10 +47,8 @@ public final class
     ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
     try {
       return (JournalEntry) new ObjectInputStream(inputStream).readObject();
-    } catch (IOException e) {
-      throw Throwables.propagate(e);
-    } catch (ClassNotFoundException e) {
-      throw Throwables.propagate(e);
+    } catch (IOException | ClassNotFoundException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -64,7 +61,7 @@ public final class
 
       return outputStream.toByteArray();
     } catch (IOException e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 

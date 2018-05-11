@@ -49,7 +49,7 @@ class ProtoRpcRaftClientProvider implements RaftClientProvider {
   @Inject
   public ProtoRpcRaftClientProvider(@Nonnull RpcClient client) {
     RpcChannelFactory channelFactory = new RpcChannelFactory(client);
-    this.connectionPools = new GenericKeyedObjectPool(channelFactory, config);
+    this.connectionPools = new GenericKeyedObjectPool<>(channelFactory, config);
   }
 
   @Nonnull

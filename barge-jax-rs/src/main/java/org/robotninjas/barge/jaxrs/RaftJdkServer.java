@@ -15,7 +15,6 @@
  */
 package org.robotninjas.barge.jaxrs;
 
-import com.google.common.base.Throwables;
 import com.sun.net.httpserver.HttpServer;
 import org.glassfish.jersey.jdkhttp.JdkHttpServerFactory;
 
@@ -61,7 +60,7 @@ public class RaftJdkServer implements RaftServer<RaftJdkServer> {
     try {
       application.clean();
     } catch (IOException e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 

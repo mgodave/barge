@@ -109,13 +109,10 @@ class Leader extends BaseState {
       heartbeatTask.dispose();
     }
 
-    heartbeatTask = scheduler.scheduleAtFixedRate(new Runnable() {
-          @Override
-          public void run() {
-            LOGGER.debug("Sending heartbeat");
-            sendRequests(ctx);
-          }
-        }, timeout, timeout, MILLISECONDS);
+    heartbeatTask = scheduler.scheduleAtFixedRate(() -> {
+      LOGGER.debug("Sending heartbeat");
+      sendRequests(ctx);
+    }, timeout, timeout, MILLISECONDS);
 
   }
 

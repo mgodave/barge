@@ -15,7 +15,6 @@ import java.io.File;
 
 import java.net.URI;
 
-import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -71,12 +70,7 @@ public abstract class ServerTest<T extends RaftServer<T>> {
     client.target(uris[1]).path("/raft/init").request().post(Entity.json(""));
     client.target(uris[2]).path("/raft/init").request().post(Entity.json(""));
 
-    new Prober(new Callable<Boolean>() {
-        @Override
-        public Boolean call() throws Exception {
-          return isLeader(client, uris[0]) || isLeader(client, uris[1]) || isLeader(client, uris[2]);
-        }
-      }).probe(10000);
+    new Prober(() -> isLeader(client, uris[0]) || isLeader(client, uris[1]) || isLeader(client, uris[2])).probe(10000);
 
     URI leaderURI = getLeader(client);
 

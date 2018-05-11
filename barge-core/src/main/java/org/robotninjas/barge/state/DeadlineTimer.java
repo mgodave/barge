@@ -1,13 +1,12 @@
 package org.robotninjas.barge.state;
 
-import com.google.common.base.Optional;
-import org.jetlang.core.Disposable;
-import org.jetlang.core.Scheduler;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
 import static com.google.common.base.Preconditions.checkState;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
+import java.util.Optional;
+import javax.annotation.concurrent.NotThreadSafe;
+import org.jetlang.core.Disposable;
+import org.jetlang.core.Scheduler;
 
 @NotThreadSafe
 class DeadlineTimer {
@@ -22,7 +21,7 @@ class DeadlineTimer {
     this.scheduler = scheduler;
     this.action = action;
     this.timeout = timeout;
-    this.future = Optional.absent();
+    this.future = Optional.empty();
   }
 
   public void start() {
@@ -33,9 +32,7 @@ class DeadlineTimer {
 
   public void reset() {
     checkState(started);
-    if (future.isPresent()) {
-      future.get().dispose();
-    }
+    future.ifPresent(Disposable::dispose);
     future = Optional.of(scheduler.schedule(action, timeout, MILLISECONDS));
   }
 

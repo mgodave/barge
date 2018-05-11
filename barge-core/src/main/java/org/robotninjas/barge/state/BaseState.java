@@ -1,10 +1,19 @@
 package org.robotninjas.barge.state;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.robotninjas.barge.state.Raft.StateType.CANDIDATE;
+import static org.robotninjas.barge.state.Raft.StateType.FOLLOWER;
+import static org.robotninjas.barge.state.Raft.StateType.LEADER;
+import static org.robotninjas.barge.state.Raft.StateType.STOPPED;
+import static org.robotninjas.barge.state.RaftStateContext.StateType;
+
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import java.util.Optional;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.robotninjas.barge.NoLeaderException;
 import org.robotninjas.barge.NotLeaderException;
 import org.robotninjas.barge.RaftException;
@@ -14,13 +23,6 @@ import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.api.RequestVote;
 import org.robotninjas.barge.api.RequestVoteResponse;
 import org.robotninjas.barge.log.RaftLog;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.robotninjas.barge.state.Raft.StateType.*;
-import static org.robotninjas.barge.state.RaftStateContext.StateType;
 
 public abstract class BaseState implements State {
 
@@ -68,21 +70,13 @@ public abstract class BaseState implements State {
     if (request.getLastLogTerm() > log.lastLogTerm()) {
       logIsComplete = true;
     } else if (request.getLastLogTerm() == log.lastLogTerm()) {
-      if (request.getLastLogIndex() >= log.lastLogIndex()) {
-        logIsComplete = true;
-      } else {
-        logIsComplete = false;
-      }
+      logIsComplete = request.getLastLogIndex() >= log.lastLogIndex();
     } else {
       logIsComplete = false;
     }
-    
-    if (logIsComplete) {
-      // Requestor has an up-to-date log, we haven't voted for anyone else => OK
-      return true;
-    }
-   
-    return false;
+
+    return logIsComplete;
+
   }
 
   protected void resetTimer() {

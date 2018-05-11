@@ -16,16 +16,15 @@
 
 package org.robotninjas.barge.state;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Predicate;
-import org.robotninjas.barge.api.AppendEntriesResponse;
-import org.robotninjas.barge.api.RequestVoteResponse;
+import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.annotations.VisibleForTesting;
+import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.robotninjas.barge.api.AppendEntriesResponse;
+import org.robotninjas.barge.api.RequestVoteResponse;
 
 @Immutable
 class RaftPredicates {
@@ -45,12 +44,12 @@ class RaftPredicates {
    */
   @Immutable
   @VisibleForTesting
-  static enum AppendSuccessPredicate implements Predicate<AppendEntriesResponse> {
+  enum AppendSuccessPredicate implements Predicate<AppendEntriesResponse> {
 
     Success;
 
     @Override
-    public boolean apply(@Nullable AppendEntriesResponse input) {
+    public boolean test(@Nullable AppendEntriesResponse input) {
       checkNotNull(input);
       return input.getSuccess();
     }
@@ -62,12 +61,12 @@ class RaftPredicates {
    */
   @Immutable
   @VisibleForTesting
-  static enum VoteGrantedPredicate implements Predicate<RequestVoteResponse> {
+  enum VoteGrantedPredicate implements Predicate<RequestVoteResponse> {
 
     VoteGranted;
 
     @Override
-    public boolean apply(@Nullable RequestVoteResponse input) {
+    public boolean test(@Nullable RequestVoteResponse input) {
       checkNotNull(input);
       return input.getVoteGranted();
     }

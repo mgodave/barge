@@ -1,6 +1,5 @@
 package org.robotninjas.barge.state;
 
-import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
@@ -19,7 +18,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
 import java.util.Collections;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -63,13 +61,10 @@ class RaftStateContext implements Raft {
 
   @Override
   public ListenableFuture<StateType> init() {
-    ListenableFutureTask<StateType> init = ListenableFutureTask.create(new Callable<StateType>() {
-      @Override
-      public StateType call() {
-        setState(null, StateType.START);
+    ListenableFutureTask<StateType> init = ListenableFutureTask.create(() -> {
+      setState(null, StateType.START);
 
-        return StateType.START;
-      }
+      return StateType.START;
     });
 
     executor.execute(init);
@@ -85,19 +80,14 @@ class RaftStateContext implements Raft {
 
     checkNotNull(request);
 
-    ListenableFutureTask<RequestVoteResponse> response = ListenableFutureTask.create(new Callable<RequestVoteResponse>() {
-      @Override
-      public RequestVoteResponse call() throws Exception {
-        return delegate.requestVote(RaftStateContext.this, request);
-      }
-    });
+    ListenableFutureTask<RequestVoteResponse> response = ListenableFutureTask.create(() -> delegate.requestVote(RaftStateContext.this, request));
 
     executor.execute(response);
 
     try {
       return response.get();
     } catch (Exception e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     } finally {
       notifyRequestVote(request);
     }
@@ -110,19 +100,14 @@ class RaftStateContext implements Raft {
 
     checkNotNull(request);
 
-    ListenableFutureTask<AppendEntriesResponse> response = ListenableFutureTask.create(new Callable<AppendEntriesResponse>() {
-      @Override
-      public AppendEntriesResponse call() throws Exception {
-        return delegate.appendEntries(RaftStateContext.this, request);
-      }
-    });
+    ListenableFutureTask<AppendEntriesResponse> response = ListenableFutureTask.create(() -> delegate.appendEntries(RaftStateContext.this, request));
 
     executor.execute(response);
 
     try {
       return response.get();
     } catch (Exception e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     } finally {
       notifyAppendEntries(request);
     }
@@ -136,12 +121,7 @@ class RaftStateContext implements Raft {
 
     checkNotNull(op);
 
-    ListenableFutureTask<Object> response = ListenableFutureTask.create(new Callable<Object>() {
-      @Override
-      public Object call() throws Exception {
-        return delegate.commitOperation(RaftStateContext.this, op);
-      }
-    });
+    ListenableFutureTask<Object> response = ListenableFutureTask.create(() -> delegate.commitOperation(RaftStateContext.this, op));
 
     executor.execute(response);
 
