@@ -17,6 +17,7 @@ package org.robotninjas.barge.jaxrs.client;
 
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ListenableFuture;
+import java.util.concurrent.CompletableFuture;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.ClassRule;
@@ -49,7 +50,7 @@ public class BargeJaxRsClientTest extends JerseyTest {
   public void returnsFutureWithServerResponseWhenRequestingVoteGivenServerAnswers() throws Exception {
     BargeJaxRsClient bargeJaxRsClient = new BargeJaxRsClient(getBaseUri(),client().register(Jackson.customJacksonProvider()));
 
-    ListenableFuture<RequestVoteResponse> future = bargeJaxRsClient.requestVote(Model.vote);
+    CompletableFuture<RequestVoteResponse> future = bargeJaxRsClient.requestVote(Model.vote);
 
     assertThat(future.get(1, TimeUnit.SECONDS)).isEqualTo(Model.voteResponse);
   }
@@ -59,7 +60,7 @@ public class BargeJaxRsClientTest extends JerseyTest {
   public void returnsFutureWithServerResponseWhenAppendingEntriesGivenServerAnswers() throws Exception {
     BargeJaxRsClient bargeJaxRsClient = new BargeJaxRsClient(getBaseUri(),client().register(Jackson.customJacksonProvider()));
 
-    ListenableFuture<AppendEntriesResponse> future = bargeJaxRsClient.appendEntries(Model.entries);
+    CompletableFuture<AppendEntriesResponse> future = bargeJaxRsClient.appendEntries(Model.entries);
 
     assertThat(future.get(1, TimeUnit.SECONDS)).isEqualTo(Model.entriesResponse);
   }

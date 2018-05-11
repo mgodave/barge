@@ -16,7 +16,7 @@
 
 package org.robotninjas.barge.rpc;
 
-import com.google.common.util.concurrent.ListenableFuture;
+import java.util.concurrent.CompletableFuture;
 import org.apache.commons.pool.KeyedObjectPool;
 import org.apache.commons.pool.PoolUtils;
 import org.apache.commons.pool.impl.GenericKeyedObjectPool;
@@ -44,7 +44,7 @@ class ProtoRpcRaftClientProvider implements RaftClientProvider {
     config.whenExhaustedAction = GenericKeyedObjectPool.WHEN_EXHAUSTED_FAIL;
   }
 
-  private final KeyedObjectPool<Object, ListenableFuture<NettyRpcChannel>> connectionPools;
+  private final KeyedObjectPool<Object, CompletableFuture<NettyRpcChannel>> connectionPools;
 
   @Inject
   public ProtoRpcRaftClientProvider(@Nonnull RpcClient client) {

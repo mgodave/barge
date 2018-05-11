@@ -16,11 +16,17 @@
 
 package org.robotninjas.barge.rpc;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.util.concurrent.Futures.immediateFailedFuture;
+
 import com.google.common.util.concurrent.AbstractFuture;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.RpcCallback;
 import com.google.protobuf.RpcController;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.Immutable;
 import org.apache.commons.pool.ObjectPool;
 import org.robotninjas.barge.ProtoUtils;
 import org.robotninjas.barge.RaftException;
@@ -32,56 +38,65 @@ import org.robotninjas.barge.proto.RaftProto;
 import org.robotninjas.protobuf.netty.client.ClientController;
 import org.robotninjas.protobuf.netty.client.NettyRpcChannel;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.Immutable;
-import java.util.concurrent.TimeUnit;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.util.concurrent.Futures.immediateFailedFuture;
-import static com.google.common.util.concurrent.Futures.transformAsync;
-import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
-
 //TODO write a protoc code generator for this bullshit
 @Immutable
 class ProtoRpcRaftClient implements RaftClient {
 
   private static final long DEFAULT_TIMEOUT = 2000;
 
-  private final ObjectPool<ListenableFuture<NettyRpcChannel>> channelPool;
+  private final ObjectPool<CompletableFuture<NettyRpcChannel>> channelPool;
 
-  ProtoRpcRaftClient(@Nonnull ObjectPool<ListenableFuture<NettyRpcChannel>> channelPool) {
+  ProtoRpcRaftClient(@Nonnull ObjectPool<CompletableFuture<NettyRpcChannel>> channelPool) {
     this.channelPool = checkNotNull(channelPool);
   }
 
   @Nonnull
-  public ListenableFuture<RequestVoteResponse> requestVote(@Nonnull RequestVote request) {
+  public CompletableFuture<RequestVoteResponse> requestVote(@Nonnull RequestVote request) {
     checkNotNull(request);
-    return Futures.transformAsync(call(RpcCall.requestVote(ProtoUtils.convert(request))), ProtoUtils.convertVoteResponse);
+    return call(RpcCall.requestVote(ProtoUtils.convert(request)))
+        .thenApply(ProtoUtils.convertVoteResponse);
   }
 
   @Nonnull
-  public ListenableFuture<AppendEntriesResponse> appendEntries(@Nonnull AppendEntries request) {
+  public CompletableFuture<AppendEntriesResponse> appendEntries(@Nonnull AppendEntries request) {
     checkNotNull(request);
-    return Futures.transformAsync(call(RpcCall.appendEntries(ProtoUtils.convert(request))),ProtoUtils.convertAppendResponse);
+    return call(RpcCall.appendEntries(ProtoUtils.convert(request)))
+        .thenApply(ProtoUtils.convertAppendResponse);
   }
 
-  private <T> ListenableFuture<T> call(final RpcCall<T> call) {
+  private <T> CompletableFuture<T> call(final RpcCall<T> call) {
 
-    ListenableFuture<NettyRpcChannel> channel = null;
+    CompletableFuture<NettyRpcChannel> channel = null;
     try {
 
       channel = channelPool.borrowObject();
-      ListenableFuture<T> response = transformAsync(channel, channel1 -> {
+      CompletableFuture<T> response = channel.thenCompose(channel1 -> {
         RaftProto.RaftService.Stub stub = RaftProto.RaftService.newStub(channel1);
         ClientController controller = new ClientController(channel1);
         controller.setTimeout(DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
-        RpcHandlerFuture<T> responseHandler = new RpcHandlerFuture<>(controller);
-        call.call(stub, controller, responseHandler);
-        return responseHandler;
+        CompletableFuture<T> future = new CompletableFuture<>();
+        call.call(stub, controller, (result) -> {
+          if (future.isCancelled()) {
+            return;
+          }
+
+          if (null == result) {
+            future.completeExceptionally(new RaftException(controller.errorText()));
+          } else {
+            future.complete(result);
+          }
+        });
+        return future;
       });
 
-      response.addListener(returnChannel(channel), directExecutor());
+      CompletableFuture<NettyRpcChannel> finalChannel = channel;
+      response.thenApply((ignore) -> {
+        try {
+          channelPool.returnObject(finalChannel);
+        } catch (Exception ignored) {
+        }
+        return null;
+      });
 
       return response;
 
@@ -92,7 +107,9 @@ class ProtoRpcRaftClient implements RaftClient {
       } catch (Exception ignored) {
       }
       channel = null;
-      return immediateFailedFuture(e);
+      CompletableFuture<T> failed = new CompletableFuture<>();
+      failed.completeExceptionally(e);
+      return failed;
 
     } finally {
 
@@ -104,15 +121,6 @@ class ProtoRpcRaftClient implements RaftClient {
       }
 
     }
-  }
-
-  private Runnable returnChannel(final ListenableFuture<NettyRpcChannel> channel) {
-    return () -> {
-      try {
-        channelPool.returnObject(channel);
-      } catch (Exception ignored) {
-      }
-    };
   }
 
   private static abstract class RpcCall<T> {

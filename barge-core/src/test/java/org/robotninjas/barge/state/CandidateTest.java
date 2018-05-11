@@ -16,6 +16,7 @@ import static org.robotninjas.barge.state.Raft.StateType.LEADER;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
 import org.jetlang.fibers.Fiber;
 import org.jetlang.fibers.FiberStub;
@@ -68,7 +69,7 @@ public class CandidateTest {
     when(mockRaftStateContext.type()).thenReturn(CANDIDATE);
 
     RequestVoteResponse response = RequestVoteResponse.newBuilder().setTerm(0).setVoteGranted(true).build();
-    ListenableFuture<RequestVoteResponse> responseFuture = Futures.immediateFuture(response);
+    CompletableFuture<RequestVoteResponse> responseFuture = CompletableFuture.completedFuture(response);
     when(mockRaftClient.requestVote(any(Replica.class), any(RequestVote.class))).thenReturn(responseFuture);
   }
 

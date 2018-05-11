@@ -29,11 +29,11 @@ import org.robotninjas.barge.proto.RaftProto;
  */
 public class ProtoUtils {
 
-  public static AsyncFunction<? super RaftProto.AppendEntriesResponse, ? extends AppendEntriesResponse> convertAppendResponse =
-      input -> Futures.immediateFuture(ProtoUtils.convert(input));
+  public static Function<? super RaftProto.AppendEntriesResponse, ? extends AppendEntriesResponse> convertAppendResponse =
+      ProtoUtils::convert;
 
-  public static AsyncFunction<? super RaftProto.RequestVoteResponse, ? extends RequestVoteResponse> convertVoteResponse =
-      input -> Futures.immediateFuture(ProtoUtils.convert(input));
+  public static Function<? super RaftProto.RequestVoteResponse, ? extends RequestVoteResponse> convertVoteResponse =
+      ProtoUtils::convert;
 
   private static Function<Entry, RaftEntry.Entry> convertEntry = ProtoUtils::convert;
 

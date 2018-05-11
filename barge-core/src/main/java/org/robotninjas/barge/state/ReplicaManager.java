@@ -18,13 +18,10 @@ package org.robotninjas.barge.state;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
 
 import com.google.inject.assistedinject.Assisted;
 
+import java.util.concurrent.CompletableFuture;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.api.AppendEntries;
 import org.robotninjas.barge.api.AppendEntriesResponse;
@@ -62,7 +59,7 @@ class ReplicaManager {
   private boolean waitingForResponse = false;
   private boolean forwards = false;
   private boolean shutdown = false;
-  private SettableFuture<AppendEntriesResponse> nextResponse = SettableFuture.create();
+  private CompletableFuture<AppendEntriesResponse> nextResponse = new CompletableFuture<>();
 
   @Inject
   ReplicaManager(Client client, RaftLog log, @Assisted Replica remote) {
@@ -74,7 +71,7 @@ class ReplicaManager {
 
   }
 
-  private ListenableFuture<AppendEntriesResponse> sendUpdate() {
+  private CompletableFuture<AppendEntriesResponse> sendUpdate() {
 
     waitingForResponse = true;
     requested = false;
@@ -98,36 +95,30 @@ class ReplicaManager {
     LOGGER.debug("Sending update to {} prevLogIndex: {}, prevLogTerm: {}, nr. of entries {}", remote, result.lastLogIndex(),
       result.lastLogTerm(), result.entries().size());
 
-    final ListenableFuture<AppendEntriesResponse> response = client.appendEntries(remote, request);
+    final CompletableFuture<AppendEntriesResponse> response = client.appendEntries(remote, request);
 
-    final SettableFuture<AppendEntriesResponse> previousResponse = nextResponse;
+    final CompletableFuture<AppendEntriesResponse> previousResponse = nextResponse;
 
-    Futures.addCallback(response, new FutureCallback<AppendEntriesResponse>() {
+    response.thenAccept(result1 -> {
+      waitingForResponse = false;
 
-        @Override
-        public void onSuccess(@Nullable AppendEntriesResponse result) {
-          waitingForResponse = false;
+      if (result1 != null) {
+        updateNextIndex(request, result1);
 
-          if (result != null) {
-            updateNextIndex(request, result);
-
-            if (result.getSuccess()) {
-              previousResponse.set(result);
-            }
-          }
-
+        if (result1.getSuccess()) {
+          previousResponse.complete(result1);
         }
+      }
+    });
 
-        @Override
-        public void onFailure(@Nonnull Throwable t) {
-          waitingForResponse = false;
-          requested = false;
-          previousResponse.setException(t);
-        }
+    response.exceptionally(t ->{
+      waitingForResponse = false;
+      requested = false;
+      previousResponse.completeExceptionally(t);
+      return null;
+    });
 
-      });
-
-    nextResponse = SettableFuture.create();
+    nextResponse = new CompletableFuture<>();
 
     return response;
 
@@ -182,7 +173,7 @@ class ReplicaManager {
   }
 
   @Nonnull
-  public ListenableFuture<AppendEntriesResponse> requestUpdate() {
+  public CompletableFuture<AppendEntriesResponse> requestUpdate() {
     requested = true;
 
     if (!waitingForResponse) {

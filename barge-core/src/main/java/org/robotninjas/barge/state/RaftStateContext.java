@@ -3,6 +3,7 @@ package org.robotninjas.barge.state;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
+import java.util.concurrent.CompletableFuture;
 import org.jetlang.fibers.Fiber;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.RaftExecutor;
@@ -117,13 +118,18 @@ class RaftStateContext implements Raft {
 
   @Override
   @Nonnull
-  public ListenableFuture<Object> commitOperation(@Nonnull final byte[] op) throws RaftException {
+  public CompletableFuture<Object> commitOperation(@Nonnull final byte[] op) throws RaftException {
 
     checkNotNull(op);
 
-    ListenableFutureTask<Object> response = ListenableFutureTask.create(() -> delegate.commitOperation(RaftStateContext.this, op));
-
-    executor.execute(response);
+    CompletableFuture<Object> response = CompletableFuture.supplyAsync(() -> {
+      try {
+        return delegate.commitOperation(RaftStateContext.this, op);
+      } catch (RaftException e) {
+        e.printStackTrace();
+      }
+      return null;
+    });
 
     notifyCommit(op);
 

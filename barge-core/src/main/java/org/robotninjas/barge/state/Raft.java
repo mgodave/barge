@@ -1,6 +1,7 @@
 package org.robotninjas.barge.state;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import java.util.concurrent.CompletableFuture;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.api.AppendEntries;
 import org.robotninjas.barge.api.AppendEntriesResponse;
@@ -27,7 +28,8 @@ public interface Raft {
 
   @Nonnull AppendEntriesResponse appendEntries(@Nonnull AppendEntries request);
 
-  @Nonnull ListenableFuture<Object> commitOperation(@Nonnull byte[] op) throws RaftException;
+  @Nonnull
+  CompletableFuture<Object> commitOperation(@Nonnull byte[] op) throws RaftException;
 
   void addTransitionListener(@Nonnull StateTransitionListener transitionListener);
 

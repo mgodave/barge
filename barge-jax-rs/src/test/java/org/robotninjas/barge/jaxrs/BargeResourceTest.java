@@ -18,6 +18,7 @@ package org.robotninjas.barge.jaxrs;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import java.util.concurrent.CompletableFuture;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -81,7 +82,7 @@ public class BargeResourceTest extends JerseyTest {
 
   @Test
   public void onPOSTCommitReturn204GivenServiceReturnsResponse() throws Exception {
-    when(raftService.commitOperation("foo".getBytes())).thenReturn(Futures.<Object>immediateFuture("42"));
+    when(raftService.commitOperation("foo".getBytes())).thenReturn(CompletableFuture.completedFuture("42"));
 
     Response value = client().target("/commit")
         .request()

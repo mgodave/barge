@@ -18,9 +18,9 @@ package org.robotninjas.barge;
 
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.AbstractService;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Guice;
 import com.google.protobuf.Service;
+import java.util.concurrent.CompletableFuture;
 import org.robotninjas.barge.proto.RaftProto;
 import org.robotninjas.barge.state.Raft;
 import org.robotninjas.barge.state.Raft.StateType;
@@ -92,7 +92,7 @@ public class NettyRaftService extends AbstractService implements RaftService {
   }
 
   @Override
-  public ListenableFuture<Object> commitAsync(final byte[] operation) throws RaftException {
+  public CompletableFuture<Object> commitAsync(final byte[] operation) throws RaftException {
 
     return ctx.commitOperation(operation);
 

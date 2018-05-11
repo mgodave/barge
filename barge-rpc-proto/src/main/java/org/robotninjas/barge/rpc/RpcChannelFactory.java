@@ -18,7 +18,8 @@ package org.robotninjas.barge.rpc;
 
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
+import java.util.concurrent.CompletableFuture;
+import net.javacrumbs.futureconverter.java8guava.FutureConverter;
 import org.apache.commons.pool.BaseKeyedPoolableObjectFactory;
 import org.robotninjas.barge.NettyReplica;
 import org.robotninjas.protobuf.netty.client.NettyRpcChannel;
@@ -32,7 +33,7 @@ import javax.annotation.concurrent.Immutable;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 @Immutable
-class RpcChannelFactory extends BaseKeyedPoolableObjectFactory<Object, ListenableFuture<NettyRpcChannel>> {
+class RpcChannelFactory extends BaseKeyedPoolableObjectFactory<Object, CompletableFuture<NettyRpcChannel>> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RpcChannelFactory.class);
 
@@ -43,14 +44,14 @@ class RpcChannelFactory extends BaseKeyedPoolableObjectFactory<Object, Listenabl
   }
 
   @Override
-  public ListenableFuture<NettyRpcChannel> makeObject(Object key) throws Exception {
+  public CompletableFuture<NettyRpcChannel> makeObject(Object key) throws Exception {
     Preconditions.checkArgument(key instanceof NettyReplica);
     NettyReplica replica = (NettyReplica) key;
-    return client.connectAsync(replica.address());
+    return FutureConverter.toCompletableFuture(client.connectAsync(replica.address()));
   }
 
   @Override
-  public void destroyObject(Object key, ListenableFuture<NettyRpcChannel> obj) throws Exception {
+  public void destroyObject(Object key, CompletableFuture<NettyRpcChannel> obj) throws Exception {
     if (obj.isDone() && !obj.isCancelled()) {
       obj.get().close();
     } else {
@@ -59,7 +60,7 @@ class RpcChannelFactory extends BaseKeyedPoolableObjectFactory<Object, Listenabl
   }
 
   @Override
-  public boolean validateObject(Object key, ListenableFuture<NettyRpcChannel> obj) {
+  public boolean validateObject(Object key, CompletableFuture<NettyRpcChannel> obj) {
     return !obj.isDone() || (obj.isDone() && Futures.getUnchecked(obj).isOpen());
   }
 

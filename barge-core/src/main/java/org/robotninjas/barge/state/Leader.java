@@ -25,6 +25,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
+import java.util.concurrent.CompletableFuture;
 import org.jetlang.core.Disposable;
 
 import org.jetlang.fibers.Fiber;
@@ -169,25 +170,16 @@ class Leader extends BaseState {
    */
   @Nonnull
   @VisibleForTesting
-  List<ListenableFuture<AppendEntriesResponse>> sendRequests(final RaftStateContext ctx) {
-    List<ListenableFuture<AppendEntriesResponse>> responses = newArrayList();
+  List<CompletableFuture<AppendEntriesResponse>> sendRequests(final RaftStateContext ctx) {
+    List<CompletableFuture<AppendEntriesResponse>> responses = newArrayList();
 
     for (ReplicaManager replicaManager : managers.values()) {
-      ListenableFuture<AppendEntriesResponse> response = replicaManager.requestUpdate();
+      CompletableFuture<AppendEntriesResponse> response = replicaManager.requestUpdate();
       responses.add(response);
-      Futures.addCallback(response, new FutureCallback<AppendEntriesResponse>() {
-          @Override
-          public void onSuccess(@Nullable AppendEntriesResponse result) {
-            updateCommitted();
-            checkTermOnResponse(ctx, result);
-          }
-
-          @Override
-          public void onFailure(@Nonnull Throwable t) {
-          }
-
-        });
-
+      response.thenAccept(result -> {
+        updateCommitted();
+        checkTermOnResponse(ctx, result);
+      });
     }
 
     // Cope if we're the only node in the cluster.
