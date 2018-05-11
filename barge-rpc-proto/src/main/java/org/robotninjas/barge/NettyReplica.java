@@ -45,7 +45,7 @@ public class NettyReplica implements Replica {
     try {
       checkNotNull(info);
       HostAndPort hostAndPort = HostAndPort.fromString(info);
-      InetAddress addr = InetAddress.getByName(hostAndPort.getHostText());
+      InetAddress addr = InetAddress.getByName(hostAndPort.getHost());
       InetSocketAddress saddr = new InetSocketAddress(addr, hostAndPort.getPort());
       return new NettyReplica(saddr);
     } catch (UnknownHostException e) {

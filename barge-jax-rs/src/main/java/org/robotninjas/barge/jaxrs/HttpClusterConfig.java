@@ -15,6 +15,7 @@
  */
 package org.robotninjas.barge.jaxrs;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -28,8 +29,6 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-
-import static com.google.common.base.Objects.*;
 
 /**
  * Configures a cluster based on HTTP transport.
@@ -111,7 +110,7 @@ public class HttpClusterConfig implements ClusterConfig {
   }
 
   @Override public String toString() {
-    return toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("local", local)
         .add("remotes", Arrays.deepToString(remotes))
         .toString();

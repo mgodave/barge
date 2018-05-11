@@ -41,7 +41,8 @@ import java.util.concurrent.TimeUnit;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.util.concurrent.Futures.immediateFailedFuture;
 import static com.google.common.util.concurrent.Futures.transform;
-import static com.google.common.util.concurrent.MoreExecutors.sameThreadExecutor;
+import static com.google.common.util.concurrent.Futures.transformAsync;
+import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 
 //TODO write a protoc code generator for this bullshit
 @Immutable
@@ -58,13 +59,13 @@ class ProtoRpcRaftClient implements RaftClient {
   @Nonnull
   public ListenableFuture<RequestVoteResponse> requestVote(@Nonnull RequestVote request) {
     checkNotNull(request);
-    return Futures.transform(call(RpcCall.requestVote(ProtoUtils.convert(request))), ProtoUtils.convertVoteResponse);
+    return Futures.transformAsync(call(RpcCall.requestVote(ProtoUtils.convert(request))), ProtoUtils.convertVoteResponse);
   }
 
   @Nonnull
   public ListenableFuture<AppendEntriesResponse> appendEntries(@Nonnull AppendEntries request) {
     checkNotNull(request);
-    return Futures.transform(call(RpcCall.appendEntries(ProtoUtils.convert(request))),ProtoUtils.convertAppendResponse);
+    return Futures.transformAsync(call(RpcCall.appendEntries(ProtoUtils.convert(request))),ProtoUtils.convertAppendResponse);
   }
 
   private <T> ListenableFuture<T> call(final RpcCall<T> call) {
@@ -73,7 +74,7 @@ class ProtoRpcRaftClient implements RaftClient {
     try {
 
       channel = channelPool.borrowObject();
-      ListenableFuture<T> response = transform(channel, new AsyncFunction<NettyRpcChannel, T>() {
+      ListenableFuture<T> response = transformAsync(channel, new AsyncFunction<NettyRpcChannel, T>() {
           @Override
           public ListenableFuture<T> apply(NettyRpcChannel channel) throws Exception {
             RaftProto.RaftService.Stub stub = RaftProto.RaftService.newStub(channel);
@@ -85,7 +86,7 @@ class ProtoRpcRaftClient implements RaftClient {
           }
         });
 
-      response.addListener(returnChannel(channel), sameThreadExecutor());
+      response.addListener(returnChannel(channel), directExecutor());
 
       return response;
 

@@ -1,5 +1,6 @@
 package org.robotninjas.barge.jaxrs.ws;
 
+import com.google.common.base.MoreObjects;
 import org.robotninjas.barge.api.AppendEntries;
 import org.robotninjas.barge.api.RequestVote;
 import org.robotninjas.barge.state.Raft;
@@ -84,7 +85,7 @@ public class WsMessages {
 
     @Override
     public String toString() {
-      return com.google.common.base.Objects.toStringHelper(this)
+      return com.google.common.base.MoreObjects.toStringHelper(this)
           .add("target", target)
           .add("from", from)
           .add("to", to)
@@ -137,7 +138,7 @@ public class WsMessages {
 
     @Override
     public String toString() {
-      return com.google.common.base.Objects.toStringHelper(this)
+      return MoreObjects.toStringHelper(this)
           .add("target", target)
           .add("expected", expected)
           .add("actual", actual)
@@ -178,7 +179,7 @@ public class WsMessages {
 
     @Override
     public String toString() {
-      return com.google.common.base.Objects.toStringHelper(this)
+      return MoreObjects.toStringHelper(this)
           .add("target", target)
           .toString();
     }
@@ -213,7 +214,7 @@ public class WsMessages {
     }
 
     @Override public String toString() {
-      return com.google.common.base.Objects.toStringHelper(this)
+      return MoreObjects.toStringHelper(this)
           .add("name", name)
           .toString();
     }
@@ -254,7 +255,7 @@ public class WsMessages {
     }
 
     @Override public String toString() {
-      return com.google.common.base.Objects.toStringHelper(this)
+      return MoreObjects.toStringHelper(this)
           .add("name", name)
           .add("entries", entries)
           .toString();
@@ -296,7 +297,7 @@ public class WsMessages {
     }
 
     @Override public String toString() {
-      return com.google.common.base.Objects.toStringHelper(this)
+      return MoreObjects.toStringHelper(this)
           .add("name", name)
           .add("vote", vote)
           .toString();
@@ -338,7 +339,7 @@ public class WsMessages {
     }
 
     @Override public String toString() {
-      return com.google.common.base.Objects.toStringHelper(this)
+      return MoreObjects.toStringHelper(this)
           .add("name", name)
           .add("operation", operation)
           .toString();

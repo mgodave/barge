@@ -17,6 +17,7 @@
 package org.robotninjas.barge.state;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -194,6 +195,6 @@ class ReplicaManager {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(getClass()).add("nextIndex", nextIndex).add("matchIndex", matchIndex).toString();
+    return MoreObjects.toStringHelper(getClass()).add("nextIndex", nextIndex).add("matchIndex", matchIndex).toString();
   }
 }
