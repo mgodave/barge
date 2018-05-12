@@ -1,8 +1,6 @@
 package org.robotninjas.barge.state;
 
 import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListenableFutureTask;
 import java.util.concurrent.CompletableFuture;
 import org.jetlang.fibers.Fiber;
 import org.robotninjas.barge.RaftException;
@@ -61,14 +59,11 @@ class RaftStateContext implements Raft {
   }
 
   @Override
-  public ListenableFuture<StateType> init() {
-    ListenableFutureTask<StateType> init = ListenableFutureTask.create(() -> {
+  public CompletableFuture<StateType> init() {
+    CompletableFuture<StateType> init = CompletableFuture.supplyAsync(() -> {
       setState(null, StateType.START);
-
       return StateType.START;
-    });
-
-    executor.execute(init);
+    }, executor);
 
     notifiesInit();
 
@@ -81,9 +76,9 @@ class RaftStateContext implements Raft {
 
     checkNotNull(request);
 
-    ListenableFutureTask<RequestVoteResponse> response = ListenableFutureTask.create(() -> delegate.requestVote(RaftStateContext.this, request));
-
-    executor.execute(response);
+    CompletableFuture<RequestVoteResponse> response = CompletableFuture.supplyAsync(() ->
+      delegate.requestVote(RaftStateContext.this, request)
+    , executor);
 
     try {
       return response.get();
@@ -101,11 +96,12 @@ class RaftStateContext implements Raft {
 
     checkNotNull(request);
 
-    ListenableFutureTask<AppendEntriesResponse> response = ListenableFutureTask.create(() -> delegate.appendEntries(RaftStateContext.this, request));
-
-    executor.execute(response);
+    CompletableFuture<AppendEntriesResponse> response = CompletableFuture.supplyAsync(() ->
+        delegate.appendEntries(RaftStateContext.this, request), executor
+    );
 
     try {
+      AppendEntriesResponse r = response.get();
       return response.get();
     } catch (Exception e) {
       throw new RuntimeException(e);
