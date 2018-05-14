@@ -15,8 +15,7 @@
  */
 package org.robotninjas.barge.api;
 
-import com.google.common.base.Objects;
-
+import com.google.common.base.MoreObjects;
 import javax.annotation.concurrent.Immutable;
 
 /**
@@ -67,7 +66,7 @@ public class AppendEntriesResponse {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
       .add("term", term)
       .add("success", success)
       .add("lastLogIndex", lastLogIndex)

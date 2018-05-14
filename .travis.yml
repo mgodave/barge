@@ -3,7 +3,7 @@ script: "mvn package -Ptravis --settings travis-settings.xml"
 jdk:
     - openjdk8
     - oraclejdk8
-    
+
 env:
     global:
         - secure: "FgMwSRz94bofID4qCS4lHszXVP98bymZ7sPexzPqOGugFvLDAnmHYtp70TiW\nCkvbUw6Y8BRfMzDLciI+O+6TCZz9luXpKTg9bt5y7bM7COimDLqvVkmL3qxk\n9XEJoI5yUua5aWi0VXEEQ+xbVILVRKWXLtZVzKPKCf4z/vHwXEA="

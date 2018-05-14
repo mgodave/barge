@@ -1,25 +1,19 @@
 package org.robotninjas.barge;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
+import java.io.File;
+import java.nio.ByteBuffer;
+import java.util.List;
+import javax.annotation.Nonnull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-
-import java.nio.ByteBuffer;
-
-import java.util.List;
-
-import javax.annotation.Nonnull;
 
 
 public class StartStopTest {

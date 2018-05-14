@@ -15,10 +15,19 @@
  */
 package org.robotninjas.barge.jaxrs;
 
-import com.google.common.base.Throwables;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -30,18 +39,6 @@ import org.robotninjas.barge.NotLeaderException;
 import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.api.RequestVoteResponse;
 import org.robotninjas.barge.state.Raft;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 
 /**
@@ -82,7 +79,7 @@ public class BargeResourceTest extends JerseyTest {
 
   @Test
   public void onPOSTCommitReturn204GivenServiceReturnsResponse() throws Exception {
-    when(raftService.commitOperation("foo".getBytes())).thenReturn(Futures.<Object>immediateFuture("42"));
+    when(raftService.commitOperation("foo".getBytes())).thenReturn(CompletableFuture.completedFuture("42"));
 
     Response value = client().target("/commit")
         .request()
@@ -118,7 +115,7 @@ public class BargeResourceTest extends JerseyTest {
 
   @Test
   public void onPOSTInitThenItSynchronouslyInitRaftService() throws Exception {
-    ListenableFuture<Raft.StateType> future = Futures.immediateFuture(Raft.StateType.START);
+    CompletableFuture<Raft.StateType> future = CompletableFuture.completedFuture(Raft.StateType.START);
     when(raftService.init()).thenReturn(future);
 
     assertThat(client().target("/init").request().post(Entity.json("")).readEntity(Raft.StateType.class)).isEqualTo(
@@ -151,7 +148,7 @@ public class BargeResourceTest extends JerseyTest {
     try {
       return new URI(uri);
     } catch (URISyntaxException e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 

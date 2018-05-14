@@ -3,6 +3,7 @@
 
 package org.robotninjas.barge.proto;
 
+@SuppressWarnings("ALL")
 public final class RaftEntry {
   private RaftEntry() {}
   public static void registerAllExtensions(
@@ -104,7 +105,7 @@ public final class RaftEntry {
         makeExtensionsImmutable();
       }
     }
-    public static final com.google.protobuf.Descriptors.Descriptor
+    public static com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
       return org.robotninjas.barge.proto.RaftEntry.internal_static_Entry_descriptor;
     }
@@ -295,7 +296,7 @@ public final class RaftEntry {
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder>
        implements org.robotninjas.barge.proto.RaftEntry.EntryOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
+      public static com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return org.robotninjas.barge.proto.RaftEntry.internal_static_Entry_descriptor;
       }

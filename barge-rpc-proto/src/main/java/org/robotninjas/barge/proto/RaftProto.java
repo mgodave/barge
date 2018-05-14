@@ -3,6 +3,7 @@
 
 package org.robotninjas.barge.proto;
 
+@SuppressWarnings("ALL")
 public final class RaftProto {
   private RaftProto() {}
   public static void registerAllExtensions(

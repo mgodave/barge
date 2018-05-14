@@ -1,10 +1,18 @@
 package org.robotninjas.barge.jaxrs;
 
 import com.google.common.base.Function;
-import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.utilities.Binder;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -17,15 +25,6 @@ import org.robotninjas.barge.state.StateTransitionListener;
 import org.robotninjas.barge.utils.Files;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.List;
 
 
 /**
@@ -41,7 +40,7 @@ public class RaftApplication {
   private final List<StateTransitionListener> transitionListeners;
   private final List<RaftProtocolListener> protocolListeners;
 
-  private Optional<Injector> injector = Optional.absent();
+  private Optional<Injector> injector = Optional.empty();
 
   public RaftApplication(int serverIndex, URI[] uris, File logDir, Iterable<StateTransitionListener> transitionListener, Iterable<RaftProtocolListener> protocolListener) {
     this.serverIndex = serverIndex;
@@ -124,7 +123,7 @@ public class RaftApplication {
   }
 
   public void stop() {
-    injector.transform(new Function<Injector, Object>() {
+    injector.map(new Function<Injector, Object>() {
       @Nullable
       @Override
       public Object apply(@Nullable Injector input) {

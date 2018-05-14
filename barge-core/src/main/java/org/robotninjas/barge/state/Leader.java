@@ -16,41 +16,33 @@
 
 package org.robotninjas.barge.state;
 
-import com.google.common.annotations.VisibleForTesting;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.stream.Collectors.toList;
+import static org.robotninjas.barge.state.Raft.StateType.FOLLOWER;
+import static org.robotninjas.barge.state.Raft.StateType.LEADER;
+
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.inject.Inject;
 import org.jetlang.core.Disposable;
-
 import org.jetlang.fibers.Fiber;
-
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.RaftExecutor;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.log.RaftLog;
-import static org.robotninjas.barge.state.Raft.StateType.FOLLOWER;
-import static org.robotninjas.barge.state.Raft.StateType.LEADER;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-
-import javax.annotation.Nonnegative;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
-
-import javax.inject.Inject;
 
 
 @NotThreadSafe
@@ -109,22 +101,19 @@ class Leader extends BaseState {
       heartbeatTask.dispose();
     }
 
-    heartbeatTask = scheduler.scheduleAtFixedRate(new Runnable() {
-          @Override
-          public void run() {
-            LOGGER.debug("Sending heartbeat");
-            sendRequests(ctx);
-          }
-        }, timeout, timeout, MILLISECONDS);
+    heartbeatTask = scheduler.scheduleAtFixedRate(() -> {
+      LOGGER.debug("Sending heartbeat");
+      sendRequests(ctx);
+    }, timeout, timeout, MILLISECONDS);
 
   }
 
   @Nonnull
   @Override
-  public ListenableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
+  public CompletableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
     resetTimeout(ctx);
 
-    ListenableFuture<Object> result = getLog().append(operation);
+    CompletableFuture<Object> result = getLog().append(operation);
     sendRequests(ctx);
 
     return result;
@@ -172,26 +161,19 @@ class Leader extends BaseState {
    */
   @Nonnull
   @VisibleForTesting
-  List<ListenableFuture<AppendEntriesResponse>> sendRequests(final RaftStateContext ctx) {
-    List<ListenableFuture<AppendEntriesResponse>> responses = newArrayList();
+  List<CompletableFuture<AppendEntriesResponse>> sendRequests(final RaftStateContext ctx) {
 
-    for (ReplicaManager replicaManager : managers.values()) {
-      ListenableFuture<AppendEntriesResponse> response = replicaManager.requestUpdate();
-      responses.add(response);
-      Futures.addCallback(response, new FutureCallback<AppendEntriesResponse>() {
-          @Override
-          public void onSuccess(@Nullable AppendEntriesResponse result) {
-            updateCommitted();
-            checkTermOnResponse(ctx, result);
-          }
+    List<CompletableFuture<AppendEntriesResponse>> responses =
+        managers.values().stream()
+            .map(ReplicaManager::requestUpdate)
+            .collect(toList());
 
-          @Override
-          public void onFailure(@Nonnull Throwable t) {
-          }
+    responses.forEach(response ->
+        response.thenAccept(result -> {
+          updateCommitted();
+          checkTermOnResponse(ctx, result);
+        }));
 
-        });
-
-    }
 
     // Cope if we're the only node in the cluster.
     if (responses.isEmpty()) {

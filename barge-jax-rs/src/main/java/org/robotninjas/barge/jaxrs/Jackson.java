@@ -26,13 +26,16 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import com.google.common.collect.Lists;
-import jersey.repackaged.com.google.common.collect.Iterables;
-import org.robotninjas.barge.api.*;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import jersey.repackaged.com.google.common.collect.Iterables;
+import org.robotninjas.barge.api.AppendEntries;
+import org.robotninjas.barge.api.AppendEntriesResponse;
+import org.robotninjas.barge.api.Entry;
+import org.robotninjas.barge.api.RequestVote;
+import org.robotninjas.barge.api.RequestVoteResponse;
 
 /**
  * Utility methods for configuring Jackson.

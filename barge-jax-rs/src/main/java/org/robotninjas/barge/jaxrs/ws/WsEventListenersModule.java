@@ -1,10 +1,9 @@
 package org.robotninjas.barge.jaxrs.ws;
 
+import java.util.List;
 import org.robotninjas.barge.state.AbstractListenersModule;
 import org.robotninjas.barge.state.RaftProtocolListener;
 import org.robotninjas.barge.state.StateTransitionListener;
-
-import java.util.List;
 
 
 /**

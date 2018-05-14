@@ -15,10 +15,10 @@
  */
 package org.robotninjas.barge.api;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-
-import javax.annotation.concurrent.Immutable;
 import java.io.Serializable;
+import javax.annotation.concurrent.Immutable;
 
 /**
  */
@@ -52,7 +52,7 @@ public class Vote implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
       .add("votedFor", votedFor)
       .toString();
   }

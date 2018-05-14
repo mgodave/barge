@@ -1,15 +1,20 @@
 package org.robotninjas.barge.jaxrs.ws;
 
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.contains;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.robotninjas.barge.state.Raft.StateType.CANDIDATE;
+import static org.robotninjas.barge.state.Raft.StateType.LEADER;
+import static org.robotninjas.barge.state.Raft.StateType.START;
+
 import org.jetlang.fibers.FiberStub;
 import org.junit.Test;
 import org.robotninjas.barge.api.AppendEntries;
 import org.robotninjas.barge.api.RequestVote;
 import org.robotninjas.barge.state.Raft;
-
-import static org.mockito.Mockito.*;
-import static org.robotninjas.barge.state.Raft.StateType.CANDIDATE;
-import static org.robotninjas.barge.state.Raft.StateType.LEADER;
-import static org.robotninjas.barge.state.Raft.StateType.START;
 
 public class WsEventListenerTest {
 

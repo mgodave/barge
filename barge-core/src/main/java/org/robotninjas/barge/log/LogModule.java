@@ -16,20 +16,18 @@
 
 package org.robotninjas.barge.log;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.inject.PrivateModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import journal.io.api.Journal;
-import journal.io.api.JournalBuilder;
-import org.robotninjas.barge.StateMachine;
-
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.Executor;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Throwables.propagate;
+import javax.annotation.Nonnull;
+import journal.io.api.Journal;
+import journal.io.api.JournalBuilder;
+import org.robotninjas.barge.StateMachine;
 
 public class LogModule extends PrivateModule {
 
@@ -65,15 +63,12 @@ public class LogModule extends PrivateModule {
 
       final Journal journal = JournalBuilder.of(logDirectory).setPhysicalSync(true).open();
 
-      Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-        @Override
-        public void run() {
-          //noinspection EmptyCatchBlock
-          try {
-            journal.close();
-          } catch (IOException e) {
-            //TODO log it
-          }
+      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+        //noinspection EmptyCatchBlock
+        try {
+          journal.close();
+        } catch (IOException e) {
+          //TODO log it
         }
       }));
 
@@ -81,7 +76,7 @@ public class LogModule extends PrivateModule {
 
     } catch (IOException e) {
 
-      throw propagate(e);
+      throw new RuntimeException(e);
 
     }
 

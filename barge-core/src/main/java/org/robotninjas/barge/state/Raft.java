@@ -1,13 +1,12 @@
 package org.robotninjas.barge.state;
 
-import com.google.common.util.concurrent.ListenableFuture;
+import java.util.concurrent.CompletableFuture;
+import javax.annotation.Nonnull;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.api.AppendEntries;
 import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.api.RequestVote;
 import org.robotninjas.barge.api.RequestVoteResponse;
-
-import javax.annotation.Nonnull;
 
 
 /**
@@ -15,19 +14,20 @@ import javax.annotation.Nonnull;
  */
 public interface Raft {
 
-  public static enum StateType {
+  public enum StateType {
     START, FOLLOWER, CANDIDATE, LEADER, STOPPED
   }
 
   void addRaftProtocolListener(RaftProtocolListener protocolListener);
 
-  ListenableFuture<StateType> init();
+  CompletableFuture<StateType> init();
 
   @Nonnull RequestVoteResponse requestVote(@Nonnull RequestVote request);
 
   @Nonnull AppendEntriesResponse appendEntries(@Nonnull AppendEntries request);
 
-  @Nonnull ListenableFuture<Object> commitOperation(@Nonnull byte[] op) throws RaftException;
+  @Nonnull
+  CompletableFuture<Object> commitOperation(@Nonnull byte[] op) throws RaftException;
 
   void addTransitionListener(@Nonnull StateTransitionListener transitionListener);
 

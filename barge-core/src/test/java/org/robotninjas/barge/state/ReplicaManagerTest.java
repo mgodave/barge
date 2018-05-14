@@ -1,23 +1,26 @@
 package org.robotninjas.barge.state;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertNotSame;
+import static junit.framework.Assert.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
-
-import static junit.framework.Assert.*;
-
+import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-
 import org.mockito.Mock;
-
-import static org.mockito.Mockito.*;
-
 import org.mockito.MockitoAnnotations;
-
 import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.ClusterConfigStub;
 import org.robotninjas.barge.Replica;
@@ -27,8 +30,6 @@ import org.robotninjas.barge.api.Entry;
 import org.robotninjas.barge.log.GetEntriesResult;
 import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.rpc.Client;
-
-import java.util.Collections;
 
 
 @SuppressWarnings("unchecked")
@@ -56,14 +57,14 @@ public class ReplicaManagerTest {
   @Test
   public void testInitialSendOutstanding() {
 
-    ListenableFuture<AppendEntriesResponse> mockResponse = mock(ListenableFuture.class);
-    when(mockClient.appendEntries(eq(FOLLOWER), any(AppendEntries.class))).thenReturn(mockResponse);
+    when(mockClient.appendEntries(eq(FOLLOWER), any(AppendEntries.class)))
+        .thenReturn(new CompletableFuture<>());
 
-    GetEntriesResult entriesResult = new GetEntriesResult(0L, 0L, Collections.<Entry>emptyList());
+    GetEntriesResult entriesResult = new GetEntriesResult(0L, 0L, Collections.emptyList());
     when(mockRaftLog.getEntriesFrom(anyLong(), anyInt())).thenReturn(entriesResult);
 
     ReplicaManager replicaManager = new ReplicaManager(mockClient, mockRaftLog, FOLLOWER);
-    ListenableFuture f1 = replicaManager.requestUpdate();
+    CompletableFuture<AppendEntriesResponse> f1 = replicaManager.requestUpdate();
 
     AppendEntries appendEntries = AppendEntries.newBuilder()
         .setLeaderId(SELF.toString())
@@ -82,7 +83,7 @@ public class ReplicaManagerTest {
     assertFalse(replicaManager.isRequested());
     assertEquals(1, replicaManager.getNextIndex());
 
-    ListenableFuture f2 = replicaManager.requestUpdate();
+    CompletableFuture<AppendEntriesResponse> f2 = replicaManager.requestUpdate();
 
     assertNotSame(f1, f2);
     assertTrue(replicaManager.isRunning());
@@ -94,12 +95,13 @@ public class ReplicaManagerTest {
   @Test
   public void testFailedAppend() {
 
-    SettableFuture<AppendEntriesResponse> response = SettableFuture.create();
-    when(mockClient.appendEntries(eq(FOLLOWER), any(AppendEntries.class))).thenReturn(response)
-      .thenReturn(mock(ListenableFuture.class));
+    CompletableFuture<AppendEntriesResponse> response1 = new CompletableFuture<>();
+    CompletableFuture<AppendEntriesResponse> response2 = new CompletableFuture<>();
+    when(mockClient.appendEntries(eq(FOLLOWER), any(AppendEntries.class)))
+      .thenReturn(response1)
+      .thenReturn(response2);
 
-
-    GetEntriesResult entriesResult = new GetEntriesResult(0L, 0L, Collections.<Entry>emptyList());
+    GetEntriesResult entriesResult = new GetEntriesResult(0L, 0L, Collections.emptyList());
     when(mockRaftLog.getEntriesFrom(anyLong(), anyInt())).thenReturn(entriesResult);
 
     ReplicaManager replicaManager = new ReplicaManager(mockClient, mockRaftLog, FOLLOWER);
@@ -124,7 +126,7 @@ public class ReplicaManagerTest {
         .setSuccess(false)
         .build();
 
-    response.set(appendEntriesResponse);
+    response1.complete(appendEntriesResponse);
 
     verify(mockClient, times(2)).appendEntries(FOLLOWER, appendEntries);
     verifyNoMoreInteractions(mockClient);
@@ -140,9 +142,9 @@ public class ReplicaManagerTest {
   @Test
   public void updatesNextIndexBeyondCurrentEntryGivenAppendIsSuccessful() {
 
-    SettableFuture<AppendEntriesResponse> response = SettableFuture.create();
+    CompletableFuture<AppendEntriesResponse> response = new CompletableFuture<>();
     when(mockClient.appendEntries(eq(FOLLOWER), any(AppendEntries.class))).thenReturn(response)
-      .thenReturn(mock(ListenableFuture.class));
+      .thenReturn(mock(CompletableFuture.class));
 
     Entry entry = Entry.newBuilder().setTerm(1).setCommand(new byte[0]).build();
 
@@ -172,7 +174,7 @@ public class ReplicaManagerTest {
         .setSuccess(true)
         .build();
 
-    response.set(appendEntriesResponse);
+    response.complete(appendEntriesResponse);
 
     verify(mockClient, times(1)).appendEntries(FOLLOWER, appendEntries);
     verifyNoMoreInteractions(mockClient);

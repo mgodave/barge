@@ -15,10 +15,10 @@
  */
 package org.robotninjas.barge.api;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-
-import javax.annotation.concurrent.Immutable;
 import java.io.Serializable;
+import javax.annotation.concurrent.Immutable;
 
 /**
  */
@@ -58,7 +58,7 @@ public class Append implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
       .add("index", index)
       .add("entry", entry)
       .toString();

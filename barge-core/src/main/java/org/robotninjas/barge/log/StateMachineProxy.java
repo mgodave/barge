@@ -1,23 +1,20 @@
 package org.robotninjas.barge.log;
 
-import com.google.common.collect.Queues;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListenableFutureTask;
-import com.google.inject.Inject;
-import org.robotninjas.barge.StateMachine;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.ThreadSafe;
+import com.google.common.collect.Queues;
+import com.google.inject.Inject;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.ThreadSafe;
+import org.robotninjas.barge.StateMachine;
 
 @ThreadSafe
 class StateMachineProxy {
@@ -37,43 +34,36 @@ class StateMachineProxy {
     this.running = new AtomicBoolean(false);
   }
 
-  private <V> ListenableFuture<V> submit(Callable<V> runnable) {
-
-    ListenableFutureTask<V> operation =
-        ListenableFutureTask.create(runnable);
-
-    executor.execute(operation);
-
-    return operation;
-
+  private <V> CompletableFuture<V> submit(Callable<V> runnable) {
+    return CompletableFuture.supplyAsync(() -> {
+      try {
+        return runnable.call();
+      } catch(Exception e) {
+        throw new RuntimeException(e);
+      }
+    }, executor);
   }
 
   @Nonnull
-  public ListenableFuture<Object> dispatchOperation(@Nonnull final ByteBuffer op) {
+  public CompletableFuture<Object> dispatchOperation(@Nonnull final ByteBuffer op) {
     checkNotNull(op);
-    return submit(new Callable<Object>() {
-      @Override
-      public Object call() {
-        return stateMachine.applyOperation(op.asReadOnlyBuffer());
-      }
-    });
+    return submit(() -> stateMachine.applyOperation(op.asReadOnlyBuffer()));
   }
 
   @Nonnull
-  public ListenableFuture takeSnapshot(@Nonnull final OutputStream out) throws IOException {
+  public CompletableFuture takeSnapshot(@Nonnull final OutputStream out) throws IOException {
     checkNotNull(out);
-    return submit(new Callable() {
-      @Override
-      public Object call() {
-        //stateMachine.takeSnapshot(out);
-        return null;
-      }
+    return submit((Callable) () -> {
+      //stateMachine.takeSnapshot(out);
+      return null;
     });
   }
 
   @Nonnull
-  public ListenableFuture installSnapshot() {
-    return Futures.immediateFailedFuture(new IllegalStateException());
+  public CompletableFuture installSnapshot() {
+    CompletableFuture failed = new CompletableFuture();
+    failed.completeExceptionally(new IllegalStateException());
+    return failed;
   }
 
 }

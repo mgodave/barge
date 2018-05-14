@@ -1,17 +1,22 @@
 package org.robotninjas.barge.state;
 
+import static java.util.Collections.emptySet;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.robotninjas.barge.state.Raft.StateType.CANDIDATE;
+import static org.robotninjas.barge.state.Raft.StateType.FOLLOWER;
+import static org.robotninjas.barge.state.Raft.StateType.LEADER;
+import static org.robotninjas.barge.state.Raft.StateType.START;
+
 import org.jetlang.fibers.Fiber;
 import org.jetlang.fibers.ThreadFiber;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.robotninjas.barge.api.AppendEntries;
+import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.api.RequestVote;
-
-import java.util.Collections;
-
-import static org.mockito.Mockito.*;
-import static org.robotninjas.barge.state.Raft.StateType.*;
 
 
 public class RaftStateContextTest {
@@ -26,7 +31,7 @@ public class RaftStateContextTest {
   private final StateTransitionListener transitionListener = mock(StateTransitionListener.class);
   private final RaftProtocolListener protocolListener = mock(RaftProtocolListener.class);
 
-  private final RaftStateContext context = new RaftStateContext("mockstatecontext", factory, executor, Collections.<StateTransitionListener>emptySet(), Collections.<RaftProtocolListener>emptySet());
+  private final RaftStateContext context = new RaftStateContext("mockstatecontext", factory, executor, emptySet(), emptySet());
 
   @Before
   public void setup() {
@@ -110,6 +115,9 @@ public class RaftStateContextTest {
   @Test
   public void delegatesAppendEntriesRequestToCurrentState() throws Exception {
     AppendEntries appendEntries = AppendEntries.getDefaultInstance();
+    when(follower.appendEntries(context, appendEntries)).thenReturn(
+        AppendEntriesResponse.newBuilder().build()
+    );
     context.setState(null, FOLLOWER);
 
     context.appendEntries(appendEntries);

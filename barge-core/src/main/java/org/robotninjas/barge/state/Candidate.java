@@ -16,12 +16,24 @@
 
 package org.robotninjas.barge.state;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.concurrent.CompletableFuture.completedFuture;
+import static java.util.stream.Collectors.toList;
+import static org.robotninjas.barge.state.MajorityCollector.majorityResponse;
+import static org.robotninjas.barge.state.Raft.StateType.CANDIDATE;
+import static org.robotninjas.barge.state.Raft.StateType.FOLLOWER;
+import static org.robotninjas.barge.state.Raft.StateType.LEADER;
+import static org.robotninjas.barge.state.RaftPredicates.voteGranted;
+
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
+import java.util.List;
+import java.util.Optional;
+import java.util.Random;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.inject.Inject;
 import org.jetlang.fibers.Fiber;
 import org.robotninjas.barge.RaftExecutor;
 import org.robotninjas.barge.Replica;
@@ -32,22 +44,11 @@ import org.robotninjas.barge.rpc.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
-import javax.inject.Inject;
-import java.util.List;
-import java.util.Random;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.util.concurrent.Futures.addCallback;
-import static org.robotninjas.barge.state.MajorityCollector.majorityResponse;
-import static org.robotninjas.barge.state.Raft.StateType.*;
-import static org.robotninjas.barge.state.RaftPredicates.voteGranted;
-
 @NotThreadSafe
 class Candidate extends BaseState {
 
+  private static final CompletableFuture<RequestVoteResponse> SUCCESS_VOTE =
+      completedFuture(RequestVoteResponse.newBuilder().setVoteGranted(true).build());
   private static final Logger LOGGER = LoggerFactory.getLogger(Candidate.class);
   private static final Random RAND = new Random(System.nanoTime());
 
@@ -55,7 +56,7 @@ class Candidate extends BaseState {
   private final long electionTimeout;
   private final Client client;
   private DeadlineTimer electionTimer;
-  private ListenableFuture<Boolean> electionResult;
+  private CompletableFuture<Boolean> electionResult;
 
   @Inject
   Candidate(RaftLog log, @RaftExecutor Fiber scheduler,
@@ -76,42 +77,34 @@ class Candidate extends BaseState {
 
     LOGGER.debug("Election starting for term {}", log.currentTerm());
 
-    List<ListenableFuture<RequestVoteResponse>> responses = Lists.newArrayList();
     // Request votes from peers
-    for (Replica replica : log.members()) {
-      responses.add(sendVoteRequest(ctx, replica));
-    }
+    List<CompletableFuture<RequestVoteResponse>> responses =
+        log.members().stream().map(member ->
+            sendVoteRequest(ctx, member)
+        ).collect(toList());
+
     // We always vote for ourselves
-    responses.add(Futures.immediateFuture(RequestVoteResponse.newBuilder().setVoteGranted(true).build()));
+    responses.add(SUCCESS_VOTE);
 
     electionResult = majorityResponse(responses, voteGranted());
 
     long timeout = electionTimeout + (RAND.nextLong() % electionTimeout);
-    electionTimer = DeadlineTimer.start(scheduler, new Runnable() {
-      @Override
-      public void run() {
-        LOGGER.debug("Election timeout");
-        ctx.setState(Candidate.this, CANDIDATE);
-      }
+    electionTimer = DeadlineTimer.start(scheduler, () -> {
+      LOGGER.debug("Election timeout");
+      ctx.setState(Candidate.this, CANDIDATE);
     }, timeout);
 
-    addCallback(electionResult, new FutureCallback<Boolean>() {
-      @Override
-      public void onSuccess(@Nullable Boolean elected) {
-        checkNotNull(elected);
-        //noinspection ConstantConditions
-        if (elected) {
-          ctx.setState(Candidate.this, LEADER);
-        }
+    electionResult.thenAccept(elected -> {
+      checkNotNull(elected);
+      //noinspection ConstantConditions
+      if (elected) {
+        ctx.setState(Candidate.this, LEADER);
       }
-
-      @Override
-      public void onFailure(Throwable t) {
-        if (!electionResult.isCancelled()) {
-          LOGGER.debug("Election failed with exception:", t);
-        }
+    }).exceptionally(t -> {
+      if (!electionResult.isCancelled()) {
+        LOGGER.debug("Election failed with exception:", t);
       }
-
+      return null;
     });
 
   }
@@ -123,7 +116,7 @@ class Candidate extends BaseState {
   }
 
   @VisibleForTesting
-  ListenableFuture<RequestVoteResponse> sendVoteRequest(RaftStateContext ctx, Replica replica) {
+  CompletableFuture<RequestVoteResponse> sendVoteRequest(RaftStateContext ctx, Replica replica) {
 
     RaftLog log = getLog();
     RequestVote request =
@@ -134,24 +127,19 @@ class Candidate extends BaseState {
         .setLastLogTerm(log.lastLogTerm())
         .build();
 
-    ListenableFuture<RequestVoteResponse> response = client.requestVote(replica, request);
-    Futures.addCallback(response, checkTerm(ctx));
+    CompletableFuture<RequestVoteResponse> response =
+        client.requestVote(replica, request);
+
+    response.thenAccept(checkTerm(ctx));
 
     return response;
   }
 
-  private FutureCallback<RequestVoteResponse> checkTerm(final RaftStateContext ctx) {
-    return new FutureCallback<RequestVoteResponse>() {
-      @Override
-      public void onSuccess(@Nullable RequestVoteResponse response) {
-        if (response.getTerm() > getLog().currentTerm()) {
-          getLog().currentTerm(response.getTerm());
-          ctx.setState(Candidate.this, FOLLOWER);
-        }
-      }
-
-      @Override
-      public void onFailure(Throwable t) {
+  private Consumer<RequestVoteResponse> checkTerm(final RaftStateContext ctx) {
+    return response -> {
+      if (response.getTerm() > getLog().currentTerm()) {
+        getLog().currentTerm(response.getTerm());
+        ctx.setState(Candidate.this, FOLLOWER);
       }
     };
   }

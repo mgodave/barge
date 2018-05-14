@@ -16,15 +16,14 @@
 
 package org.robotninjas.barge.log;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
-import org.robotninjas.barge.api.Entry;
-
+import java.util.Collections;
+import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.Collections;
-import java.util.List;
+import org.robotninjas.barge.api.Entry;
 
 @Immutable
 @ThreadSafe
@@ -55,7 +54,7 @@ public class GetEntriesResult {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(getClass())
+    return MoreObjects.toStringHelper(getClass())
       .add("prevEntryIndex", prevEntryIndex)
       .add("prevEntryTerm", prevEntryTerm)
       .add("numEntries", entries.size())

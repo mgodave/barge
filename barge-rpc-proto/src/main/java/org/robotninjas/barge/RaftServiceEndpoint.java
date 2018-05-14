@@ -1,16 +1,18 @@
 package org.robotninjas.barge;
 
+import static com.google.common.base.Strings.nullToEmpty;
+import static org.robotninjas.barge.proto.RaftProto.AppendEntries;
+import static org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse;
+import static org.robotninjas.barge.proto.RaftProto.RequestVote;
+import static org.robotninjas.barge.proto.RaftProto.RequestVoteResponse;
+
 import com.google.protobuf.RpcCallback;
 import com.google.protobuf.RpcController;
+import javax.annotation.Nonnull;
 import org.robotninjas.barge.proto.RaftProto;
 import org.robotninjas.barge.state.Raft;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nonnull;
-
-import static com.google.common.base.Strings.nullToEmpty;
-import static org.robotninjas.barge.proto.RaftProto.*;
 
 class RaftServiceEndpoint implements RaftProto.RaftService.Interface {
 

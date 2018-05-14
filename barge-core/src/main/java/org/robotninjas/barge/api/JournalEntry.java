@@ -15,13 +15,17 @@
  */
 package org.robotninjas.barge.api;
 
-import com.google.common.base.Objects;
-import com.google.common.base.Throwables;
-
-import javax.annotation.concurrent.Immutable;
-import java.io.*;
-
 import static com.google.common.base.Preconditions.checkNotNull;
+
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import javax.annotation.concurrent.Immutable;
 
 /**
  */
@@ -47,10 +51,8 @@ public final class
     ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
     try {
       return (JournalEntry) new ObjectInputStream(inputStream).readObject();
-    } catch (IOException e) {
-      throw Throwables.propagate(e);
-    } catch (ClassNotFoundException e) {
-      throw Throwables.propagate(e);
+    } catch (IOException | ClassNotFoundException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -63,7 +65,7 @@ public final class
 
       return outputStream.toByteArray();
     } catch (IOException e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -88,7 +90,7 @@ public final class
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
       .add("entry", entry)
       .toString();
   }

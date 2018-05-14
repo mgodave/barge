@@ -16,10 +16,14 @@
 
 package org.robotninjas.barge.rpc;
 
-import com.google.common.base.Functions;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.function.Function.identity;
+
 import com.google.inject.Inject;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.Immutable;
 import org.jetlang.fibers.Fiber;
 import org.robotninjas.barge.RaftExecutor;
 import org.robotninjas.barge.Replica;
@@ -27,12 +31,6 @@ import org.robotninjas.barge.api.AppendEntries;
 import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.api.RequestVote;
 import org.robotninjas.barge.api.RequestVoteResponse;
-
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.Immutable;
-import java.util.concurrent.Executor;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 @Immutable
 public class Client {
@@ -49,23 +47,21 @@ public class Client {
   }
 
   @Nonnull
-  public ListenableFuture<RequestVoteResponse> requestVote(@Nonnull final Replica replica, @Nonnull final RequestVote request) {
+  public CompletableFuture<RequestVoteResponse> requestVote(@Nonnull final Replica replica, @Nonnull final RequestVote request) {
 
     checkNotNull(replica);
     checkNotNull(request);
 
-    ListenableFuture<RequestVoteResponse> response = clientProvider.get(replica).requestVote(request);
-    return Futures.transform(response, Functions.<RequestVoteResponse>identity(), executor);
+    return clientProvider.get(replica).requestVote(request).thenApplyAsync(identity(), executor);
   }
 
   @Nonnull
-  public ListenableFuture<AppendEntriesResponse> appendEntries(@Nonnull final Replica replica, @Nonnull final AppendEntries request) {
+  public CompletableFuture<AppendEntriesResponse> appendEntries(@Nonnull final Replica replica, @Nonnull final AppendEntries request) {
 
     checkNotNull(replica);
     checkNotNull(request);
 
-    ListenableFuture<AppendEntriesResponse> response = clientProvider.get(replica).appendEntries(request);
-    return Futures.transform(response, Functions.<AppendEntriesResponse>identity(), executor);
+    return clientProvider.get(replica).appendEntries(request).thenApplyAsync(identity(), executor);
   }
 
 }

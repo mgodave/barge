@@ -16,19 +16,18 @@
 
 package org.robotninjas.barge.rpc;
 
-import com.google.common.util.concurrent.ListenableFuture;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.concurrent.CompletableFuture;
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.Immutable;
+import javax.inject.Inject;
 import org.apache.commons.pool.KeyedObjectPool;
 import org.apache.commons.pool.PoolUtils;
 import org.apache.commons.pool.impl.GenericKeyedObjectPool;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.protobuf.netty.client.NettyRpcChannel;
 import org.robotninjas.protobuf.netty.client.RpcClient;
-
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.Immutable;
-import javax.inject.Inject;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 @Immutable
 class ProtoRpcRaftClientProvider implements RaftClientProvider {
@@ -44,12 +43,12 @@ class ProtoRpcRaftClientProvider implements RaftClientProvider {
     config.whenExhaustedAction = GenericKeyedObjectPool.WHEN_EXHAUSTED_FAIL;
   }
 
-  private final KeyedObjectPool<Object, ListenableFuture<NettyRpcChannel>> connectionPools;
+  private final KeyedObjectPool<Object, CompletableFuture<NettyRpcChannel>> connectionPools;
 
   @Inject
   public ProtoRpcRaftClientProvider(@Nonnull RpcClient client) {
     RpcChannelFactory channelFactory = new RpcChannelFactory(client);
-    this.connectionPools = new GenericKeyedObjectPool(channelFactory, config);
+    this.connectionPools = new GenericKeyedObjectPool<>(channelFactory, config);
   }
 
   @Nonnull

@@ -16,89 +16,80 @@
 
 package org.robotninjas.barge.state;
 
-import com.google.common.base.Predicate;
-import com.google.common.util.concurrent.AbstractFuture;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
+import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BiFunction;
+import java.util.function.Predicate;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 
 @ThreadSafe
-class MajorityCollector<T> extends AbstractFuture<Boolean> implements FutureCallback<T> {
+class MajorityCollector<T> implements BiFunction<T, Throwable, Boolean> {
 
   private final ReentrantLock lock = new ReentrantLock();
   private final Predicate<T> isSuccess;
+  private final CompletableFuture<Boolean> future;
   private final int totalNum;
   @GuardedBy("lock")
   private int numSuccess = 0;
   @GuardedBy("lock")
   private int numFailed = 0;
 
-  private MajorityCollector(@Nonnegative int totalNum, @Nonnull Predicate<T> isSuccess) {
+  private MajorityCollector(@Nonnegative int totalNum, @Nonnull Predicate<T> isSuccess, CompletableFuture<Boolean> future) {
     this.totalNum = totalNum;
     this.isSuccess = isSuccess;
+    this.future = future;
   }
 
   @Nonnull
-  public static <U> ListenableFuture<Boolean> majorityResponse(@Nonnull List<? extends ListenableFuture<U>> responses, @Nonnull Predicate<U> isSuccess) {
-    MajorityCollector collector = new MajorityCollector(responses.size(), isSuccess);
-    for (ListenableFuture<U> response : responses) {
-      Futures.addCallback(response, collector);
+  public static <U> CompletableFuture<Boolean> majorityResponse(@Nonnull List<? extends CompletableFuture<U>> responses, @Nonnull Predicate<U> isSuccess) {
+    CompletableFuture<Boolean> future = new CompletableFuture<>();
+    MajorityCollector<U> collector = new MajorityCollector<>(responses.size(), isSuccess, future);
+    for (CompletableFuture<U> response : responses) {
+      response.handle(collector);
     }
     if (responses.isEmpty()) {
       collector.checkComplete();
     }
-    return collector;
+    return future;
   }
 
   private void checkComplete() {
-    if (!isDone()) {
+    if (!future.isDone()) {
       final double half = totalNum / 2.0;
       if (numSuccess > half) {
-        set(true);
+        future.complete(true);
       } else if (numFailed >= half) {
-        set(false);
+        future.complete(false);
       }
     }
   }
 
   @Override
-  public void onSuccess(@Nonnull T result) {
-
-    checkNotNull(result);
-
+  public Boolean apply(T result, Throwable t) {
     lock.lock();
     try {
-      if (isSuccess.apply(result)) {
-        numSuccess++;
-      } else {
+      if (null != t) {
         numFailed++;
+      } else {
+        checkNotNull(result);
+        if (isSuccess.test(result)) {
+          numSuccess++;
+        } else {
+          numFailed++;
+        }
       }
       checkComplete();
     } finally {
       lock.unlock();
     }
-
-  }
-
-  @Override
-  public void onFailure(@Nonnull Throwable t) {
-    lock.lock();
-    try {
-      numFailed++;
-      checkComplete();
-    } finally {
-      lock.unlock();
-    }
+    return null;
   }
 
 }

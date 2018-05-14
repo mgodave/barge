@@ -16,22 +16,20 @@
 package org.robotninjas.barge.jaxrs.client;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
-import org.robotninjas.barge.api.AppendEntries;
-import org.robotninjas.barge.api.AppendEntriesResponse;
-import org.robotninjas.barge.api.RequestVote;
-import org.robotninjas.barge.api.RequestVoteResponse;
-import org.robotninjas.barge.jaxrs.Jackson;
-import org.robotninjas.barge.rpc.RaftClient;
-
+import java.net.URI;
+import java.util.concurrent.CompletableFuture;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.InvocationCallback;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.net.URI;
+import org.robotninjas.barge.api.AppendEntries;
+import org.robotninjas.barge.api.AppendEntriesResponse;
+import org.robotninjas.barge.api.RequestVote;
+import org.robotninjas.barge.api.RequestVoteResponse;
+import org.robotninjas.barge.jaxrs.Jackson;
+import org.robotninjas.barge.rpc.RaftClient;
 
 /**
  */
@@ -52,20 +50,20 @@ public class BargeJaxRsClient implements RaftClient {
   }
 
   @Override
-  public ListenableFuture<RequestVoteResponse> requestVote(RequestVote request) {
-    final SettableFuture<RequestVoteResponse> result = SettableFuture.create();
+  public CompletableFuture<RequestVoteResponse> requestVote(RequestVote request) {
+    final CompletableFuture<RequestVoteResponse> result = new CompletableFuture<>();
 
     client.target(baseUri).path("/raft/vote")
       .request().async()
       .post(Entity.entity(request, MediaType.APPLICATION_JSON_TYPE), new InvocationCallback<Response>() {
         @Override
         public void completed(Response response) {
-          result.set(response.readEntity(RequestVoteResponse.class));
+          result.complete(response.readEntity(RequestVoteResponse.class));
         }
 
         @Override
         public void failed(Throwable throwable) {
-          result.setException(throwable);
+          result.completeExceptionally(throwable);
         }
       });
 
@@ -73,20 +71,20 @@ public class BargeJaxRsClient implements RaftClient {
   }
 
   @Override
-  public ListenableFuture<AppendEntriesResponse> appendEntries(AppendEntries request) {
-    final SettableFuture<AppendEntriesResponse> result = SettableFuture.create();
+  public CompletableFuture<AppendEntriesResponse> appendEntries(AppendEntries request) {
+    final CompletableFuture<AppendEntriesResponse> result = new CompletableFuture<>();
 
     client.target(baseUri).path("/raft/entries")
       .request().async()
       .post(Entity.entity(request, MediaType.APPLICATION_JSON_TYPE), new InvocationCallback<Response>() {
         @Override
         public void completed(Response response) {
-          result.set(response.readEntity(AppendEntriesResponse.class));
+          result.complete(response.readEntity(AppendEntriesResponse.class));
         }
 
         @Override
         public void failed(Throwable throwable) {
-          result.setException(throwable);
+          result.completeExceptionally(throwable);
         }
       });
 

@@ -15,10 +15,9 @@
  */
 package org.robotninjas.barge.api;
 
-import com.google.common.base.Objects;
-
-import javax.annotation.concurrent.Immutable;
+import com.google.common.base.MoreObjects;
 import java.io.Serializable;
+import javax.annotation.concurrent.Immutable;
 
 /**
  */
@@ -52,7 +51,7 @@ public class Term implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
       .add("term", term)
       .toString();
   }
