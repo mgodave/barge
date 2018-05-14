@@ -36,6 +36,7 @@ import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.log.RaftLog;
 import static org.robotninjas.barge.state.Raft.StateType.FOLLOWER;
 import static org.robotninjas.barge.state.Raft.StateType.LEADER;
+import static org.robotninjas.barge.state.Raft.StateType.STOPPED;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -181,6 +182,10 @@ class Leader extends BaseState {
       Futures.addCallback(response, new FutureCallback<AppendEntriesResponse>() {
           @Override
           public void onSuccess(@Nullable AppendEntriesResponse result) {
+            if (ctx.type().equals(STOPPED)) {
+                return;
+            }
+
             updateCommitted();
             checkTermOnResponse(ctx, result);
           }

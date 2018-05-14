@@ -116,6 +116,12 @@ public class RaftCoreModule extends PrivateModule {
       return this;
     }
 
+    public Builder withExecutor(Executor executor) {
+      this.executor = Optional.of(executor);
+
+      return this;
+    }
+
     public RaftCoreModule build() {
       checkState(config.isPresent());
       checkState(stateMachine.isPresent());

@@ -170,6 +170,14 @@ class RaftJournal {
 
   }
 
+  public void close() {
+    try {
+      journal.close();
+    } catch (IOException e) {
+      propagate(e);
+    }
+  }
+
   static interface Visitor {
 
     void term(Mark mark, long term);

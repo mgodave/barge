@@ -49,7 +49,7 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>jul-to-slf4j</artifactId>
-      <version>1.7.4</version>
+      <version>${slf4j.version}</version>
     </dependency>
 
     <dependency>
@@ -62,7 +62,7 @@
     <dependency>
       <groupId>org.eclipse.jetty.websocket</groupId>
       <artifactId>websocket-api</artifactId>
-      <version>9.1.0.v20131115</version>
+      <version>${jetty.version}</version>
     </dependency>
     
     <dependency>
@@ -75,13 +75,13 @@
     <dependency>
       <groupId>org.eclipse.jetty.websocket</groupId>
       <artifactId>websocket-server</artifactId>
-      <version>9.1.0.v20131115</version>
+      <version>${jetty.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.eclipse.jetty.websocket</groupId>
       <artifactId>websocket-client</artifactId>
-      <version>9.1.0.v20131115</version>
+      <version>${jetty.version}</version>
       <scope>test</scope>
     </dependency>
     
@@ -131,7 +131,7 @@
     <plugins>
       <plugin>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>2.1</version>
+        <version>2.3</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -139,6 +139,12 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <artifactSet>
+                <excludes>
+                  <exclude>org.glassfish.hk2.external:aopalliance-repackaged</exclude>
+                  <exclude>org.glassfish.hk2.external:javax.inject</exclude>
+                </excludes>
+              </artifactSet>
               <filters>
                 <filter>
                   <artifact>*:*</artifact>

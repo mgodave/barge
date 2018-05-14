@@ -113,6 +113,11 @@ public class RaftLog {
         lastLogIndex, currentTerm, commitIndex, votedFor.orNull());
   }
 
+  public void close() {
+    LOGGER.debug("Closing raft log and journal");
+    journal.close();
+  }
+
   private SettableFuture<Object> storeEntry(final long index, @Nonnull Entry entry) {
     LOGGER.debug("{} storing {}", config.local(), entry);
     RaftJournal.Mark mark = journal.appendEntry(entry, index);

@@ -15,7 +15,7 @@ class BatchExecutor extends BatchExecutorImpl {
   @Override
   public void execute(EventReader toExecute) {
 
-    Optional<Map> oldContext = Optional.fromNullable(MDC.getCopyOfContextMap());
+    Optional<Map<String, String>> oldContext = Optional.fromNullable(MDC.getCopyOfContextMap());
     MDC.setContextMap(contextMap);
 
     super.execute(toExecute);

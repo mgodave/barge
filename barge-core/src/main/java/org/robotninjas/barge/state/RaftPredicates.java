@@ -31,7 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 class RaftPredicates {
 
   @Nonnull
-  static Predicate<AppendEntriesResponse> appendSuccessul() {
+  static Predicate<AppendEntriesResponse> appendSuccessful() {
     return AppendSuccessPredicate.Success;
   }
 

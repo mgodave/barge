@@ -15,6 +15,7 @@
  */
 package org.robotninjas.barge.jaxrs;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
@@ -27,6 +28,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.NotLeaderException;
+import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.api.RequestVoteResponse;
 import org.robotninjas.barge.state.Raft;
@@ -94,7 +96,8 @@ public class BargeResourceTest extends JerseyTest {
   @Test
   public void onPOSTCommitReturn302WithLeaderURIGivenRaftThrowsNotLeaderException() throws Exception {
     URI leaderURI = new URI("http://localhost:1234");
-    when(raftService.commitOperation("foo".getBytes())).thenThrow(new NotLeaderException(new HttpReplica(leaderURI)));
+    Replica replica = new HttpReplica(leaderURI);
+    when(raftService.commitOperation("foo".getBytes())).thenThrow(new NotLeaderException(Optional.of(replica)));
 
     Response value = client().target("/commit")
         .request()
