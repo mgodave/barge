@@ -24,19 +24,15 @@ import static java.util.stream.Collectors.toList;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
 import com.google.inject.Inject;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentMap;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import journal.io.api.Journal;
 import org.robotninjas.barge.ClusterConfig;
@@ -59,7 +55,7 @@ public class RaftLog {
   private final StateMachineProxy stateMachine;
   private final RaftJournal journal;
 
-  private final ConcurrentMap<Object, SettableFuture<Object>> operationResults = Maps.newConcurrentMap();
+  private final ConcurrentMap<Object, CompletableFuture<Object>> operationResults = Maps.newConcurrentMap();
 
   private volatile long lastLogIndex = 0;
   private volatile long lastLogTerm = 0;
@@ -110,16 +106,16 @@ public class RaftLog {
         lastLogIndex, currentTerm, commitIndex, votedFor.orElse(null));
   }
 
-  private SettableFuture<Object> storeEntry(final long index, @Nonnull Entry entry) {
+  private CompletableFuture<Object> storeEntry(final long index, @Nonnull Entry entry) {
     LOGGER.debug("{} storing {}", config.local(), entry);
     RaftJournal.Mark mark = journal.appendEntry(entry, index);
     log.put(index, mark);
-    SettableFuture<Object> result = SettableFuture.create();
+    CompletableFuture<Object> result = new CompletableFuture<>();
     operationResults.put(index, result);
     return result;
   }
 
-  public ListenableFuture<Object> append(@Nonnull byte[] operation) {
+  public CompletableFuture<Object> append(@Nonnull byte[] operation) {
 
     long index = ++lastLogIndex;
     lastLogTerm = currentTerm;
@@ -187,12 +183,19 @@ public class RaftLog {
         Entry entry = journal.get(log.get(i));
         byte[] rawCommand = entry.getCommand();
         final ByteBuffer operation = ByteBuffer.wrap(rawCommand).asReadOnlyBuffer();
-        ListenableFuture<Object> result = stateMachine.dispatchOperation(operation);
+        CompletableFuture<Object> result = stateMachine.dispatchOperation(operation);
 
-        final SettableFuture<Object> returnedResult = operationResults.remove(i);
+        final CompletableFuture<Object> returnedResult = operationResults.remove(i);
         // returnedResult may be null on log replay
         if (returnedResult != null) {
-          Futures.addCallback(result, new PromiseBridge<>(returnedResult));
+          result.handle((r, t) -> {
+            if (null != r) {
+              returnedResult.complete(r);
+            } else {
+              returnedResult.completeExceptionally(t);
+            }
+            return null;
+          });
         }
       }
     } catch (Exception e) {
@@ -269,25 +272,6 @@ public class RaftLog {
         .add("commitIndex", commitIndex)
         .add("lastVotedFor", votedFor)
         .toString();
-  }
-
-  private static class PromiseBridge<V> implements FutureCallback<V> {
-
-    private final SettableFuture<V> promise;
-
-    private PromiseBridge(SettableFuture<V> promise) {
-      this.promise = promise;
-    }
-
-    @Override
-    public void onSuccess(@Nullable V result) {
-      promise.set(result);
-    }
-
-    @Override
-    public void onFailure(Throwable t) {
-      promise.setException(t);
-    }
   }
 
 }

@@ -16,19 +16,18 @@
 
 package org.robotninjas.barge.rpc;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.concurrent.CompletableFuture;
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.Immutable;
+import javax.inject.Inject;
 import org.apache.commons.pool.KeyedObjectPool;
 import org.apache.commons.pool.PoolUtils;
 import org.apache.commons.pool.impl.GenericKeyedObjectPool;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.protobuf.netty.client.NettyRpcChannel;
 import org.robotninjas.protobuf.netty.client.RpcClient;
-
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.Immutable;
-import javax.inject.Inject;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 @Immutable
 class ProtoRpcRaftClientProvider implements RaftClientProvider {

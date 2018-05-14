@@ -1,12 +1,8 @@
 package org.robotninjas.barge.state;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import org.robotninjas.barge.api.AppendEntriesResponse;
-
-import javax.annotation.Nullable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.robotninjas.barge.api.AppendEntriesResponse;
 
 public class ReplicaState {
 
@@ -19,7 +15,7 @@ public class ReplicaState {
     dispatch();
   }
 
-  ListenableFuture<AppendEntriesResponse> sendUpdate() {
+  CompletableFuture<AppendEntriesResponse> sendUpdate() {
     return null;
   }
 
@@ -35,22 +31,11 @@ public class ReplicaState {
 
         ready.set(false);
 
-        Futures.addCallback(sendUpdate(), new FutureCallback<AppendEntriesResponse>() {
-
-          @Override
-          public void onSuccess(@Nullable AppendEntriesResponse result) {
-            if (result.getSuccess()) {
-
-            } else {
-
-            }
-          }
-
-          @Override
-          public void onFailure(Throwable t) {
+        sendUpdate().handle((result, t) -> {
+          if (null != t) {
             running.set(false);
           }
-
+          return null;
         });
 
       }

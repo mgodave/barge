@@ -16,9 +16,8 @@
 package org.robotninjas.barge.api;
 
 import com.google.common.base.MoreObjects;
-
-import javax.annotation.concurrent.Immutable;
 import java.io.Serializable;
+import javax.annotation.concurrent.Immutable;
 
 /**
  */

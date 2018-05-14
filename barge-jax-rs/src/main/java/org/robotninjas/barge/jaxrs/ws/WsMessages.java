@@ -1,12 +1,11 @@
 package org.robotninjas.barge.jaxrs.ws;
 
 import com.google.common.base.MoreObjects;
+import java.util.Objects;
+import javax.annotation.concurrent.Immutable;
 import org.robotninjas.barge.api.AppendEntries;
 import org.robotninjas.barge.api.RequestVote;
 import org.robotninjas.barge.state.Raft;
-
-import javax.annotation.concurrent.Immutable;
-import java.util.Objects;
 
 /**
  */

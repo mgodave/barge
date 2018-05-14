@@ -17,7 +17,8 @@
 package org.robotninjas.barge.state;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.util.concurrent.Futures.addCallback;
+import static java.util.concurrent.CompletableFuture.completedFuture;
+import static java.util.stream.Collectors.toList;
 import static org.robotninjas.barge.state.MajorityCollector.majorityResponse;
 import static org.robotninjas.barge.state.Raft.StateType.CANDIDATE;
 import static org.robotninjas.barge.state.Raft.StateType.FOLLOWER;
@@ -25,14 +26,12 @@ import static org.robotninjas.barge.state.Raft.StateType.LEADER;
 import static org.robotninjas.barge.state.RaftPredicates.voteGranted;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
 import org.jetlang.fibers.Fiber;
@@ -48,6 +47,8 @@ import org.slf4j.LoggerFactory;
 @NotThreadSafe
 class Candidate extends BaseState {
 
+  private static final CompletableFuture<RequestVoteResponse> SUCCESS_VOTE =
+      completedFuture(RequestVoteResponse.newBuilder().setVoteGranted(true).build());
   private static final Logger LOGGER = LoggerFactory.getLogger(Candidate.class);
   private static final Random RAND = new Random(System.nanoTime());
 
@@ -76,13 +77,14 @@ class Candidate extends BaseState {
 
     LOGGER.debug("Election starting for term {}", log.currentTerm());
 
-    List<CompletableFuture<RequestVoteResponse>> responses = Lists.newArrayList();
     // Request votes from peers
-    for (Replica replica : log.members()) {
-      responses.add(sendVoteRequest(ctx, replica));
-    }
+    List<CompletableFuture<RequestVoteResponse>> responses =
+        log.members().stream().map(member ->
+            sendVoteRequest(ctx, member)
+        ).collect(toList());
+
     // We always vote for ourselves
-    responses.add(CompletableFuture.completedFuture(RequestVoteResponse.newBuilder().setVoteGranted(true).build()));
+    responses.add(SUCCESS_VOTE);
 
     electionResult = majorityResponse(responses, voteGranted());
 
@@ -98,9 +100,7 @@ class Candidate extends BaseState {
       if (elected) {
         ctx.setState(Candidate.this, LEADER);
       }
-    });
-
-    electionResult.exceptionally(t -> {
+    }).exceptionally(t -> {
       if (!electionResult.isCancelled()) {
         LOGGER.debug("Election failed with exception:", t);
       }

@@ -1,28 +1,23 @@
 package org.robotninjas.barge.jaxrs;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
-
 import static org.robotninjas.barge.jaxrs.Logs.uniqueLog;
-import org.robotninjas.barge.state.Raft;
-import org.robotninjas.barge.utils.Prober;
 
 import java.io.File;
-
 import java.net.URI;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.robotninjas.barge.state.Raft;
+import org.robotninjas.barge.utils.Prober;
 
 
 /**

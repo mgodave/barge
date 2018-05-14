@@ -1,6 +1,15 @@
 package org.robotninjas.barge.jaxrs.ws;
 
+import static org.robotninjas.barge.jaxrs.Logs.uniqueLog;
+
 import com.google.common.base.Predicates;
+import java.net.URI;
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.regex.Pattern;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
@@ -12,16 +21,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.robotninjas.barge.jaxrs.Jackson;
 import org.robotninjas.barge.utils.Prober;
-
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import java.net.URI;
-import java.util.Queue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.regex.Pattern;
-
-import static org.robotninjas.barge.jaxrs.Logs.uniqueLog;
 
 
 /**

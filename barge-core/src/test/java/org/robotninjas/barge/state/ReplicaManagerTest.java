@@ -57,8 +57,8 @@ public class ReplicaManagerTest {
   @Test
   public void testInitialSendOutstanding() {
 
-    CompletableFuture<AppendEntriesResponse> mockResponse = mock(CompletableFuture.class);
-    when(mockClient.appendEntries(eq(FOLLOWER), any(AppendEntries.class))).thenReturn(mockResponse);
+    when(mockClient.appendEntries(eq(FOLLOWER), any(AppendEntries.class)))
+        .thenReturn(new CompletableFuture<>());
 
     GetEntriesResult entriesResult = new GetEntriesResult(0L, 0L, Collections.emptyList());
     when(mockRaftLog.getEntriesFrom(anyLong(), anyInt())).thenReturn(entriesResult);
@@ -95,10 +95,11 @@ public class ReplicaManagerTest {
   @Test
   public void testFailedAppend() {
 
-    CompletableFuture<AppendEntriesResponse> response = new CompletableFuture<>();
-    when(mockClient.appendEntries(eq(FOLLOWER), any(AppendEntries.class))).thenReturn(response)
-      .thenReturn(mock(CompletableFuture.class));
-
+    CompletableFuture<AppendEntriesResponse> response1 = new CompletableFuture<>();
+    CompletableFuture<AppendEntriesResponse> response2 = new CompletableFuture<>();
+    when(mockClient.appendEntries(eq(FOLLOWER), any(AppendEntries.class)))
+      .thenReturn(response1)
+      .thenReturn(response2);
 
     GetEntriesResult entriesResult = new GetEntriesResult(0L, 0L, Collections.emptyList());
     when(mockRaftLog.getEntriesFrom(anyLong(), anyInt())).thenReturn(entriesResult);
@@ -125,7 +126,7 @@ public class ReplicaManagerTest {
         .setSuccess(false)
         .build();
 
-    response.complete(appendEntriesResponse);
+    response1.complete(appendEntriesResponse);
 
     verify(mockClient, times(2)).appendEntries(FOLLOWER, appendEntries);
     verifyNoMoreInteractions(mockClient);

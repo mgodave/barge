@@ -2,7 +2,8 @@ language: java
 script: "mvn package -Ptravis --settings travis-settings.xml"
 jdk:
     - openjdk7
-    - sunjdk7
+    - openjdk8
+    - openjdk9
 
 branches:
     only:

@@ -15,7 +15,11 @@
  */
 package org.robotninjas.barge.jaxrs;
 
-import org.robotninjas.barge.api.*;
+import org.robotninjas.barge.api.AppendEntries;
+import org.robotninjas.barge.api.AppendEntriesResponse;
+import org.robotninjas.barge.api.Entry;
+import org.robotninjas.barge.api.RequestVote;
+import org.robotninjas.barge.api.RequestVoteResponse;
 
 /**
  */

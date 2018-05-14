@@ -16,26 +16,25 @@
 
 package org.robotninjas.barge;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Throwables.propagateIfPossible;
+
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Guice;
 import com.google.protobuf.Service;
+import java.io.File;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.Immutable;
+import javax.annotation.concurrent.ThreadSafe;
+import javax.inject.Inject;
 import org.robotninjas.barge.proto.RaftProto;
 import org.robotninjas.barge.state.Raft;
 import org.robotninjas.barge.state.Raft.StateType;
 import org.robotninjas.barge.state.StateTransitionListener;
 import org.robotninjas.protobuf.netty.server.RpcServer;
-
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.Immutable;
-import javax.annotation.concurrent.ThreadSafe;
-import javax.inject.Inject;
-import java.io.File;
-import java.util.concurrent.ExecutionException;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Throwables.propagateIfPossible;
 
 @ThreadSafe
 @Immutable

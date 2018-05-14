@@ -15,13 +15,12 @@
  */
 package org.robotninjas.barge.jaxrs.client;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.net.URI;
 import org.junit.Test;
 import org.robotninjas.barge.jaxrs.HttpReplica;
 import org.robotninjas.barge.rpc.RaftClient;
-
-import java.net.URI;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  */

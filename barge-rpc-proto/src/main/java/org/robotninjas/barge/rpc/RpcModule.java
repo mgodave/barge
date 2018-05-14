@@ -16,15 +16,14 @@
 
 package org.robotninjas.barge.rpc;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.inject.PrivateModule;
 import io.netty.channel.nio.NioEventLoopGroup;
+import java.net.SocketAddress;
+import javax.annotation.Nonnull;
 import org.robotninjas.protobuf.netty.client.RpcClient;
 import org.robotninjas.protobuf.netty.server.RpcServer;
-
-import javax.annotation.Nonnull;
-import java.net.SocketAddress;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 public class RpcModule extends PrivateModule {
 

@@ -17,7 +17,6 @@
 package org.robotninjas.barge.rpc;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.util.concurrent.Futures.immediateFailedFuture;
 
 import com.google.common.util.concurrent.AbstractFuture;
 import com.google.protobuf.RpcCallback;
@@ -90,12 +89,11 @@ class ProtoRpcRaftClient implements RaftClient {
       });
 
       CompletableFuture<NettyRpcChannel> finalChannel = channel;
-      response.thenApply((ignore) -> {
+      response.thenAccept((ignore) -> {
         try {
           channelPool.returnObject(finalChannel);
         } catch (Exception ignored) {
         }
-        return null;
       });
 
       return response;

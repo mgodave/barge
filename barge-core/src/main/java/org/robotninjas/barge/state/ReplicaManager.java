@@ -18,25 +18,19 @@ package org.robotninjas.barge.state;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
-
 import com.google.inject.assistedinject.Assisted;
-
 import java.util.concurrent.CompletableFuture;
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.inject.Inject;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.api.AppendEntries;
 import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.log.GetEntriesResult;
 import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.rpc.Client;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
-
-import javax.inject.Inject;
 
 
 /**
@@ -101,17 +95,13 @@ class ReplicaManager {
 
     response.thenAccept(result1 -> {
       waitingForResponse = false;
-
       if (result1 != null) {
         updateNextIndex(request, result1);
-
         if (result1.getSuccess()) {
           previousResponse.complete(result1);
         }
       }
-    });
-
-    response.exceptionally(t ->{
+    }).exceptionally(t -> {
       waitingForResponse = false;
       requested = false;
       previousResponse.completeExceptionally(t);

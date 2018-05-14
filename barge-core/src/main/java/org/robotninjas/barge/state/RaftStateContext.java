@@ -1,7 +1,15 @@
 package org.robotninjas.barge.state;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.collect.Sets;
+import java.util.Collections;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.inject.Inject;
 import org.jetlang.fibers.Fiber;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.RaftExecutor;
@@ -11,15 +19,6 @@ import org.robotninjas.barge.api.RequestVote;
 import org.robotninjas.barge.api.RequestVoteResponse;
 import org.robotninjas.barge.log.RaftLog;
 import org.slf4j.MDC;
-
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.NotThreadSafe;
-import javax.inject.Inject;
-import java.util.Collections;
-import java.util.Set;
-import java.util.concurrent.Executor;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 
 @NotThreadSafe
@@ -77,8 +76,8 @@ class RaftStateContext implements Raft {
     checkNotNull(request);
 
     CompletableFuture<RequestVoteResponse> response = CompletableFuture.supplyAsync(() ->
-      delegate.requestVote(RaftStateContext.this, request)
-    , executor);
+      delegate.requestVote(RaftStateContext.this, request), executor
+    );
 
     try {
       return response.get();
@@ -122,10 +121,9 @@ class RaftStateContext implements Raft {
       try {
         return delegate.commitOperation(RaftStateContext.this, op);
       } catch (RaftException e) {
-        e.printStackTrace();
+        throw new RuntimeException();
       }
-      return null;
-    });
+    }, executor);
 
     notifyCommit(op);
 

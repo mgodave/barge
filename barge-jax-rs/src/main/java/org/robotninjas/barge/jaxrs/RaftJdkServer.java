@@ -16,12 +16,11 @@
 package org.robotninjas.barge.jaxrs;
 
 import com.sun.net.httpserver.HttpServer;
-import org.glassfish.jersey.jdkhttp.JdkHttpServerFactory;
-
-import javax.ws.rs.core.UriBuilder;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import javax.ws.rs.core.UriBuilder;
+import org.glassfish.jersey.jdkhttp.JdkHttpServerFactory;
 
 
 /**

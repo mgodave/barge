@@ -15,13 +15,17 @@
  */
 package org.robotninjas.barge.api;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import javax.annotation.concurrent.Immutable;
-import java.io.*;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  */

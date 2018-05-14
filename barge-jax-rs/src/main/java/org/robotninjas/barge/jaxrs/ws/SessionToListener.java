@@ -1,12 +1,9 @@
 package org.robotninjas.barge.jaxrs.ws;
 
 import com.google.common.base.Charsets;
-
-import org.eclipse.jetty.websocket.api.Session;
-
 import java.io.IOException;
-
 import java.nio.ByteBuffer;
+import org.eclipse.jetty.websocket.api.Session;
 
 
 /**

@@ -21,8 +21,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
@@ -31,7 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 
 @ThreadSafe
-class MajorityCollector<T> implements Consumer<T>, Function<Throwable, T> {
+class MajorityCollector<T> implements BiFunction<T, Throwable, Boolean> {
 
   private final ReentrantLock lock = new ReentrantLock();
   private final Predicate<T> isSuccess;
@@ -53,8 +52,7 @@ class MajorityCollector<T> implements Consumer<T>, Function<Throwable, T> {
     CompletableFuture<Boolean> future = new CompletableFuture<>();
     MajorityCollector<U> collector = new MajorityCollector<>(responses.size(), isSuccess, future);
     for (CompletableFuture<U> response : responses) {
-      response.thenAccept(collector);
-      response.exceptionally(collector);
+      response.handle(collector);
     }
     if (responses.isEmpty()) {
       collector.checkComplete();
@@ -74,29 +72,19 @@ class MajorityCollector<T> implements Consumer<T>, Function<Throwable, T> {
   }
 
   @Override
-  public void accept(@Nonnull T result) {
-
-    checkNotNull(result);
-
+  public Boolean apply(T result, Throwable t) {
     lock.lock();
     try {
-      if (isSuccess.test(result)) {
-        numSuccess++;
-      } else {
+      if (null != t) {
         numFailed++;
+      } else {
+        checkNotNull(result);
+        if (isSuccess.test(result)) {
+          numSuccess++;
+        } else {
+          numFailed++;
+        }
       }
-      checkComplete();
-    } finally {
-      lock.unlock();
-    }
-
-  }
-
-  @Override
-  public T apply(@Nonnull Throwable t) {
-    lock.lock();
-    try {
-      numFailed++;
       checkComplete();
     } finally {
       lock.unlock();

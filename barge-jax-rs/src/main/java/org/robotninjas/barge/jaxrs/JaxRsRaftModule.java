@@ -16,7 +16,8 @@
 package org.robotninjas.barge.jaxrs;
 
 import com.google.inject.PrivateModule;
-
+import java.io.File;
+import java.util.List;
 import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.RaftCoreModule;
 import org.robotninjas.barge.StateMachine;
@@ -26,10 +27,6 @@ import org.robotninjas.barge.rpc.RaftClientProvider;
 import org.robotninjas.barge.state.Raft;
 import org.robotninjas.barge.state.RaftProtocolListener;
 import org.robotninjas.barge.state.StateTransitionListener;
-
-import java.io.File;
-
-import java.util.List;
 
 
 /**

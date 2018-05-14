@@ -16,12 +16,14 @@
 package org.robotninjas.barge;
 
 
-import com.google.common.util.concurrent.AsyncFunction;
-import com.google.common.util.concurrent.Futures;
 import com.google.protobuf.ByteString;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.robotninjas.barge.api.*;
+import org.robotninjas.barge.api.AppendEntries;
+import org.robotninjas.barge.api.AppendEntriesResponse;
+import org.robotninjas.barge.api.Entry;
+import org.robotninjas.barge.api.RequestVote;
+import org.robotninjas.barge.api.RequestVoteResponse;
 import org.robotninjas.barge.proto.RaftEntry;
 import org.robotninjas.barge.proto.RaftProto;
 

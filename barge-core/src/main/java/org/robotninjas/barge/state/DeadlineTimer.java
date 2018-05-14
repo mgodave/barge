@@ -38,9 +38,7 @@ class DeadlineTimer {
 
   public void cancel() {
     checkState(started);
-    if (future.isPresent()) {
-      future.get().dispose();
-    }
+    future.ifPresent(Disposable::dispose);
   }
 
   public static DeadlineTimer start(Scheduler scheduler, Runnable action, long timeout) {
