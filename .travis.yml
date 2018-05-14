@@ -1,12 +1,9 @@
 language: java
 script: "mvn package -Ptravis --settings travis-settings.xml"
 jdk:
-    - openjdk7
     - openjdk8
-    - oraclejdk7
     - oraclejdk8
-    - oraclejdk9
-
+    
 env:
     global:
         - secure: "FgMwSRz94bofID4qCS4lHszXVP98bymZ7sPexzPqOGugFvLDAnmHYtp70TiW\nCkvbUw6Y8BRfMzDLciI+O+6TCZz9luXpKTg9bt5y7bM7COimDLqvVkmL3qxk\n9XEJoI5yUua5aWi0VXEEQ+xbVILVRKWXLtZVzKPKCf4z/vHwXEA="
