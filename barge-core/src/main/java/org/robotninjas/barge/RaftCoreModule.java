@@ -16,22 +16,21 @@
 
 package org.robotninjas.barge;
 
-import com.google.common.base.Optional;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
+import static java.util.concurrent.Executors.newCachedThreadPool;
+
 import com.google.inject.PrivateModule;
+import java.io.File;
+import java.util.Optional;
+import java.util.concurrent.Executor;
+import javax.annotation.concurrent.Immutable;
 import org.jetlang.fibers.Fiber;
 import org.jetlang.fibers.PoolFiberFactory;
 import org.robotninjas.barge.log.LogModule;
 import org.robotninjas.barge.rpc.Client;
 import org.robotninjas.barge.state.Raft;
 import org.robotninjas.barge.state.StateModule;
-
-import javax.annotation.concurrent.Immutable;
-import java.io.File;
-import java.util.concurrent.Executor;
-
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
-import static java.util.concurrent.Executors.newCachedThreadPool;
 
 
 @Immutable
@@ -50,7 +49,7 @@ public class RaftCoreModule extends PrivateModule {
     this.timeout = builder.timeout;
     this.logDir = builder.logDir.get();
     this.stateMachine = builder.stateMachine.get();
-    this.executor = builder.executor.or(newCachedThreadPool());
+    this.executor = builder.executor.orElse(newCachedThreadPool());
   }
 
   @Override
@@ -83,10 +82,10 @@ public class RaftCoreModule extends PrivateModule {
   public static class Builder {
 
     private long timeout = DEFAULT_TIMEOUT;
-    private Optional<Executor> executor = Optional.absent();
-    private Optional<ClusterConfig> config = Optional.absent();
-    private Optional<StateMachine> stateMachine = Optional.absent();
-    private Optional<File> logDir = Optional.absent();
+    private Optional<Executor> executor = Optional.empty();
+    private Optional<ClusterConfig> config = Optional.empty();
+    private Optional<StateMachine> stateMachine = Optional.empty();
+    private Optional<File> logDir = Optional.empty();
 
     private Builder() {
 

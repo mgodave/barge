@@ -16,16 +16,15 @@
 
 package org.robotninjas.barge.state;
 
+import static org.robotninjas.barge.state.RaftStateContext.StateType;
+
 import com.google.common.util.concurrent.ListenableFuture;
+import javax.annotation.Nonnull;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.api.AppendEntries;
 import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.api.RequestVote;
 import org.robotninjas.barge.api.RequestVoteResponse;
-
-import javax.annotation.Nonnull;
-
-import static org.robotninjas.barge.state.RaftStateContext.StateType;
 
 interface State {
 

@@ -1,29 +1,23 @@
 package org.robotninjas.barge.jaxrs;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
-
 import static org.robotninjas.barge.jaxrs.Logs.uniqueLog;
-import org.robotninjas.barge.state.Raft;
-import org.robotninjas.barge.utils.Prober;
 
 import java.io.File;
-
 import java.net.URI;
-
-import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.robotninjas.barge.state.Raft;
+import org.robotninjas.barge.utils.Prober;
 
 
 /**
@@ -71,12 +65,7 @@ public abstract class ServerTest<T extends RaftServer<T>> {
     client.target(uris[1]).path("/raft/init").request().post(Entity.json(""));
     client.target(uris[2]).path("/raft/init").request().post(Entity.json(""));
 
-    new Prober(new Callable<Boolean>() {
-        @Override
-        public Boolean call() throws Exception {
-          return isLeader(client, uris[0]) || isLeader(client, uris[1]) || isLeader(client, uris[2]);
-        }
-      }).probe(10000);
+    new Prober(() -> isLeader(client, uris[0]) || isLeader(client, uris[1]) || isLeader(client, uris[2])).probe(10000);
 
     URI leaderURI = getLeader(client);
 

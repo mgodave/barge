@@ -3,6 +3,7 @@
 
 package org.robotninjas.barge.proto;
 
+@SuppressWarnings("ALL")
 public final class LogProto {
   private LogProto() {}
   public static void registerAllExtensions(

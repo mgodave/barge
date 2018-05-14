@@ -16,16 +16,29 @@
 
 package org.robotninjas.barge.log;
 
-import com.google.common.base.Function;
-import com.google.common.base.Objects;
-import com.google.common.base.Optional;
-import com.google.common.collect.FluentIterable;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+import static java.util.Collections.unmodifiableList;
+
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.inject.Inject;
+import java.nio.ByteBuffer;
+import java.util.List;
+import java.util.Optional;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 import journal.io.api.Journal;
 import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.Replica;
@@ -34,21 +47,6 @@ import org.robotninjas.barge.api.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-
-import javax.annotation.Nonnegative;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
-import java.nio.ByteBuffer;
-import java.util.List;
-import java.util.TreeMap;
-import java.util.concurrent.ConcurrentMap;
-
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Throwables.propagate;
-import static com.google.common.collect.Lists.newArrayList;
-import static java.util.Collections.unmodifiableList;
 
 @NotThreadSafe
 public class RaftLog {
@@ -67,7 +65,7 @@ public class RaftLog {
   private volatile long lastLogIndex = 0;
   private volatile long lastLogTerm = 0;
   private volatile long currentTerm = 0;
-  private volatile Optional<Replica> votedFor = Optional.absent();
+  private volatile Optional<Replica> votedFor = Optional.empty();
   private volatile long commitIndex = 0;
   private volatile long lastApplied = 0;
 
@@ -110,7 +108,7 @@ public class RaftLog {
     fireComitted();
 
     LOGGER.info("Finished replaying log lastIndex {}, currentTerm {}, commitIndex {}, lastVotedFor {}",
-        lastLogIndex, currentTerm, commitIndex, votedFor.orNull());
+        lastLogIndex, currentTerm, commitIndex, votedFor.orElse(null));
   }
 
   private SettableFuture<Object> storeEntry(final long index, @Nonnull Entry entry) {
@@ -175,16 +173,7 @@ public class RaftLog {
 
     long previousIndex = beginningIndex - 1;
     Entry previous = previousIndex <= 0 ? SENTINEL : journal.get(log.get(previousIndex));
-    Iterable<Entry> entries = FluentIterable
-        .from(log.tailMap(beginningIndex).values())
-        .limit(max)
-        .transform(new Function<RaftJournal.Mark, Entry>() {
-          @Nullable
-          @Override
-          public Entry apply(@Nullable RaftJournal.Mark input) {
-            return journal.get(input);
-          }
-        });
+    Iterable<Entry> entries = log.tailMap(beginningIndex).values().stream().limit(max).map(journal::get).collect(Collectors.toList());
 
     return new GetEntriesResult(previous.getTerm(), previousIndex, entries);
 
@@ -201,11 +190,11 @@ public class RaftLog {
         final SettableFuture<Object> returnedResult = operationResults.remove(i);
         // returnedResult may be null on log replay
         if (returnedResult != null) {
-          Futures.addCallback(result, new PromiseBridge<Object>(returnedResult));
+          Futures.addCallback(result, new PromiseBridge<>(returnedResult), directExecutor());
         }
       }
     } catch (Exception e) {
-      throw propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -240,7 +229,7 @@ public class RaftLog {
     MDC.put("term", Long.toString(term));
     LOGGER.debug("New term {}", term);
     currentTerm = term;
-    votedFor = Optional.absent();
+    votedFor = Optional.empty();
     journal.appendTerm(term);
   }
 
@@ -250,7 +239,7 @@ public class RaftLog {
   }
 
   public void votedFor(@Nonnull Optional<Replica> vote) {
-    LOGGER.debug("Voting for {}", vote.orNull());
+    LOGGER.debug("Voting for {}", vote.orElse(null));
     votedFor = vote;
     journal.appendVote(vote);
   }
@@ -272,11 +261,18 @@ public class RaftLog {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(getClass())
+    return MoreObjects.toStringHelper(this)
+        .add("log", log)
+        .add("config", config)
+        .add("stateMachine", stateMachine)
+        .add("journal", journal)
+        .add("operationResults", operationResults)
         .add("lastLogIndex", lastLogIndex)
-        .add("lastApplied", lastApplied)
+        .add("lastLogTerm", lastLogTerm)
+        .add("currentTerm", currentTerm)
+        .add("votedFor", votedFor)
         .add("commitIndex", commitIndex)
-        .add("lastVotedFor", votedFor)
+        .add("lastApplied", lastApplied)
         .toString();
   }
 

@@ -3,6 +3,7 @@
 
 package org.robotninjas.barge.proto;
 
+@SuppressWarnings("ALL")
 public final class RaftProto {
   private RaftProto() {}
   public static void registerAllExtensions(
@@ -3076,6 +3077,7 @@ public final class RaftProto {
   /**
    * Protobuf type {@code InstallSnapshot}
    */
+  @SuppressWarnings("SameParameterValue")
   public static final class InstallSnapshot extends
       com.google.protobuf.GeneratedMessage
       implements InstallSnapshotOrBuilder {
@@ -4208,7 +4210,7 @@ public final class RaftProto {
       /**
        * <code>rpc requestVote(.RequestVote) returns (.RequestVoteResponse);</code>
        */
-      public abstract void requestVote(
+      void requestVote(
           com.google.protobuf.RpcController controller,
           org.robotninjas.barge.proto.RaftProto.RequestVote request,
           com.google.protobuf.RpcCallback<org.robotninjas.barge.proto.RaftProto.RequestVoteResponse> done);
@@ -4216,7 +4218,7 @@ public final class RaftProto {
       /**
        * <code>rpc appendEntries(.AppendEntries) returns (.AppendEntriesResponse);</code>
        */
-      public abstract void appendEntries(
+      void appendEntries(
           com.google.protobuf.RpcController controller,
           org.robotninjas.barge.proto.RaftProto.AppendEntries request,
           com.google.protobuf.RpcCallback<org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse> done);
@@ -4454,12 +4456,12 @@ public final class RaftProto {
     }
 
     public interface BlockingInterface {
-      public org.robotninjas.barge.proto.RaftProto.RequestVoteResponse requestVote(
+      org.robotninjas.barge.proto.RaftProto.RequestVoteResponse requestVote(
           com.google.protobuf.RpcController controller,
           org.robotninjas.barge.proto.RaftProto.RequestVote request)
           throws com.google.protobuf.ServiceException;
 
-      public org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse appendEntries(
+      org.robotninjas.barge.proto.RaftProto.AppendEntriesResponse appendEntries(
           com.google.protobuf.RpcController controller,
           org.robotninjas.barge.proto.RaftProto.AppendEntries request)
           throws com.google.protobuf.ServiceException;

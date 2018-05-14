@@ -1,9 +1,8 @@
 package org.robotninjas.barge.state;
 
+import javax.annotation.Nonnull;
 import org.robotninjas.barge.api.AppendEntries;
 import org.robotninjas.barge.api.RequestVote;
-
-import javax.annotation.Nonnull;
 
 /**
  * A listener which is notified of protocol messages received by a {@link org.robotninjas.barge.state.RaftStateContext}

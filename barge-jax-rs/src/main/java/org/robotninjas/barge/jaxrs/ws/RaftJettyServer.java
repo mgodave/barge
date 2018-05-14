@@ -1,31 +1,25 @@
 package org.robotninjas.barge.jaxrs.ws;
 
-import com.google.common.base.Throwables;
-
 import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-
-import org.glassfish.jersey.servlet.ServletContainer;
-
-import org.robotninjas.barge.jaxrs.RaftApplication;
-import org.robotninjas.barge.jaxrs.RaftServer;
-import org.robotninjas.barge.state.RaftProtocolListener;
-import org.robotninjas.barge.state.StateTransitionListener;
-import org.slf4j.bridge.SLF4JBridgeHandler;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.glassfish.jersey.servlet.ServletContainer;
+import org.robotninjas.barge.jaxrs.RaftApplication;
+import org.robotninjas.barge.jaxrs.RaftServer;
+import org.robotninjas.barge.state.RaftProtocolListener;
+import org.robotninjas.barge.state.StateTransitionListener;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 
 /**
@@ -136,7 +130,7 @@ public class RaftJettyServer implements RaftServer<RaftJettyServer> {
   public RaftJettyServer(int serverIndex, URI[] uris, File logDir) {
     server = new Server();
     events = new WsEventListener();
-    raftApplication = new RaftApplication(serverIndex, uris, logDir, Collections.<StateTransitionListener>singleton(events), Collections.<RaftProtocolListener>singleton(events));
+    raftApplication = new RaftApplication(serverIndex, uris, logDir, Collections.singleton(events), Collections.singleton(events));
   }
 
   public RaftJettyServer start(int port) {
@@ -163,7 +157,7 @@ public class RaftJettyServer implements RaftServer<RaftJettyServer> {
 
       return this;
     } catch (Throwable t) {
-      throw Throwables.propagate(t);
+      throw new RuntimeException(t);
     }
   }
 
@@ -174,7 +168,7 @@ public class RaftJettyServer implements RaftServer<RaftJettyServer> {
       events.stop();
       server.stop();
     } catch (Exception e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -184,12 +178,7 @@ public class RaftJettyServer implements RaftServer<RaftJettyServer> {
 
   @Override
   public void clean() {
-
-    try {
-      raftApplication.clean();
-    } catch (IOException e) {
-      throw Throwables.propagate(e);
-    }
+    raftApplication.clean();
   }
 
 }

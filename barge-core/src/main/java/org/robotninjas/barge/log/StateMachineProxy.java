@@ -1,14 +1,12 @@
 package org.robotninjas.barge.log;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.collect.Queues;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
 import com.google.inject.Inject;
-import org.robotninjas.barge.StateMachine;
-
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -16,8 +14,9 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.ThreadSafe;
+import org.robotninjas.barge.StateMachine;
 
 @ThreadSafe
 class StateMachineProxy {
@@ -51,23 +50,15 @@ class StateMachineProxy {
   @Nonnull
   public ListenableFuture<Object> dispatchOperation(@Nonnull final ByteBuffer op) {
     checkNotNull(op);
-    return submit(new Callable<Object>() {
-      @Override
-      public Object call() {
-        return stateMachine.applyOperation(op.asReadOnlyBuffer());
-      }
-    });
+    return submit(() -> stateMachine.applyOperation(op.asReadOnlyBuffer()));
   }
 
   @Nonnull
   public ListenableFuture takeSnapshot(@Nonnull final OutputStream out) throws IOException {
     checkNotNull(out);
-    return submit(new Callable() {
-      @Override
-      public Object call() {
-        //stateMachine.takeSnapshot(out);
-        return null;
-      }
+    return submit(() -> {
+      //stateMachine.takeSnapshot(out);
+      return null;
     });
   }
 

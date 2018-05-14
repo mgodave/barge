@@ -16,9 +16,8 @@
 package org.robotninjas.barge.jaxrs;
 
 import com.google.common.base.Objects;
-import org.robotninjas.barge.Replica;
-
 import java.net.URI;
+import org.robotninjas.barge.Replica;
 
 /**
  */

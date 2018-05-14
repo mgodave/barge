@@ -1,13 +1,18 @@
 package org.robotninjas.barge.state;
 
-import com.google.common.base.Optional;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.when;
+
 import com.google.common.util.concurrent.ListenableFuture;
+import java.util.Optional;
+import javax.annotation.Nonnull;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.ClusterConfigStub;
@@ -18,13 +23,6 @@ import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.api.RequestVote;
 import org.robotninjas.barge.api.RequestVoteResponse;
 import org.robotninjas.barge.log.RaftLog;
-
-import javax.annotation.Nonnull;
-
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertTrue;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.when;
 
 public class BaseStateTest {
 
@@ -43,12 +41,9 @@ public class BaseStateTest {
     when(mockRaftLog.lastLogTerm()).thenReturn(2l);
     when(mockRaftLog.self()).thenReturn(self);
     when(mockRaftLog.config()).thenReturn(config);
-    when(mockRaftLog.getReplica(anyString())).thenAnswer(new Answer<Replica>() {
-      @Override
-      public Replica answer(InvocationOnMock invocation) throws Throwable {
-        String arg = (String) invocation.getArguments()[0];
-        return config.getReplica(arg);
-      }
+    when(mockRaftLog.getReplica(anyString())).thenAnswer((Answer<Replica>) invocation -> {
+      String arg = (String) invocation.getArguments()[0];
+      return config.getReplica(arg);
     });
 
   }
@@ -65,7 +60,7 @@ public class BaseStateTest {
       .setTerm(2)
       .build();
 
-    when(mockRaftLog.votedFor()).thenReturn(Optional.<Replica>absent());
+    when(mockRaftLog.votedFor()).thenReturn(Optional.empty());
     boolean shouldVote = state.shouldVoteFor(mockRaftLog, requestVote);
 
     assertTrue(shouldVote);

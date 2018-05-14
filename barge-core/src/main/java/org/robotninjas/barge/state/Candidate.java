@@ -16,12 +16,27 @@
 
 package org.robotninjas.barge.state;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.util.concurrent.Futures.addCallback;
+import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+import static org.robotninjas.barge.state.MajorityCollector.majorityResponse;
+import static org.robotninjas.barge.state.Raft.StateType.CANDIDATE;
+import static org.robotninjas.barge.state.Raft.StateType.FOLLOWER;
+import static org.robotninjas.barge.state.Raft.StateType.LEADER;
+import static org.robotninjas.barge.state.RaftPredicates.voteGranted;
+
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import java.util.List;
+import java.util.Optional;
+import java.util.Random;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.inject.Inject;
 import org.jetlang.fibers.Fiber;
 import org.robotninjas.barge.RaftExecutor;
 import org.robotninjas.barge.Replica;
@@ -31,19 +46,6 @@ import org.robotninjas.barge.log.RaftLog;
 import org.robotninjas.barge.rpc.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
-import javax.inject.Inject;
-import java.util.List;
-import java.util.Random;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.util.concurrent.Futures.addCallback;
-import static org.robotninjas.barge.state.MajorityCollector.majorityResponse;
-import static org.robotninjas.barge.state.Raft.StateType.*;
-import static org.robotninjas.barge.state.RaftPredicates.voteGranted;
 
 @NotThreadSafe
 class Candidate extends BaseState {
@@ -87,12 +89,9 @@ class Candidate extends BaseState {
     electionResult = majorityResponse(responses, voteGranted());
 
     long timeout = electionTimeout + (RAND.nextLong() % electionTimeout);
-    electionTimer = DeadlineTimer.start(scheduler, new Runnable() {
-      @Override
-      public void run() {
-        LOGGER.debug("Election timeout");
-        ctx.setState(Candidate.this, CANDIDATE);
-      }
+    electionTimer = DeadlineTimer.start(scheduler, () -> {
+      LOGGER.debug("Election timeout");
+      ctx.setState(Candidate.this, CANDIDATE);
     }, timeout);
 
     addCallback(electionResult, new FutureCallback<Boolean>() {
@@ -112,7 +111,7 @@ class Candidate extends BaseState {
         }
       }
 
-    });
+    }, directExecutor());
 
   }
 
@@ -135,7 +134,7 @@ class Candidate extends BaseState {
         .build();
 
     ListenableFuture<RequestVoteResponse> response = client.requestVote(replica, request);
-    Futures.addCallback(response, checkTerm(ctx));
+    Futures.addCallback(response, checkTerm(ctx), directExecutor());
 
     return response;
   }
@@ -144,7 +143,7 @@ class Candidate extends BaseState {
     return new FutureCallback<RequestVoteResponse>() {
       @Override
       public void onSuccess(@Nullable RequestVoteResponse response) {
-        if (response.getTerm() > getLog().currentTerm()) {
+        if (response != null && response.getTerm() > getLog().currentTerm()) {
           getLog().currentTerm(response.getTerm());
           ctx.setState(Candidate.this, FOLLOWER);
         }

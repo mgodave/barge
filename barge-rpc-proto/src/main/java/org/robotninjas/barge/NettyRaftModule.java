@@ -1,10 +1,8 @@
 package org.robotninjas.barge;
 
 import com.google.inject.PrivateModule;
-
-import org.robotninjas.barge.state.AbstractListenersModule;
-
 import java.io.File;
+import org.robotninjas.barge.state.AbstractListenersModule;
 
 
 public class NettyRaftModule extends PrivateModule {
