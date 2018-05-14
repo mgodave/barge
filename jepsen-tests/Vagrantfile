@@ -1,0 +1,26 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+# a debian testing box for testing barge's jepsen tests (lots of tests here...)
+
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+  config.vm.box = "jessie"
+  config.vm.box_url = "https://dl.dropboxusercontent.com/u/2060057/package.box"
+
+  proxy = ENV['http_proxy']
+
+  # machine for running jepsen tests
+  config.vm.define :jepsen do |mxconsole|
+    mxconsole.vm.hostname = "barge-jepsen"
+
+    # VM has own network so that we can identify it
+    config.vm.network "private_network", ip: "192.168.43.2" 
+
+    mxconsole.vm.provision :shell, :path => "setup.sh", :args => proxy
+  end
+
+end
+
+ 

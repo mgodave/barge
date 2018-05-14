@@ -1,0 +1,98 @@
+#+TODO: OPTION(o) BREAKDOWN(b) TODO(t) STARTED(s) WAITING(w) | DONE(d) CANCELED(c)
+#+TAGS: developing(d) meeting(m) operations (o) planning (p) design(e)
+
+* TODO run jepsen tests on current barge
+** Jepsen Overview
+ - [[file:~/projects/raft/jepsen/src/jepsen/core.clj][core.clj]] contains the main *run* function which is the entry point for each single test run. It takes care of setting up OS,
+   DB, launching clients in parallel, runnning generator and perform model checking at end of test
+ - [[file:~/projects/raft/jepsen/src/jepsen/model.clj][model.clj]] describes knossos model implementations for common case: Sets, CASRegisters. Each model implements single
+   function *step* that applies some operation on a "model", possibly detecting and generating inconsistencies. For example,
+   applying a *cas* operation to a CASRegister is consistent iff the old and new values are identical. Simplest model is Mutex
+   which may acquired/released putting it in a locked/unlocked state. All Models are immutable thus allowing easy generation of
+   possible worlds from history
+ - see [[file:~/projects/raft/jepsen/src/jepsen/client.clj][client.clj]] for the protocol to implement per client. Clients are single threaded and send operations to server nodes
+ - see [[file:~/projects/raft/jepsen/src/jepsen/db.clj][db.clj]] for protocol to implement to setup/teardown each "DB" instance, in our case each barge instance protecting access
+   to underlying data.
+ - We need to provide some simple DB implemented over raft, eg. basic K/V store
+ - [[file:~/projects/raft/jepsen/src/jepsen/generator.clj][generator.clj]] is used to construct the test rig, eg. the generator for events to affect the database, including [[file:~/projects/raft/jepsen/src/jepsen/nemesis.clj][nemesis.clj]]
+   which encapsulates the logic to create network partitions or outages (drop packets, slow down link...). Implementation of
+   generators is actually a monad, very reminiscent of what's done in Quickcheck: One can compose generators, introducing
+   nemesis, delays, mapping functions...
+ - test results and outputs are persisted to a [[file:~/projects/raft/jepsen/src/jepsen/store.clj][store.clj]], basically a local file containing serializable objects from the test
+ - [[file:~/projects/raft/jepsen/src/jepsen/checker.clj][checker.clj]] defines the properties we may want to check for a given test, like linearizability which is the main purpose of
+   knossos library. Some properties we want to test: queue, total queue, set... Checks that the property is verified for a given
+   history and a given model: The history is what's produced by the (concurrent and generated test) and the model is how we
+   assume the underlying DB should behave. Properties may be more or less complex to check and for example checking
+   linearizability is somewhere in the vicinity of factorial in the length of the history...
+ - [[file:~/projects/raft/jepsen/src/jepsen/os.clj][os.clj]] and [[file:~/projects/raft/jepsen/src/jepsen/os/debian.clj][debian.clj]] provides interface and implementation for setting up OSes to run tests. Test runner uses low-level
+   commands from [[file:~/projects/raft/jepsen/src/jepsen/control.clj][control.clj]] which provides among other things an evolved *exec* function to run arbitrary processes, a *ssh*
+   function to run stuff over ssh connection and nice wrappers and macros like su or cd.
+ - provides system implementations and corresponding tests for the following DBs/Models
+   - elasticsearch/*set*
+   - datomic/CAS register
+   - etcd/CAS client
+   - rabbitmq/mutex
+** Knossos
+ - provides the conceptual framework to model-check a history against a model, testing for linearizability.
+ - *linearizability* is a specific level of consistency a concurrent system can exhibit (and guarantee to client). In a
+   linearizable system all operations which are assumed to take some time, appear to take effect instantly at some point between
+   their initiation and termination and in an order consistent with the *program order*. For example, given location x having
+   initial value 0, the concurrent operations of thread A doing a->read/a<-read(0), and thread B doing a->write(1)/a<-write() are
+   linearizable, as well as a->read()/a<-read(1).
+ - Of course more insteresting things happen when several concurrent threads write to the same location
+ - So given a history and a model we want to check if there is a linearization that is *consistent* with a model which
+   theoretically entails generating all possible interleaving of concurrent operations consistent with program order, and
+   checking there is at least one such consistent interleaving
+ - knossos leverages the laziness of clojure 
+** DONE build/run jepsen 
+*** DONE update dependencies to latest released versions
+ - https://github.com/aphyr/knossos -> 0.2  
+ - clojurewerkz/elastisch -> 2.0.0-rc1
+ - test do not compile due to dependency on datomic stuff
+** CANCELED setup VM with coreos
+ - coreOS might not be a good choice in the short term as jepsen implements only debian OS. Need to implement docker-based OS??
+*** DONE upgrade coreos-vagrant
+https://github.com/coreos/coreos-vagrant
+*** DONE upgrade vagrant -> 1.6.2
+ - don't forget to set http_proxy env variables...
+*** DONE setup a debian testing (jessie) Box 
+ - installed http://saimei.acc.umu.se/cdimage/jessie_di_alpha_1/amd64/iso-cd/debian-jessie-DI-a1-amd64-netinst.iso in VBox
+ - used as guideline for configuring box http://blog.codeboutique.com/post/creating-debian-squeeze-box-for-vagrant
+ - created package.box -> ~700MB
+*** DONE configure lxc and test boxes
+ - based on lxc.md from jepsen sources
+ - write it as a script (possibly a .clj using what's provided by jepsen...)
+ - configured all 5 boxes, started them -> works fine
+*** DONE install lein and build project
+ - project can build with lein, still issues with runnning test
+*** DONE install iptables on lxc containers
+*** DONE understand how to customize test executions for ssh authent on lxc containers
+*** DONE fix elastic search test issue
+ERROR in (create-test) (rest.clj:64)
+Uncaught exception, not in assertion.
+expected: nil
+  actual: java.lang.ClassCastException: java.lang.String cannot be cast to clojurewerkz.elastisch.rest.Connection
+ at clojurewerkz.elastisch.rest$url_with_path.doInvoke (rest.clj:64)
+    clojure.lang.RestFn.invoke (RestFn.java:423)
+    clojurewerkz.elastisch.rest$index_url.invoke (rest.clj:68)
+    clojurewerkz.elastisch.rest.index$create.doInvoke (index.clj:48)
+    clojure.lang.RestFn.invoke (RestFn.java:490)
+    jepsen.system.elasticsearch.CreateSetClient/fn (elasticsearch.clj:118)
+    jepsen.system.elasticsearch.CreateSetClient.setup_BANG_ (elasticsearch.clj:116)
+    jepsen.core$run_case_BANG_$fn__5082.invoke (core.clj:232)
+    clojure.lang.AFn.applyToHelper (AFn.java:154)
+    clojure.lang.AFn.applyTo (AFn.java:144)
+    clojure.core$apply.invoke (core.clj:624)
+    jepsen.core$fcatch$wrapper__5003.doInvoke (core.clj:39)
+    clojure.lang.RestFn.invoke (RestFn.java:408)
+    clojure.core$pmap$fn__6328$fn__6329.invoke (core.clj:6463)
+    clojure.core$binding_conveyor_fn$fn__4145.invoke (core.clj:1910)
+    clojure.lang.AFn.call (AFn.java:18)
+    java.util.concurrent.FutureTask.run (FutureTask.java:266)
+    java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1142)
+    java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:617)
+    java.lang.Thread.run (Thread.java:745)
+
+** DONE setup 5 docker containers with debian testing 
+** TODO write test adapter for barge
+

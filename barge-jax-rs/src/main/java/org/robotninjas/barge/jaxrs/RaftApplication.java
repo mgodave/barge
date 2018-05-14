@@ -3,6 +3,7 @@ package org.robotninjas.barge.jaxrs;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.glassfish.hk2.api.Factory;
@@ -24,8 +25,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -37,39 +39,32 @@ public class RaftApplication {
   private final int serverIndex;
   private final URI[] uris;
   private final File logDir;
-  
   private final List<StateTransitionListener> transitionListeners;
   private final List<RaftProtocolListener> protocolListeners;
+  private final Set<Class<?>> resources = Sets.newHashSet();
+  private final Set<Object> instances = Sets.newHashSet();
+  private final StateMachine stateMachine;
 
   private Optional<Injector> injector = Optional.absent();
 
-  public RaftApplication(int serverIndex, URI[] uris, File logDir, Iterable<StateTransitionListener> transitionListener, Iterable<RaftProtocolListener> protocolListener) {
+  public RaftApplication(int serverIndex, URI[] uris, File logDir, StateMachine stateMachine, Set<Class<?>> resources,
+      Set<Object> instances,
+      Iterable<StateTransitionListener> transitionListener, Iterable<RaftProtocolListener> protocolListener) {
     this.serverIndex = serverIndex;
     this.uris = uris;
     this.logDir = logDir;
+    this.stateMachine = stateMachine;
+    this.resources.addAll(resources);
+    this.instances.addAll(instances);
     this.transitionListeners = Lists.newArrayList(transitionListener);
     this.protocolListeners = Lists.newArrayList(protocolListener);
   }
 
-  public RaftApplication(int serverIndex, URI[] uris, File logDir) {
-    this(serverIndex,uris,logDir, Collections.<StateTransitionListener>emptyList(),Collections.<RaftProtocolListener>emptyList());
-  }
-
   public ResourceConfig makeResourceConfig() {
-    ClusterConfig clusterConfig = HttpClusterConfig.from(new HttpReplica(uris[serverIndex]),
-      remotes());
+    ClusterConfig clusterConfig = HttpClusterConfig.from(new HttpReplica(uris[serverIndex]), remotes());
 
     if (!logDir.exists() && !logDir.mkdirs())
       logger.warn("failed to create directories for storing logs, bad things will happen");
-
-    StateMachine stateMachine = new StateMachine() {
-      int i = 0;
-
-      @Override
-      public Object applyOperation(@Nonnull ByteBuffer entry) {
-        return i++;
-      }
-    };
 
     final JaxRsRaftModule raftModule = new JaxRsRaftModule(clusterConfig, logDir, stateMachine, 1500, transitionListeners, protocolListeners);
 
@@ -104,6 +99,8 @@ public class RaftApplication {
 
     resourceConfig.register(BargeResource.class);
     resourceConfig.register(Jackson.customJacksonProvider());
+    resourceConfig.registerClasses(resources);
+    resourceConfig.registerInstances(instances);
     resourceConfig.register(binder);
 
     return resourceConfig;
@@ -125,16 +122,82 @@ public class RaftApplication {
 
   public void stop() {
     injector.transform(new Function<Injector, Object>() {
-      @Nullable
-      @Override
-      public Object apply(@Nullable Injector input) {
-        Raft instance = null;
-        if (input != null) {
-          instance = input.getInstance(Raft.class);
-          instance.stop();
+        @Nullable
+        @Override
+        public Object apply(@Nullable Injector input) {
+          Raft instance = null;
+
+          if (input != null) {
+            instance = input.getInstance(Raft.class);
+            instance.stop();
+          }
+
+          return instance;
         }
-        return instance;
+      });
+  }
+
+  public static class Builder {
+    private int serverIndex;
+    private URI[] uris;
+    private File logDir;
+    private StateTransitionListener[] transitionListeners = new StateTransitionListener[0];
+    private Iterable<RaftProtocolListener> protocolListeners = Lists.newArrayList();
+    private Set<Class<?>> resources = Sets.newHashSet();
+    private Set<Object> instances = Sets.newHashSet();
+    private StateMachine stateMachine = new StateMachine() {
+      int i = 0;
+
+      @Override
+      public Object applyOperation(@Nonnull ByteBuffer entry) {
+        return i++;
       }
-    });
+    };
+
+    public Builder setServerIndex(int serverIndex) {
+      this.serverIndex = serverIndex;
+
+      return this;
+    }
+
+    public Builder setUris(URI[] uris) {
+      this.uris = uris;
+
+      return this;
+    }
+
+    public Builder setLogDir(File logDir) {
+      this.logDir = logDir;
+
+      return this;
+    }
+
+    public Builder setTransitionListeners(StateTransitionListener... listeners) {
+      this.transitionListeners = listeners;
+
+      return this;
+    }
+
+    public RaftApplication build() {
+      return new RaftApplication(serverIndex, uris, logDir, stateMachine, resources, instances, Arrays.asList(transitionListeners), protocolListeners);
+    }
+
+    public Builder register(Class<?> resource) {
+      this.resources.add(resource);
+
+      return this;
+    }
+
+    public Builder setStateMachine(StateMachine stateMachine) {
+      this.stateMachine = stateMachine;
+
+      return this;
+    }
+
+    public Builder registerInstance(Object o) {
+      this.instances.add(o);
+
+      return this;
+    }
   }
 }

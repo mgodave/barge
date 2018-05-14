@@ -16,13 +16,17 @@
 package org.robotninjas.barge.jaxrs;
 
 import com.google.common.base.Throwables;
+
 import com.sun.net.httpserver.HttpServer;
+
 import org.glassfish.jersey.jdkhttp.JdkHttpServerFactory;
 
-import javax.ws.rs.core.UriBuilder;
 import java.io.File;
 import java.io.IOException;
+
 import java.net.URI;
+
+import javax.ws.rs.core.UriBuilder;
 
 
 /**
@@ -39,7 +43,7 @@ public class RaftJdkServer implements RaftServer<RaftJdkServer> {
   public RaftJdkServer(int serverIndex, URI[] uris, File logDir) {
     this.serverIndex = serverIndex;
     this.uris = uris;
-    this.application = new RaftApplication(serverIndex, uris, logDir);
+    this.application = new RaftApplication.Builder().setServerIndex(serverIndex).setUris(uris).setLogDir(logDir).build();
   }
 
 
