@@ -134,8 +134,6 @@ class ReplicaManager {
       sendUpdate();
     }
 
-    LOGGER.debug("Response from {} Status {} nextIndex {}, matchIndex {}", remote, response.getSuccess(), nextIndex, matchIndex);
-
   }
 
   @VisibleForTesting

@@ -16,7 +16,9 @@
 
 package org.robotninjas.barge.state;
 
-interface StateFactory {
+import java.io.Closeable;
+
+interface StateFactory extends Closeable {
 
   State makeState(RaftStateContext.StateType state);
 

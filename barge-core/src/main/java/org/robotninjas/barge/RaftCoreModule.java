@@ -19,11 +19,14 @@ package org.robotninjas.barge;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static java.util.concurrent.Executors.newCachedThreadPool;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 
-import com.google.common.base.Optional;
 import com.google.inject.PrivateModule;
 import java.io.File;
+import java.util.Optional;
+import java.util.Random;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ScheduledExecutorService;
 import javax.annotation.concurrent.Immutable;
 import org.jetlang.fibers.Fiber;
 import org.jetlang.fibers.PoolFiberFactory;
@@ -43,20 +46,26 @@ public class RaftCoreModule extends PrivateModule {
   private final File logDir;
   private final StateMachine stateMachine;
   private final Executor executor;
+  private final ScheduledExecutorService scheduledExecutor;
+  private final Random random;
 
   private RaftCoreModule(Builder builder) {
     this.config = builder.config.get();
     this.timeout = builder.timeout;
     this.logDir = builder.logDir.get();
     this.stateMachine = builder.stateMachine.get();
-    this.executor = builder.executor.orElse(newCachedThreadPool());
+//    this.executor = builder.executor.orElse(newCachedThreadPool());
+    this.executor = builder.executor.get();
+    this.random = builder.random.orElse(new Random(System.currentTimeMillis()));
+    this.scheduledExecutor = builder.scheduledExecutor.get();
+//    this.scheduledExecutor = builder.scheduledExecutor.orElse(newSingleThreadScheduledExecutor());
   }
 
   @Override
   protected void configure() {
-    install(new StateModule(timeout));
+    install(new StateModule(timeout, random));
 
-    PoolFiberFactory fiberFactory = new PoolFiberFactory(executor);
+    PoolFiberFactory fiberFactory = new PoolFiberFactory(executor, scheduledExecutor);
 
     Fiber raftFiber = fiberFactory.create(new BatchExecutor());
     raftFiber.start();
@@ -65,7 +74,7 @@ public class RaftCoreModule extends PrivateModule {
     Fiber stateMachineFiber = fiberFactory.create(new BatchExecutor());
     stateMachineFiber.start();
 
-    install(new LogModule(logDir, stateMachine, stateMachineFiber));
+    install(new LogModule(logDir, stateMachine, stateMachineFiber, scheduledExecutor));
 
     bind(ClusterConfig.class).toInstance(config);
 
@@ -82,10 +91,12 @@ public class RaftCoreModule extends PrivateModule {
   public static class Builder {
 
     private long timeout = DEFAULT_TIMEOUT;
-    private java.util.Optional<Executor> executor = java.util.Optional.empty();
-    private Optional<ClusterConfig> config = Optional.absent();
-    private Optional<StateMachine> stateMachine = Optional.absent();
-    private Optional<File> logDir = Optional.absent();
+    private Optional<Executor> executor = Optional.empty();
+    private Optional<ClusterConfig> config = Optional.empty();
+    private Optional<StateMachine> stateMachine = Optional.empty();
+    private Optional<File> logDir = Optional.empty();
+    private Optional<Random> random = Optional.empty();
+    private Optional<ScheduledExecutorService> scheduledExecutor;
 
     private Builder() {
 
@@ -111,6 +122,24 @@ public class RaftCoreModule extends PrivateModule {
 
     public Builder withLogDir(File logDir) {
       this.logDir = Optional.of(logDir);
+
+      return this;
+    }
+
+    Builder withExecutor(Executor executor) {
+      this.executor = Optional.of(executor);
+
+      return this;
+    }
+
+    Builder withScheduledExecutor(ScheduledExecutorService scheduledExecutor) {
+      this.scheduledExecutor = Optional.of(scheduledExecutor);
+
+      return this;
+    }
+
+    Builder withRandom(Random random) {
+      this.random = Optional.of(random);
 
       return this;
     }

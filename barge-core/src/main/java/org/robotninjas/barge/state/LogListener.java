@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 /**
 */
 public class LogListener implements StateTransitionListener {
-  private static final Logger LOGGER = LoggerFactory.getLogger(RaftStateContext.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(LogListener.class);
 
   @Override
   public void changeState(@Nonnull Raft context, @Nullable Raft.StateType from, @Nonnull Raft.StateType to) {

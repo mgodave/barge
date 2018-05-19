@@ -50,8 +50,8 @@ class Candidate extends BaseState {
   private static final CompletableFuture<RequestVoteResponse> SUCCESS_VOTE =
       completedFuture(RequestVoteResponse.newBuilder().setVoteGranted(true).build());
   private static final Logger LOGGER = LoggerFactory.getLogger(Candidate.class);
-  private static final Random RAND = new Random(System.nanoTime());
 
+  private final Random random;
   private final Fiber scheduler;
   private final long electionTimeout;
   private final Client client;
@@ -60,11 +60,12 @@ class Candidate extends BaseState {
 
   @Inject
   Candidate(RaftLog log, @RaftExecutor Fiber scheduler,
-            @ElectionTimeout long electionTimeout, Client client) {
+            @ElectionTimeout long electionTimeout, Client client, Random random) {
     super(CANDIDATE, log);
     this.scheduler = scheduler;
     this.electionTimeout = electionTimeout;
     this.client = client;
+    this.random = random;
   }
 
   @Override
@@ -88,7 +89,7 @@ class Candidate extends BaseState {
 
     electionResult = majorityResponse(responses, voteGranted());
 
-    long timeout = electionTimeout + (RAND.nextLong() % electionTimeout);
+    long timeout = electionTimeout + (random.nextLong() % electionTimeout);
     electionTimer = DeadlineTimer.start(scheduler, () -> {
       LOGGER.debug("Election timeout");
       ctx.setState(Candidate.this, CANDIDATE);

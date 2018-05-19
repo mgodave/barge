@@ -15,6 +15,8 @@
  */
 package org.robotninjas.barge.state;
 
+import java.io.IOException;
+import java.util.Random;
 import javax.annotation.Nonnegative;
 import javax.inject.Inject;
 import org.jetlang.fibers.Fiber;
@@ -30,16 +32,18 @@ class DefaultStateFactory implements StateFactory {
   private final long timeout;
   private final ReplicaManagerFactory replicaManagerFactory;
   private final Client client;
+  private final Random random;
 
   @Inject
   public DefaultStateFactory(RaftLog log, @RaftExecutor Fiber scheduler,
                              @ElectionTimeout @Nonnegative long timeout, ReplicaManagerFactory replicaManagerFactory,
-                             Client client) {
+                             Client client, Random random) {
     this.log = log;
     this.scheduler = scheduler;
     this.timeout = timeout;
     this.replicaManagerFactory = replicaManagerFactory;
     this.client = client;
+    this.random = random;
   }
 
   @Override
@@ -52,11 +56,16 @@ class DefaultStateFactory implements StateFactory {
       case LEADER:
         return new Leader(log, scheduler, timeout, replicaManagerFactory);
       case CANDIDATE:
-        return new Candidate(log, scheduler, timeout, client);
+        return new Candidate(log, scheduler, timeout, client, random);
       case STOPPED:
         return new Stopped(log);
       default:
         throw new IllegalStateException("the impossible happpened, unknown state type " + state);
     }
+  }
+
+  @Override
+  public void close() throws IOException {
+    log.close();
   }
 }

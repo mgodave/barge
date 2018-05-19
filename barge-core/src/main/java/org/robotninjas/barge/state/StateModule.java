@@ -18,17 +18,22 @@ package org.robotninjas.barge.state;
 
 import com.google.inject.PrivateModule;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import java.util.Random;
 
 public class StateModule extends PrivateModule {
 
   private final long electionTimeout;
+  private final Random random;
 
-  public StateModule(long electionTimeout) {
+  public StateModule(long electionTimeout, Random random) {
     this.electionTimeout = electionTimeout;
+    this.random = random;
   }
 
   @Override
   protected void configure() {
+
+    bind(Random.class).toInstance(random);
 
     bind(StateFactory.class).to(DefaultStateFactory.class);
 

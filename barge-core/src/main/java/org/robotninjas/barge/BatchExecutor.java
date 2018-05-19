@@ -9,7 +9,7 @@ import org.slf4j.MDC;
 
 class BatchExecutor extends BatchExecutorImpl {
 
-  Map contextMap = Maps.newHashMap();
+  private Map contextMap = Maps.newHashMap();
 
   @Override
   public void execute(EventReader toExecute) {

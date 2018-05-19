@@ -23,6 +23,4 @@ public class NettyRaftServiceTest {
 
     counters.waitAllToReachValue(increments, 10000);
   }
-
-
 }

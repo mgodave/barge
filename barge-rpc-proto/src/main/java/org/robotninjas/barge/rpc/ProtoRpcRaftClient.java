@@ -18,13 +18,11 @@ package org.robotninjas.barge.rpc;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.util.concurrent.AbstractFuture;
 import com.google.protobuf.RpcCallback;
 import com.google.protobuf.RpcController;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import org.apache.commons.pool.ObjectPool;
 import org.robotninjas.barge.ProtoUtils;
@@ -141,34 +139,6 @@ class ProtoRpcRaftClient implements RaftClient {
           stub.requestVote(controller, request, callback);
         }
       };
-    }
-
-  }
-
-  @Immutable
-  private static class RpcHandlerFuture<T> extends AbstractFuture<T> implements RpcCallback<T> {
-
-    @Nonnull
-    private final ClientController controller;
-
-    private RpcHandlerFuture(@Nonnull ClientController controller) {
-      checkNotNull(controller);
-      this.controller = controller;
-    }
-
-    @Override
-    public void run(@Nullable T parameter) {
-
-      if (isCancelled()) {
-        return;
-      }
-
-      if (null == parameter) {
-        setException(new RaftException(controller.errorText()));
-      } else {
-        set(parameter);
-      }
-
     }
 
   }

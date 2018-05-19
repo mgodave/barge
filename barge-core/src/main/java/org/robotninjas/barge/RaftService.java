@@ -1,6 +1,7 @@
 package org.robotninjas.barge;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 /**
  * An instance of a set of replica managed through Raft protocol.
@@ -40,5 +41,11 @@ public interface RaftService {
    * @throws RaftException
    * @throws InterruptedException if current thread is interrupted while waiting for the result to be available.
    */
-  Object commit(byte[] operation) throws RaftException, InterruptedException;
+  default Object commit(byte[] operation) throws RaftException, InterruptedException {
+    try {
+      return commitAsync(operation).get();
+    } catch (ExecutionException e) {
+      throw new RaftException(e);
+    }
+  }
 }

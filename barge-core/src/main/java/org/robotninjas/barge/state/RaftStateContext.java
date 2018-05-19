@@ -3,6 +3,7 @@ package org.robotninjas.barge.state;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.Sets;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -54,7 +55,7 @@ class RaftStateContext implements Raft {
   }
 
   RaftStateContext(String name, StateFactory stateFactory, Fiber executor, Set<StateTransitionListener> listeners) {
-    this(name, stateFactory, executor, listeners, Collections.<RaftProtocolListener>emptySet());
+    this(name, stateFactory, executor, listeners, Collections.emptySet());
   }
 
   @Override
@@ -92,7 +93,6 @@ class RaftStateContext implements Raft {
   @Override
   @Nonnull
   public AppendEntriesResponse appendEntries(@Nonnull final AppendEntries request) {
-
     checkNotNull(request);
 
     CompletableFuture<AppendEntriesResponse> response = CompletableFuture.supplyAsync(() ->
@@ -100,7 +100,6 @@ class RaftStateContext implements Raft {
     );
 
     try {
-      AppendEntriesResponse r = response.get();
       return response.get();
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -121,7 +120,7 @@ class RaftStateContext implements Raft {
       try {
         return delegate.commitOperation(RaftStateContext.this, op);
       } catch (RaftException e) {
-        throw new RuntimeException();
+        throw new RuntimeException(e);
       }
     }, executor);
 
@@ -178,6 +177,11 @@ class RaftStateContext implements Raft {
     if (this.delegate != null) {
       this.delegate.doStop(this);
     }
+
+    try {
+      stateFactory.close();
+    } catch (IOException ignored) {
+    }
   }
 
   @Override
@@ -186,49 +190,59 @@ class RaftStateContext implements Raft {
   }
 
   private void notifiesStop() {
-
-    for (StateTransitionListener listener : listeners) {
-      listener.stop(this);
-    }
-
+    executor.execute(() -> {
+      for (StateTransitionListener listener : listeners) {
+        listener.stop(this);
+      }
+    });
   }
 
   private void notifiesInvalidTransition(State oldState) {
-
-    for (StateTransitionListener listener : listeners) {
-      listener.invalidTransition(this, state, (oldState == null) ? null : oldState.type());
-    }
+    executor.execute(() -> {
+      for (StateTransitionListener listener : listeners) {
+        listener.invalidTransition(this, state, (oldState == null) ? null : oldState.type());
+      }
+    });
   }
 
   private void notifiesChangeState(State oldState) {
-
-    for (StateTransitionListener listener : listeners) {
-      listener.changeState(this, (oldState == null) ? null : oldState.type(), state);
-    }
+    executor.execute(() -> {
+      for (StateTransitionListener listener : listeners) {
+        listener.changeState(this, (oldState == null) ? null : oldState.type(), state);
+      }
+    });
   }
 
   private void notifiesInit() {
-    for (RaftProtocolListener protocolListener : protocolListeners) {
-      protocolListener.init(this);
-    }
+    executor.execute(() -> {
+      for (RaftProtocolListener protocolListener : protocolListeners) {
+        protocolListener.init(this);
+      }
+    });
   }
 
   private void notifyAppendEntries(AppendEntries request) {
-    for (RaftProtocolListener protocolListener : protocolListeners) {
-      protocolListener.appendEntries(this, request);
-    }
+    executor.execute(() -> {
+      for (RaftProtocolListener protocolListener : protocolListeners) {
+        protocolListener.appendEntries(this, request);
+      }
+    });
   }
 
   private void notifyRequestVote(RequestVote vote) {
-    for (RaftProtocolListener protocolListener : protocolListeners) {
-      protocolListener.requestVote(this, vote);
-    }
+    executor.execute(() -> {
+      for (RaftProtocolListener protocolListener : protocolListeners) {
+        protocolListener.requestVote(this, vote);
+      }
+    });
   }
 
   private void notifyCommit(byte[] bytes) {
-    for (RaftProtocolListener protocolListener : protocolListeners) {
-      protocolListener.commit(this, bytes);
-    }
+    executor.execute(() -> {
+      for (RaftProtocolListener protocolListener : protocolListeners) {
+        protocolListener.commit(this, bytes);
+      }
+    });
   }
 
 }

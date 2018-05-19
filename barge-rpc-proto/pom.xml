@@ -10,7 +10,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>barge-rpc-proto</artifactId>
-  <description>Main entry point to instantiate a fully functional barge service</description>
+  <description>org.robotninjas.barge.Main entry point to instantiate a fully functional barge service</description>
 
   <dependencies>
 
@@ -22,6 +22,13 @@
     <dependency>
       <groupId>org.robotninjas</groupId>
       <artifactId>protorpc</artifactId>
+      <version>0.1.0-alpha2-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
+      <version>2.5.0</version>
     </dependency>
 
     <dependency>
@@ -66,4 +73,16 @@
     </dependency>
 
   </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>de.softwareforge.mojo</groupId>
+          <artifactId>maven-protoc-plugin</artifactId>
+          <version>0.1.11</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
 </project>

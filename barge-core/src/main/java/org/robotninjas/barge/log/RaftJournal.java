@@ -4,6 +4,7 @@ import static com.google.common.base.Functions.toStringFunction;
 import static journal.io.api.Journal.ReadType;
 import static journal.io.api.Journal.WriteType;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
@@ -21,7 +22,7 @@ import org.robotninjas.barge.api.Snapshot;
 import org.robotninjas.barge.api.Term;
 import org.robotninjas.barge.api.Vote;
 
-class RaftJournal {
+class RaftJournal implements Closeable {
 
   private final Journal journal;
   private final ClusterConfig config;
@@ -168,12 +169,16 @@ class RaftJournal {
 
       }
     } catch (IOException e) {
-      new RuntimeException(e);
+      throw new RuntimeException(e);
     }
-
   }
 
-  static interface Visitor {
+  @Override
+  public void close() throws IOException {
+    journal.close();
+  }
+
+  interface Visitor {
 
     void term(Mark mark, long term);
 

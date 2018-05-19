@@ -43,6 +43,7 @@
     <module>barge-tools</module>
     <module>barge-rpc-proto</module>
     <module>barge-jax-rs</module>
+    <module>barge-channels</module>
   </modules>
 
   <properties>
@@ -59,25 +60,8 @@
         <version>${project.version}</version>
       </dependency>
 
-      <dependency>
-        <groupId>org.robotninjas.barge</groupId>
-        <artifactId>barge-rpc-proto</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-
       <!-- Compile Dependencies -->
-      <dependency>
-        <groupId>org.robotninjas</groupId>
-        <artifactId>protorpc</artifactId>
-        <version>0.1.0-alpha2-SNAPSHOT</version>
-      </dependency>
 
-      <dependency>
-        <groupId>com.google.protobuf</groupId>
-        <artifactId>protobuf-java</artifactId>
-        <version>2.5.0</version>
-      </dependency>
-      
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
@@ -168,6 +152,12 @@
         <version>1.1.0</version>
       </dependency>
 
+      <dependency>
+        <groupId>com.github.rholder</groupId>
+        <artifactId>guava-retrying</artifactId>
+        <version>2.0.0</version>
+      </dependency>
+
 
       <!-- Optional Dependencies -->
       <dependency>
@@ -199,7 +189,7 @@
       <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
-        <version>4.9</version>
+        <version>4.12</version>
         <scope>test</scope>
       </dependency>
 
@@ -214,6 +204,41 @@
         <groupId>org.assertj</groupId>
         <artifactId>assertj-core</artifactId>
         <version>1.5.0</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>com.pholser</groupId>
+        <artifactId>junit-quickcheck-core</artifactId>
+        <version>0.8</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>com.pholser</groupId>
+        <artifactId>junit-quickcheck-guava</artifactId>
+        <version>0.8</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>com.pholser</groupId>
+        <artifactId>junit-quickcheck-generators</artifactId>
+        <version>0.8</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.awaitility</groupId>
+        <artifactId>awaitility</artifactId>
+        <version>3.1.0</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.awaitility</groupId>
+        <artifactId>awaitility-proxy</artifactId>
+        <version>3.1.0</version>
         <scope>test</scope>
       </dependency>
 
@@ -242,12 +267,6 @@
           <configuration>
             <enableRulesSummary>true</enableRulesSummary>
           </configuration>
-        </plugin>
-
-        <plugin>
-          <groupId>de.softwareforge.mojo</groupId>
-          <artifactId>maven-protoc-plugin</artifactId>
-          <version>0.1.11</version>
         </plugin>
 
         <plugin>

@@ -25,6 +25,8 @@ import static java.util.stream.Collectors.toList;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
+import java.io.Closeable;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Optional;
@@ -44,7 +46,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 @NotThreadSafe
-public class RaftLog {
+public class RaftLog implements Closeable {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RaftLog.class);
   private static final byte[] EMPTY = new byte[0];
@@ -180,6 +182,7 @@ public class RaftLog {
   void fireComitted() {
     try {
       for (long i = lastApplied + 1; i <= Math.min(commitIndex, lastLogIndex); ++i, ++lastApplied) {
+        LOGGER.debug("{} {} {}", i, log);
         Entry entry = journal.get(log.get(i));
         byte[] rawCommand = entry.getCommand();
         final ByteBuffer operation = ByteBuffer.wrap(rawCommand).asReadOnlyBuffer();
@@ -236,6 +239,11 @@ public class RaftLog {
     currentTerm = term;
     votedFor = Optional.empty();
     journal.appendTerm(term);
+  }
+
+  @Override
+  public void close() throws IOException {
+    journal.close();
   }
 
   @Nonnull

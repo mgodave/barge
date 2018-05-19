@@ -19,12 +19,15 @@ package org.robotninjas.barge.state;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Lists.newLinkedList;
+import static java.util.Collections.synchronizedList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.Collectors.toList;
 import static org.robotninjas.barge.state.Raft.StateType.FOLLOWER;
 import static org.robotninjas.barge.state.Raft.StateType.LEADER;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import java.util.Collections;
 import java.util.List;
@@ -36,6 +39,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
 import org.jetlang.core.Disposable;
 import org.jetlang.fibers.Fiber;
+import org.robotninjas.barge.NoLongerLeaderException;
+import org.robotninjas.barge.NotLeaderException;
 import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.RaftExecutor;
 import org.robotninjas.barge.Replica;
@@ -54,6 +59,7 @@ class Leader extends BaseState {
   private final long timeout;
   private final Map<Replica, ReplicaManager> managers = Maps.newHashMap();
   private final ReplicaManagerFactory replicaManagerFactory;
+  private final List<CompletableFuture<Object>> outstanding = synchronizedList(newLinkedList());
   private Disposable heartbeatTask;
 
   @Inject
@@ -88,11 +94,17 @@ class Leader extends BaseState {
   }
 
   public void destroy(RaftStateContext ctx) {
-    heartbeatTask.dispose();
+    if (null != heartbeatTask) {
+      heartbeatTask.dispose();
+    }
 
     for (ReplicaManager mgr : managers.values()) {
       mgr.shutdown();
     }
+
+    outstanding.forEach(o ->
+        o.cancel(true)
+    );
   }
 
   void resetTimeout(@Nonnull final RaftStateContext ctx) {
@@ -115,6 +127,13 @@ class Leader extends BaseState {
 
     CompletableFuture<Object> result = getLog().append(operation);
     sendRequests(ctx);
+
+    outstanding.add(result);
+
+    result.handle((r, e) -> {
+      outstanding.remove(result);
+      return null;
+    });
 
     return result;
 

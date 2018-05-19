@@ -14,7 +14,7 @@ import org.robotninjas.barge.api.RequestVoteResponse;
  */
 public interface Raft {
 
-  public enum StateType {
+  enum StateType {
     START, FOLLOWER, CANDIDATE, LEADER, STOPPED
   }
 
