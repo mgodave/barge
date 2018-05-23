@@ -1,8 +1,10 @@
 package org.robotninjas.barge.log;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.util.concurrent.Runnables.doNothing;
 
 import com.google.common.collect.Queues;
+import com.google.common.util.concurrent.Runnables;
 import com.google.inject.Inject;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -35,13 +37,13 @@ class StateMachineProxy {
   }
 
   private <V> CompletableFuture<V> submit(Callable<V> runnable) {
-    return CompletableFuture.supplyAsync(() -> {
+    return CompletableFuture.runAsync(doNothing(), executor).thenApply((ignored) -> {
       try {
         return runnable.call();
       } catch(Exception e) {
         throw new RuntimeException(e);
       }
-    }, executor);
+    });
   }
 
   @Nonnull

@@ -27,7 +27,6 @@ import static org.robotninjas.barge.state.Raft.StateType.FOLLOWER;
 import static org.robotninjas.barge.state.Raft.StateType.LEADER;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import java.util.Collections;
 import java.util.List;
@@ -39,9 +38,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
 import org.jetlang.core.Disposable;
 import org.jetlang.fibers.Fiber;
-import org.robotninjas.barge.NoLongerLeaderException;
-import org.robotninjas.barge.NotLeaderException;
-import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.RaftExecutor;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.api.AppendEntriesResponse;
@@ -122,7 +118,7 @@ class Leader extends BaseState {
 
   @Nonnull
   @Override
-  public CompletableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
+  public CompletableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) {
     resetTimeout(ctx);
 
     CompletableFuture<Object> result = getLog().append(operation);

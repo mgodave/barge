@@ -18,8 +18,6 @@ package org.robotninjas.barge;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
-import static java.util.concurrent.Executors.newCachedThreadPool;
-import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 
 import com.google.inject.PrivateModule;
 import java.io.File;

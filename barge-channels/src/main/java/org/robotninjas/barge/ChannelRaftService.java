@@ -33,9 +33,14 @@ import javax.inject.Inject;
 import org.jetlang.core.Disposable;
 import org.jetlang.fibers.Fiber;
 import org.robotninjas.barge.state.Raft;
+import org.robotninjas.barge.state.Raft.StateType;
 import org.robotninjas.barge.state.StateTransitionListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ChannelRaftService extends AbstractService implements RaftService {
+    private static Logger LOGGER = LoggerFactory.getLogger(ChannelRaftService.class);
+
     private final Fiber fiber;
     private final ClusterConfig config;
     private final Raft ctx;
@@ -58,22 +63,31 @@ public class ChannelRaftService extends AbstractService implements RaftService {
     protected void doStart() {
         ChannelReplica local = (ChannelReplica) config.local();
         appendEntriesSubscription = local.getAppendEntriesChannel()
-            .subscribe(fiber, request -> {
-                request.reply(ctx.appendEntries(request.getRequest()));
-            });
+            .subscribe(fiber, request ->
+                ctx.appendEntries(request.getRequest())
+                    .thenAccept(request::reply)
+                    .exceptionally(e -> {
+                        LOGGER.warn("Error sending AppendEntries", e);
+                        return null;
+                    })
+            );
 
         requestVoteSubscription = local.getRequestVoteChannel()
             .subscribe(fiber, request ->
-                request.reply(ctx.requestVote(request.getRequest()))
+                ctx.requestVote(request.getRequest())
+                    .thenAccept(request::reply)
+                    .exceptionally(e -> {
+                        LOGGER.warn("Error sending RequestVote", e);
+                        return null;
+                    })
             );
 
-        try {
-            ctx.init().get();
-            notifyStarted();
-        } catch (InterruptedException | ExecutionException e) {
-            notifyFailed(e);
-        }
-
+        CompletableFuture<StateType> init = ctx.init();
+        init.thenRun(this::notifyStarted);
+        init.exceptionally((t) -> {
+            notifyFailed(t);
+            return StateType.STOPPED;
+        });
     }
 
     @Override
@@ -95,7 +109,7 @@ public class ChannelRaftService extends AbstractService implements RaftService {
         ctx.addTransitionListener(listener);
     }
 
-    public Raft.StateType getState() {
+    public StateType getState() {
         return ctx.type();
     }
 
@@ -104,7 +118,7 @@ public class ChannelRaftService extends AbstractService implements RaftService {
     }
 
     @Override
-    public CompletableFuture<Object> commitAsync(byte[] operation) throws RaftException {
+    public CompletableFuture<Object> commitAsync(byte[] operation) {
         return ctx.commitOperation(operation);
     }
 

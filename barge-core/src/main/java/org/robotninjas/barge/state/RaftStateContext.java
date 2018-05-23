@@ -1,6 +1,7 @@
 package org.robotninjas.barge.state;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.util.concurrent.Runnables.doNothing;
 
 import com.google.common.collect.Sets;
 import java.io.IOException;
@@ -12,7 +13,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
 import org.jetlang.fibers.Fiber;
-import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.RaftExecutor;
 import org.robotninjas.barge.api.AppendEntries;
 import org.robotninjas.barge.api.AppendEntriesResponse;
@@ -60,72 +60,66 @@ class RaftStateContext implements Raft {
 
   @Override
   public CompletableFuture<StateType> init() {
-    CompletableFuture<StateType> init = CompletableFuture.supplyAsync(() -> {
+    return CompletableFuture.supplyAsync(() -> {
       setState(null, StateType.START);
+      notifiesInit();
       return StateType.START;
     }, executor);
-
-    notifiesInit();
-
-    return init;
   }
 
   @Override
   @Nonnull
-  public RequestVoteResponse requestVote(@Nonnull final RequestVote request) {
+  public CompletableFuture<RequestVoteResponse> requestVote(@Nonnull final RequestVote request) {
 
     checkNotNull(request);
 
-    CompletableFuture<RequestVoteResponse> response = CompletableFuture.supplyAsync(() ->
-      delegate.requestVote(RaftStateContext.this, request), executor
-    );
+    CompletableFuture<RequestVoteResponse> response = CompletableFuture
+        .runAsync(doNothing(), executor)
+        .thenApply(ignored ->
+            delegate.requestVote(RaftStateContext.this, request)
+        );
 
-    try {
-      return response.get();
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    } finally {
+    response.handle((i, e) -> {
       notifyRequestVote(request);
-    }
+      return null;
+    });
 
+    return response;
   }
 
   @Override
   @Nonnull
-  public AppendEntriesResponse appendEntries(@Nonnull final AppendEntries request) {
+  public CompletableFuture<AppendEntriesResponse> appendEntries(@Nonnull final AppendEntries request) {
     checkNotNull(request);
 
-    CompletableFuture<AppendEntriesResponse> response = CompletableFuture.supplyAsync(() ->
-        delegate.appendEntries(RaftStateContext.this, request), executor
-    );
+    CompletableFuture<AppendEntriesResponse> response = CompletableFuture
+        .runAsync(doNothing(), executor)
+        .thenApply(ignored ->
+            delegate.appendEntries(RaftStateContext.this, request)
+        );
 
-    try {
-      return response.get();
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    } finally {
-      notifyAppendEntries(request);
-    }
+    response.handle((i, e) -> {
+        notifyAppendEntries(request);
+        return null;
+    });
+
+    return response;
 
   }
 
 
   @Override
   @Nonnull
-  public CompletableFuture<Object> commitOperation(@Nonnull final byte[] op) throws RaftException {
-
+  public CompletableFuture<Object> commitOperation(@Nonnull final byte[] op) {
     checkNotNull(op);
 
-    CompletableFuture<Object> response = CompletableFuture.supplyAsync(() -> {
-      try {
-        return delegate.commitOperation(RaftStateContext.this, op);
-      } catch (RaftException e) {
-        throw new RuntimeException(e);
-      }
-    }, executor);
+    CompletableFuture<Object> response = CompletableFuture
+        .runAsync(doNothing(), executor)
+        .thenComposeAsync(ignored ->
+            delegate.commitOperation(RaftStateContext.this, op)
+        );
 
     notifyCommit(op);
-
     return response;
   }
 

@@ -21,6 +21,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.robotninjas.barge.ClusterConfig;
@@ -79,29 +80,31 @@ public class BargeResource {
 
   @Path("/vote")
   @POST
-  public RequestVoteResponse requestVote(RequestVote vote) {
-    return raft.requestVote(vote);
+  public void requestVote(RequestVote vote, AsyncResponse response) {
+    raft.requestVote(vote).thenAccept(response::resume);
   }
 
   @Path("/entries")
   @POST
-  public AppendEntriesResponse appendEntries(AppendEntries appendEntries) {
-    return raft.appendEntries(appendEntries);
+  public void appendEntries(AppendEntries appendEntries, AsyncResponse response) {
+    raft.appendEntries(appendEntries).thenAccept(response::resume);
   }
 
   @Path("/commit")
   @POST
   @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-  public Response commit(byte[] operation) {
-
-    try {
-      raft.commitOperation(operation).get();
-
-      return Response.noContent().build();
-    } catch (NotLeaderException e) {
-      return Response.status(Response.Status.FOUND).location(((HttpReplica) e.getLeader()).getUri()).build();
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+  public void commit(byte[] operation, AsyncResponse response) {
+      raft.commitOperation(operation).handle((i, e) -> {
+        if (e instanceof NotLeaderException) {
+          NotLeaderException notLeader = (NotLeaderException) e;
+          response.resume(
+              Response.status(Response.Status.FOUND)
+                  .location(((HttpReplica) notLeader.getLeader().orElse(null)).getUri())
+                  .build()
+          );
+        }
+        response.resume(Response.noContent().build());
+        return null;
+      });
   }
 }

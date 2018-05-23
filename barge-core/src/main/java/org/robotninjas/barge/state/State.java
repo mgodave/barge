@@ -20,7 +20,6 @@ import static org.robotninjas.barge.state.RaftStateContext.StateType;
 
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.Nonnull;
-import org.robotninjas.barge.RaftException;
 import org.robotninjas.barge.api.AppendEntries;
 import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.api.RequestVote;
@@ -39,7 +38,7 @@ interface State {
   AppendEntriesResponse appendEntries(@Nonnull RaftStateContext ctx, @Nonnull AppendEntries request);
 
   @Nonnull
-  CompletableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException;
+  CompletableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation);
 
   void doStop(RaftStateContext ctx);
 

@@ -53,6 +53,7 @@ public class LogModule extends PrivateModule {
             .annotatedWith(StateExecutor.class)
             .toInstance(executor);
         bind(RaftLog.class).asEagerSingleton();
+        bind(RaftJournal.class).to(RaftJournalImpl.class);
         expose(RaftLog.class);
 
     }

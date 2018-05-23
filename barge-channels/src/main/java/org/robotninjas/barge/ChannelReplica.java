@@ -27,7 +27,7 @@ import org.robotninjas.barge.api.AppendEntriesResponse;
 import org.robotninjas.barge.api.RequestVote;
 import org.robotninjas.barge.api.RequestVoteResponse;
 
-public class ChannelReplica implements Replica {
+public class ChannelReplica implements Replica, Comparable<ChannelReplica> {
     private final RequestChannel<AppendEntries, AppendEntriesResponse> appendEntriesChannel = new MemoryRequestChannel<>();
     private final RequestChannel<RequestVote, RequestVoteResponse> requestVoteChannel = new MemoryRequestChannel<>();
     private final UUID id;
@@ -46,6 +46,11 @@ public class ChannelReplica implements Replica {
 
     ChannelReplica(UUID id) {
         this.id = id;
+    }
+
+    @Override
+    public int compareTo(ChannelReplica o) {
+        return id.compareTo(o.id);
     }
 
     @Override

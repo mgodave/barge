@@ -115,6 +115,12 @@
             <artifactId>awaitility-proxy</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.nurkiewicz.asyncretry</groupId>
+            <artifactId>asyncretry</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

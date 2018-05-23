@@ -191,7 +191,7 @@ public class BaseStateTest {
 
     @Nonnull
     @Override
-    public CompletableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
+    public CompletableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) {
       return null;
     }
 

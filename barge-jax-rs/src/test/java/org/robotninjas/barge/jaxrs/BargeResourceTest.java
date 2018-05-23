@@ -15,6 +15,7 @@
  */
 package org.robotninjas.barge.jaxrs;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -22,6 +23,7 @@ import static org.mockito.Mockito.when;
 import com.google.common.collect.Sets;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import javax.ws.rs.client.Entity;
@@ -55,7 +57,7 @@ public class BargeResourceTest extends JerseyTest {
 
   @Test
   public void onPOSTRequestVoteReturn200WithResponseGivenServiceReturnsResponse() throws Exception {
-    when(raftService.requestVote(Model.vote)).thenReturn(Model.voteResponse);
+    when(raftService.requestVote(Model.vote)).thenReturn(completedFuture(Model.voteResponse));
 
     RequestVoteResponse actual = client().target("/vote")
         .request()
@@ -67,7 +69,7 @@ public class BargeResourceTest extends JerseyTest {
 
   @Test
   public void onPOSTAppendEntriesReturn200WithResponseGivenServiceReturnsResponse() throws Exception {
-    when(raftService.appendEntries(Model.entries)).thenReturn(Model.entriesResponse);
+    when(raftService.appendEntries(Model.entries)).thenReturn(completedFuture(Model.entriesResponse));
 
     AppendEntriesResponse actual = client().target("/entries")
         .request()
@@ -79,7 +81,7 @@ public class BargeResourceTest extends JerseyTest {
 
   @Test
   public void onPOSTCommitReturn204GivenServiceReturnsResponse() throws Exception {
-    when(raftService.commitOperation("foo".getBytes())).thenReturn(CompletableFuture.completedFuture("42"));
+    when(raftService.commitOperation("foo".getBytes())).thenReturn(completedFuture("42"));
 
     Response value = client().target("/commit")
         .request()
@@ -91,7 +93,7 @@ public class BargeResourceTest extends JerseyTest {
   @Test
   public void onPOSTCommitReturn302WithLeaderURIGivenRaftThrowsNotLeaderException() throws Exception {
     URI leaderURI = new URI("http://localhost:1234");
-    when(raftService.commitOperation("foo".getBytes())).thenThrow(new NotLeaderException(new HttpReplica(leaderURI)));
+    when(raftService.commitOperation("foo".getBytes())).thenThrow(new NotLeaderException(Optional.of(new HttpReplica(leaderURI))));
 
     Response value = client().target("/commit")
         .request()
@@ -115,7 +117,7 @@ public class BargeResourceTest extends JerseyTest {
 
   @Test
   public void onPOSTInitThenItSynchronouslyInitRaftService() throws Exception {
-    CompletableFuture<Raft.StateType> future = CompletableFuture.completedFuture(Raft.StateType.START);
+    CompletableFuture<Raft.StateType> future = completedFuture(Raft.StateType.START);
     when(raftService.init()).thenReturn(future);
 
     assertThat(client().target("/init").request().post(Entity.json("")).readEntity(Raft.StateType.class)).isEqualTo(

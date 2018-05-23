@@ -71,19 +71,19 @@
       <dependency>
         <groupId>com.google.inject</groupId>
         <artifactId>guice</artifactId>
-        <version>3.0</version>
+        <version>4.2.0</version>
       </dependency>
 
       <dependency>
         <groupId>com.google.inject.extensions</groupId>
         <artifactId>guice-assistedinject</artifactId>
-        <version>3.0</version>
+        <version>4.2.0</version>
       </dependency>
 
       <dependency>
         <groupId>com.google.inject.extensions</groupId>
         <artifactId>guice-multibindings</artifactId>
-        <version>3.0</version>
+        <version>4.2.0</version>
       </dependency>
 
       <dependency>
@@ -239,6 +239,13 @@
         <groupId>org.awaitility</groupId>
         <artifactId>awaitility-proxy</artifactId>
         <version>3.1.0</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>com.nurkiewicz.asyncretry</groupId>
+        <artifactId>asyncretry</artifactId>
+        <version>0.0.7</version>
         <scope>test</scope>
       </dependency>
 

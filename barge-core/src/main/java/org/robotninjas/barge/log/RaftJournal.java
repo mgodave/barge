@@ -1,206 +1,63 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.robotninjas.barge.log;
-
-import static com.google.common.base.Functions.toStringFunction;
-import static journal.io.api.Journal.ReadType;
-import static journal.io.api.Journal.WriteType;
 
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-import journal.io.api.Journal;
-import journal.io.api.Location;
-import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.Replica;
-import org.robotninjas.barge.api.Append;
-import org.robotninjas.barge.api.Commit;
 import org.robotninjas.barge.api.Entry;
-import org.robotninjas.barge.api.JournalEntry;
-import org.robotninjas.barge.api.Snapshot;
-import org.robotninjas.barge.api.Term;
-import org.robotninjas.barge.api.Vote;
 
-class RaftJournal implements Closeable {
+public interface RaftJournal extends Closeable {
+    Entry get(Mark mark);
 
-  private final Journal journal;
-  private final ClusterConfig config;
+    void truncateTail(Mark mark);
 
-  public RaftJournal(Journal journal, ClusterConfig config) {
-    this.journal = journal;
-    this.config = config;
-  }
+    Mark appendEntry(Entry entry, long index);
 
-  private JournalEntry read(Location loc) {
-    try {
-      byte[] data = journal.read(loc, ReadType.SYNC);
-      return JournalEntry.parseFrom(data);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
+    Mark appendTerm(long term);
 
-  private void delete(Location loc) {
-    try {
-      journal.delete(loc);
-    } catch (IOException e) {
-      new RuntimeException(e);
-    }
-  }
+    Mark appendCommit(long commit);
 
-  private Location write(JournalEntry entry) {
-    try {
-      return journal.write(entry.toByteArray(), WriteType.SYNC);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
+    Mark appendVote(Optional<Replica> vote);
 
-  public Entry get(Mark mark) {
-    JournalEntry entry = read(mark.getLocation());
-    return entry.getAppend().getEntry();
-  }
+    Mark appendSnapshot(File file, long index, long term);
 
-  public void truncateHead(Mark mark) {
-    try {
-      for (Location loc : journal.undo(mark.getLocation())) {
-        delete(loc);
-      }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
+    void replay(Visitor visitor);
 
-  public void truncateTail(Mark mark) {
-    try {
+    @Override
+    void close() throws IOException;
 
-      Location location = mark.getLocation();
-      Iterable<Location> locations = StreamSupport.stream(journal.redo(location).spliterator(), false).skip(1).collect(Collectors.toList());
+    interface Visitor {
 
-      for (Location loc : locations) {
-        delete(loc);
-      }
+        void term(Mark mark, long term);
 
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
+        void vote(Mark mark, Optional<Replica> vote);
 
-  public Mark appendEntry(Entry entry, long index) {
-    JournalEntry je =
-      JournalEntry.newBuilder()
-        .setAppend(Append.newBuilder()
-          .setEntry(entry)
-          .setIndex(index)
-          .build())
-        .build();
+        void commit(Mark mark, long commit);
 
-    Location location = write(je);
-    return new Mark(location);
-  }
+        void append(Mark mark, Entry entry, long index);
 
-  public Mark appendTerm(long term) {
-    Location location =
-      write(JournalEntry.newBuilder()
-        .setTerm(Term.newBuilder()
-          .setTerm(term)
-          .build())
-        .build());
-    return new Mark(location);
-  }
-
-  public Mark appendCommit(long commit) {
-    Location location =
-      write(JournalEntry.newBuilder()
-        .setCommit(Commit.newBuilder()
-          .setIndex(commit)
-          .build())
-        .build());
-    return new Mark(location);
-  }
-
-  public Mark appendVote(Optional<Replica> vote) {
-    Location location =
-      write(JournalEntry.newBuilder()
-        .setVote(Vote.newBuilder()
-          .setVotedFor(vote.map(toStringFunction()).orElse(""))
-          .build())
-        .build());
-    return new Mark(location);
-  }
-
-  public Mark appendSnapshot(File file, long index, long term) {
-    Location location =
-      write(JournalEntry.newBuilder()
-        .setSnapshot(Snapshot.newBuilder()
-          .setLastIncludedIndex(index)
-          .setLastIncludedTerm(term)
-          .setSnapshotFile(file.getName())
-          .build())
-        .build());
-    return new Mark(location);
-  }
-
-  public void replay(Visitor visitor) {
-
-    try {
-      for (Location location : journal.redo()) {
-
-        JournalEntry entry = read(location);
-        Mark mark = new Mark(location);
-
-        if (entry.hasAppend()) {
-          Append append = entry.getAppend();
-          visitor.append(mark, append.getEntry(), append.getIndex());
-        } else if (entry.hasCommit()) {
-          Commit commit = entry.getCommit();
-          visitor.commit(mark, commit.getIndex());
-        } else if (entry.hasTerm()) {
-          Term term = entry.getTerm();
-          visitor.term(mark, term.getTerm());
-        } else if (entry.hasVote()) {
-          Vote vote = entry.getVote();
-          String votedfor = vote.getVotedFor();
-          Replica replica = votedfor == null
-            ? null : config.getReplica(votedfor);
-          visitor.vote(mark, Optional.ofNullable(replica));
-        }
-
-      }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  @Override
-  public void close() throws IOException {
-    journal.close();
-  }
-
-  interface Visitor {
-
-    void term(Mark mark, long term);
-
-    void vote(Mark mark, Optional<Replica> vote);
-
-    void commit(Mark mark, long commit);
-
-    void append(Mark mark, Entry entry, long index);
-
-  }
-
-  static class Mark {
-
-    private final Location location;
-
-    private Mark(Location location) {
-      this.location = location;
     }
 
-    private Location getLocation() {
-      return location;
+    interface Mark {
     }
-  }
 
 }

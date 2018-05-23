@@ -20,6 +20,14 @@
         <appender-ref ref="STDOUT" />
     </logger>
 
+    <logger name="org.robotninjas.barge.ChannelCluster" level="DEBUG" additivity="false">
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <logger name="junit-quickcheck.value-reporting" level="DEBUG" additivity="false">
+        <appender-ref ref="STDOUT" />
+    </logger>
+
     <root level="info">
         <appender-ref ref="STDOUT" />
     </root>

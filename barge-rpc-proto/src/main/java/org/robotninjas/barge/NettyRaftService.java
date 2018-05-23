@@ -91,10 +91,8 @@ public class NettyRaftService extends AbstractService implements RaftService {
   }
 
   @Override
-  public CompletableFuture<Object> commitAsync(final byte[] operation) throws RaftException {
-
+  public CompletableFuture<Object> commitAsync(final byte[] operation) {
     return ctx.commitOperation(operation);
-
   }
 
   @Override

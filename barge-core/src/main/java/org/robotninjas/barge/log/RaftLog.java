@@ -36,7 +36,6 @@ import java.util.concurrent.ConcurrentMap;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
-import journal.io.api.Journal;
 import org.robotninjas.barge.ClusterConfig;
 import org.robotninjas.barge.Replica;
 import org.robotninjas.barge.api.AppendEntries;
@@ -52,7 +51,7 @@ public class RaftLog implements Closeable {
   private static final byte[] EMPTY = new byte[0];
   private static final Entry SENTINEL = Entry.newBuilder().setCommand(EMPTY).setTerm(0).build();
 
-  private final TreeMap<Long, RaftJournal.Mark> log = Maps.newTreeMap();
+  private final TreeMap<Long, RaftJournalImpl.Mark> log = Maps.newTreeMap();
   private final ClusterConfig config;
   private final StateMachineProxy stateMachine;
   private final RaftJournal journal;
@@ -67,9 +66,9 @@ public class RaftLog implements Closeable {
   private volatile long lastApplied = 0;
 
   @Inject
-  RaftLog(@Nonnull Journal journal, @Nonnull ClusterConfig config,
+  RaftLog(@Nonnull RaftJournal journal, @Nonnull ClusterConfig config,
           @Nonnull StateMachineProxy stateMachine) {
-    this.journal = new RaftJournal(checkNotNull(journal), checkNotNull(config));
+    this.journal = journal;
     this.config = checkNotNull(config);
     this.stateMachine = checkNotNull(stateMachine);
   }
@@ -78,24 +77,24 @@ public class RaftLog implements Closeable {
 
     LOGGER.info("Replaying log");
 
-    journal.replay(new RaftJournal.Visitor() {
+    journal.replay(new RaftJournalImpl.Visitor() {
       @Override
-      public void term(RaftJournal.Mark mark, long term) {
+      public void term(RaftJournalImpl.Mark mark, long term) {
         currentTerm = Math.max(currentTerm, term);
       }
 
       @Override
-      public void vote(RaftJournal.Mark mark, Optional<Replica> vote) {
+      public void vote(RaftJournalImpl.Mark mark, Optional<Replica> vote) {
         votedFor = vote;
       }
 
       @Override
-      public void commit(RaftJournal.Mark mark, long commit) {
+      public void commit(RaftJournalImpl.Mark mark, long commit) {
         commitIndex = Math.max(commitIndex, commit);
       }
 
       @Override
-      public void append(RaftJournal.Mark mark, Entry entry, long index) {
+      public void append(RaftJournalImpl.Mark mark, Entry entry, long index) {
         lastLogIndex = Math.max(index, lastLogIndex);
         lastLogTerm = Math.max(entry.getTerm(), lastLogTerm);
         log.put(index, mark);
@@ -110,7 +109,7 @@ public class RaftLog implements Closeable {
 
   private CompletableFuture<Object> storeEntry(final long index, @Nonnull Entry entry) {
     LOGGER.debug("{} storing {}", config.local(), entry);
-    RaftJournal.Mark mark = journal.appendEntry(entry, index);
+    RaftJournalImpl.Mark mark = journal.appendEntry(entry, index);
     log.put(index, mark);
     CompletableFuture<Object> result = new CompletableFuture<>();
     operationResults.put(index, result);
@@ -179,7 +178,7 @@ public class RaftLog implements Closeable {
 
   }
 
-  void fireComitted() {
+  private void fireComitted() {
     try {
       for (long i = lastApplied + 1; i <= Math.min(commitIndex, lastLogIndex); ++i, ++lastApplied) {
         LOGGER.debug("{} {} {}", i, log);
@@ -192,10 +191,10 @@ public class RaftLog implements Closeable {
         // returnedResult may be null on log replay
         if (returnedResult != null) {
           result.handle((r, t) -> {
-            if (null != r) {
-              returnedResult.complete(r);
-            } else {
+            if (null != t) {
               returnedResult.completeExceptionally(t);
+            } else {
+              returnedResult.complete(r);
             }
             return null;
           });

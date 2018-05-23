@@ -46,8 +46,10 @@ class Start extends BaseState {
 
   @Nonnull
   @Override
-  public CompletableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
-    throw new RaftException("Service has not started yet");
+  public CompletableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) {
+    CompletableFuture<Object> failed = new CompletableFuture<>();
+    failed.completeExceptionally(new RaftException("Service has not started yet"));
+    return failed;
   }
 
 }

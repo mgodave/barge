@@ -27,7 +27,9 @@ class RaftServiceEndpoint implements RaftProto.RaftService.Interface {
   @Override
   public void requestVote(@Nonnull final RpcController controller, @Nonnull final RequestVote request, @Nonnull final RpcCallback<RequestVoteResponse> done) {
     try {
-      done.run(ProtoUtils.convert(ctx.requestVote(ProtoUtils.convert(request))));
+      ctx.requestVote(ProtoUtils.convert(request))
+          .thenApply(ProtoUtils::convert)
+          .thenAccept(done::run);
     } catch (Exception e) {
       LOGGER.debug("Exception caught servicing RequestVote", e);
       controller.setFailed(nullToEmpty(e.getMessage()));
@@ -38,7 +40,9 @@ class RaftServiceEndpoint implements RaftProto.RaftService.Interface {
   @Override
   public void appendEntries(@Nonnull final RpcController controller, @Nonnull final AppendEntries request, @Nonnull final RpcCallback<AppendEntriesResponse> done) {
     try {
-      done.run(ProtoUtils.convert(ctx.appendEntries(ProtoUtils.convert(request))));
+      ctx.appendEntries(ProtoUtils.convert(request))
+          .thenApply(ProtoUtils::convert)
+          .thenAccept(done::run);
     } catch (Exception e) {
       LOGGER.debug("Exception caught servicing AppendEntries", e);
       controller.setFailed(nullToEmpty(e.getMessage()));

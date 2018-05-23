@@ -162,17 +162,16 @@ public abstract class BaseState implements State {
 
   @Nonnull
   @Override
-  public CompletableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) throws RaftException {
+  public CompletableFuture<Object> commitOperation(@Nonnull RaftStateContext ctx, @Nonnull byte[] operation) {
     StateType stateType = ctx.type();
     Preconditions.checkNotNull(stateType);
+    CompletableFuture<Object> failed = new CompletableFuture<>();
     if (stateType.equals(FOLLOWER)) {
-      throw new NotLeaderException(leader.get());
-    } else if (stateType.equals(CANDIDATE)) {
-      throw new NoLeaderException();
+      failed.completeExceptionally(new NotLeaderException(leader));
+    } else {
+      failed.completeExceptionally(new NoLeaderException());
     }
-    CompletableFuture<Object> canceled = new CompletableFuture<>();
-    canceled.cancel(false);
-    return canceled;
+    return failed;
   }
   
   @Override

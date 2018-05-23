@@ -19,14 +19,22 @@
 package org.robotninjas.barge;
 
 import com.google.common.collect.Maps;
+import com.google.common.primitives.Longs;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ChannelReplicaFactory {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChannelReplicaFactory.class);
+    private static final AtomicLong counter = new AtomicLong(0);
     private final Map<String, Replica> replicas = Maps.newConcurrentMap();
 
     public Replica newReplica() {
-        UUID id = UUID.randomUUID();
+        long c = counter.getAndIncrement();
+        UUID id = UUID.nameUUIDFromBytes(Longs.toByteArray(c));
+        LOGGER.debug("Generating UUID for node {} {}", c, id);
         ChannelReplica replica = new ChannelReplica(id);
         replicas.put(id.toString(), replica);
         return replica;

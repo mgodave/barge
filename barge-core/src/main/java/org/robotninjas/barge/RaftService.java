@@ -23,9 +23,8 @@ public interface RaftService {
    * @param operation an arbitrary operation to be sent to the <em>state machine</em> managed by Raft.
    * @return the result of executing the operation, wrapped in a {@link CompletableFuture}, that can be retrieved
    *         at a later point in time.
-   * @throws org.robotninjas.barge.RaftException
    */
-  CompletableFuture<Object> commitAsync(byte[] operation) throws RaftException;
+  CompletableFuture<Object> commitAsync(byte[] operation);
 
   /**
    * Synchronously executes and operation on the state machine managed by barge.
