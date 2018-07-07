@@ -1,0 +1,30 @@
+description = ''
+dependencies {
+    compile project(':barge-core')
+    compile group: 'com.google.guava', name: 'guava', version: '25.0-jre'
+    compile group: 'org.jetlang', name: 'jetlang', version: '0.2.19'
+    compile group: 'com.google.inject', name: 'guice', version: '4.2.0'
+    compile group: 'com.google.inject.extensions', name: 'guice-assistedinject', version: '4.2.0'
+    compile group: 'com.google.inject.extensions', name: 'guice-multibindings', version: '4.2.0'
+    compile group: 'com.github.sbtourist', name: 'journalio', version: '1.4.1'
+    runtime group: 'ch.qos.logback', name: 'logback-classic', version: '1.0.13'
+    runtime group: 'org.slf4j', name: 'jul-to-slf4j', version: '1.7.4'
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    testCompile group: 'org.mockito', name: 'mockito-all', version: '1.8.0'
+    testCompile group: 'org.assertj', name: 'assertj-core', version: '1.5.0'
+    testCompile group: 'com.pholser', name: 'junit-quickcheck-core', version: '0.8'
+    testCompile group: 'com.pholser', name: 'junit-quickcheck-generators', version: '0.8'
+    testCompile group: 'com.pholser', name: 'junit-quickcheck-guava', version: '0.8'
+    testCompile group: 'org.awaitility', name: 'awaitility', version: '3.1.0'
+    testCompile group: 'com.github.rholder', name: 'guava-retrying', version: '2.0.0'
+    testCompile group: 'org.awaitility', name: 'awaitility-proxy', version: '3.1.0'
+    testCompile group: 'com.nurkiewicz.asyncretry', name: 'asyncretry', version: '0.0.7'
+}
+
+tasks.withType(Test) {
+    testLogging {
+        exceptionFormat "full"
+        events "started", "skipped", "passed", "failed"
+        showStandardStreams true
+    }
+}

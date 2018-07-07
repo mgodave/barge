@@ -1,0 +1,12 @@
+rootProject.name = 'barge'
+include ':barge-core'
+include ':barge-tools'
+include ':barge-rpc-proto'
+include ':barge-jax-rs'
+include ':barge-channels'
+
+project(':barge-core').projectDir = "$rootDir/barge-core" as File
+project(':barge-tools').projectDir = "$rootDir/barge-tools" as File
+project(':barge-rpc-proto').projectDir = "$rootDir/barge-rpc-proto" as File
+project(':barge-jax-rs').projectDir = "$rootDir/barge-jax-rs" as File
+project(':barge-channels').projectDir = "$rootDir/barge-channels" as File
